@@ -1,0 +1,12 @@
+.tag {
+  background-color: #def7fc;
+  border-radius: 5px;
+  padding: 5px 10px;
+}
+
+.tag-inactive {
+  background-color: #fff;
+  border-radius: 5px;
+  padding: 5px 10px;
+  color: 'primary.main';
+}
