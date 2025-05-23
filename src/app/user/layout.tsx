@@ -1,4 +1,4 @@
-import AuthGuard from "@/Component/AuthGurd";
+import AuthGuard from "@/components/AuthGurd";
 
 export default function RootLayout({
                                      children,

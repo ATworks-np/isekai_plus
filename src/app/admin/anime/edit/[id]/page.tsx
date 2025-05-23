@@ -1,4 +1,4 @@
-import AddTitle from "@/Component/AdminPage/AddTitle";
+import AddTitle from "@/components/AdminPage/AddTitle";
 import {api} from "@/Routes/routs";
 
 export async function generateStaticParams() {

@@ -1,4 +1,4 @@
-import AnimePage from "@/Component/AnimePage"
+import AnimePage from "@/components/AnimePage"
 import { api } from "@/Routes/routs"
 import {IAnimeStatic} from "@/models/interfaces/animeStatic";
 

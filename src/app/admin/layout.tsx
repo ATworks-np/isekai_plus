@@ -1,4 +1,4 @@
-import AdminGuard from "@/Component/AdminGurd";
+import AdminGuard from "@/components/AdminGurd";
 
 export default function RootLayout({
                                      children,

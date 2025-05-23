@@ -1,6 +1,6 @@
 'use client'
 
-import ListPage from '@/Component/ListPage';
+import ListPage from '@/components/ListPage';
 
 export default function Home() {
   return (

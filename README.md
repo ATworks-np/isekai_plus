@@ -2,6 +2,17 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### OpenAI API Key Setup
+
+This project uses the OpenAI API for automatic tag generation. To use this feature:
+
+1. Get an API key from [OpenAI](https://platform.openai.com/api-keys)
+2. Create a `.env.local` file in the root directory
+3. Add your API key to the file:
+   ```
+   NEXT_PUBLIC_OPENAI_API_KEY=your_openai_api_key_here
+   ```
+
 First, run the development server:
 
 ```bash

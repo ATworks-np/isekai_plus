@@ -3,6 +3,8 @@ interface IComment {
   name: string;
   comment: string;
   date: string;
+  uid?: string;
+  docId?: string;
 }
 
 interface ICommentClass {

@@ -2,9 +2,9 @@ import {Providers} from '@/app/providers'
 import LoadingModal from "@/features/LoadingModal";
 import CustomSnackbar from "@/features/CostomSnackbar";
 import {CssBaseline} from "@mui/material";
-import UpperAppBar from "@/Component/UpperAppBar";
-import EmotionCacheProvider from "@/Component/EmotionCacheProvider";
-import Fotter from "@/Component/Footer";
+import UpperAppBar from "@/components/UpperAppBar";
+import EmotionCacheProvider from "@/components/EmotionCacheProvider";
+import Fotter from "@/components/Footer";
 import {Box} from "@mui/material";
 export const metadata = {
   title: "いせかいぷらす | 異世界アニメまとめサイト",

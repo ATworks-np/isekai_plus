@@ -9,7 +9,7 @@ const useAnimeComments = (props: {id: string}) => {
   const [animeComments, setAnimeComments] = useAtom(animeCommentsAtom);
 
   const refreshAnimeComments = () => {
-    setAnimeComments(undefined);
+    // Don't set to undefined before fetching to prevent flashing
     const collectionRef = collection(db, `versions/1/animes/${props.id}/comments`)
     getDocs(collectionRef).then((querySnapshot: any) => {
       const buffer: any[] = []
@@ -21,6 +21,8 @@ const useAnimeComments = (props: {id: string}) => {
             date: date2YYYYMMDD(data.createdAt.toDate()),
             name: data.userDisplayName,
             avatarUrl: data.userPhotoURL,
+            uid: data.uid,
+            docId: doc.id,
           }
         ));
       })
