@@ -127,7 +127,15 @@ const AnimeListItem: React.FC<AnimeListItemProps> = props => {
 
   return (
     <MyBox display="flex">
-      <Thumbnail src={thumbnailPrefix + props.id + '.jpg'} sx={{width: 80, height: 80}}/>
+      <Thumbnail
+        src={thumbnailPrefix + props.id + '.jpg'}
+        alt={props.name.ja}
+        imgProps={{
+          loading: 'lazy',
+          decoding: 'async',
+        }}
+        sx={{ width: 80, height: 80 }}
+      />
       <SumaryBox>
         <Link href={`/animes/${props.id}`}>
           <Typography
