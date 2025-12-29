@@ -3,11 +3,9 @@
 import React from 'react'
 import { useAtom } from 'jotai'
 import { Snackbar} from '@mui/material'
-import {customSnackbarAtom} from "@/store/customSnackbarState";
+import {customSnackbarAtom} from "@/stores/customSnackbarState";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
-
-
 
 const CustomSnackbar: React.FC = props => {
   const [message, setMessage] = useAtom<string>(customSnackbarAtom)

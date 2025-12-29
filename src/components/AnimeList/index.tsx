@@ -11,8 +11,8 @@ import { Typography } from '@mui/material'
 import ContentListItem from './AnimeListItem'
 import CircularProgress from '@mui/material/CircularProgress'
 import { useAtom } from 'jotai'
-import { searchSelectedTagAtom } from '@/store/searchSelectedTagAtom'
-import { courAtom } from '@/store/coursState'
+import { searchSelectedTagAtom } from '@/stores/searchSelectedTagAtom'
+import { courAtom } from '@/stores/coursState'
 import useTags from "@/hooks/useTags";
 import {api} from "@/Routes/routs";
 

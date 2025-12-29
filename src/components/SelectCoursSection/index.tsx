@@ -1,6 +1,6 @@
 import React from "react";
 import { Chip, Grid, Box, styled } from "@mui/material";
-import { courAtom } from '@/store/coursState'
+import { courAtom } from '@/stores/coursState'
 import { useAtom } from 'jotai'
 
 const MyChip = styled(Chip)(({ theme }) => ({

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { userAtom } from '@/store/userStore'
+import { userAtom } from '@/stores/userStore'
 import { getAuth } from 'firebase/auth'
 import { useAtom } from 'jotai'
 import User from '@/models/entities/user'

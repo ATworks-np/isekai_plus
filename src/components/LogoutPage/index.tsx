@@ -7,9 +7,9 @@ import React, {ReactNode, useEffect} from 'react'
 import { getAuth, signOut } from "firebase/auth";
 import { useRouter } from 'next/navigation'
 import { useAtom } from "jotai";
-import { customSnackbarAtom } from "@/store/customSnackbarState";
+import { customSnackbarAtom } from "@/stores/customSnackbarState";
 import { guestUser } from "@/models/entities/user";
-import {userAtom} from "@/store/userStore";
+import {userAtom} from "@/stores/userStore";
 
 const LogoutPage: React.FC = props => {
   const [user, setUser] = useAtom(userAtom);

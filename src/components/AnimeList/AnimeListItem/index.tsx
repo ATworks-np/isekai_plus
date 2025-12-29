@@ -11,9 +11,9 @@ import ForumIcon from '@mui/icons-material/Forum';
 import { useAtom } from "jotai";
 import StarRating from "@/components/StarRating";
 import Link from "next/link";
-import {tagsAtom} from "@/store/tagStore";
+import {tagsAtom} from "@/stores/tagStore";
 import EditIcon from "@mui/icons-material/Edit";
-import {userAtom} from "@/store/userStore";
+import {userAtom} from "@/stores/userStore";
 import { db } from '@/firebase';
 import { collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, where, serverTimestamp } from 'firebase/firestore';
 

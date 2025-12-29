@@ -14,7 +14,7 @@ import Button from "@mui/material/Button";
 import StarIcon from '@mui/icons-material/Star';
 import {IAnimeStatic} from "@/models/interfaces/animeStatic";
 import {useAtom} from "jotai";
-import { userAtom } from '@/store/userStore';
+import { userAtom } from '@/stores/userStore';
 const ratingLabels = {
   story: 'ストーリー',
   character: 'キャラ',

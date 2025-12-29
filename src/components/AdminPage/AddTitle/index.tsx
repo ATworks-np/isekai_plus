@@ -20,6 +20,35 @@ import {
   DialogActions,
   Grid
 } from '@mui/material';
+
+// Type definitions for OpenAI API
+type OpenAIMessageContent = 
+  | string 
+  | Array<{
+      type: string;
+      text?: string;
+      image_url?: { url: string };
+    }>;
+
+type OpenAIMessage = {
+  role: 'system' | 'user' | 'assistant';
+  content: OpenAIMessageContent;
+};
+
+// Specific message types for different content formats
+type OpenAITextMessage = {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+};
+
+type OpenAIMultiModalMessage = {
+  role: 'system' | 'user' | 'assistant';
+  content: Array<{
+    type: string;
+    text?: string;
+    image_url?: { url: string };
+  }>;
+};
 import { getTagGenerationSystemPrompt, getTagGenerationUserPrompt } from '@/prompts/tagGeneration';
 import TagsSection from "@/components/TagsSection";
 import {collection, addDoc, doc, setDoc} from "firebase/firestore";
@@ -32,8 +61,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import useTags from "@/hooks/useTags";
 import { useRouter } from 'next/navigation'
 import {useAtom} from "jotai/index";
-import {loadingModalAtom} from "@/store/loadingModalState";
-import {customSnackbarAtom} from "@/store/customSnackbarState";
+import {loadingModalAtom} from "@/stores/loadingModalState";
+import {customSnackbarAtom} from "@/stores/customSnackbarState";
 import useAnime from "@/hooks/useAnime";
 
 type AddTitleProps = {
@@ -83,7 +112,7 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
           en: titleEN,
         },
         cours: cours.split(','),
-        tags: tagsState.map((key) => doc(db, key)),
+        tags: tagsState.map((key: string) => doc(db, key)),
       };
 
       let docRef;
@@ -196,43 +225,52 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
 
     try {
       // Prepare messages array
-      const messages = [
-        {
-          role: 'system',
-          content: getTagGenerationSystemPrompt(tags)
-        }
-      ];
+      const systemMessage: OpenAITextMessage = {
+        role: 'system',
+        content: getTagGenerationSystemPrompt(tags)
+      };
+
+      let userMessage: OpenAITextMessage | OpenAIMultiModalMessage;
 
       // If thumbnail exists, convert it to base64 and add it to the messages
       if (thumbnail) {
         const base64Image = await imageToBase64(thumbnail);
 
         // Add user message with image
-        messages.push({
+        userMessage = {
           role: 'user',
           content: [
             { type: 'text', text: getTagGenerationUserPrompt(titleJP) },
             { type: 'image_url', image_url: { url: base64Image } }
           ]
-        });
+        };
       } else {
         // Add user message without image
-        messages.push({
+        userMessage = {
           role: 'user',
           content: getTagGenerationUserPrompt(titleJP)
-        });
+        };
       }
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      // Combine messages for the API call
+      const messages = [systemMessage, userMessage];
+
+      const response = await fetch('https://api.openai.com/v1/responses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: messages,
-          temperature: 0.7
+          // model: 'gpt-4o-search-preview',
+          model: "gpt-5",
+            reasoning: { "effort": "low" },
+            tools: [
+                {
+                    type: "web_search",
+                }
+                ],
+          input: getTagGenerationSystemPrompt(tags) + "\n" +getTagGenerationUserPrompt(titleJP)
         })
       });
 
@@ -241,11 +279,12 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
       }
 
       const data = await response.json();
-      const content = data.choices[0].message.content;
+      const output = data.output;
+      const content = data.output[output.length-1].content[0].text;
 
       // Extract tags from the response (format: #tag)
       const tagMatches = content.match(/#[^\s#]+/g) || [];
-      const cleanTags = tagMatches.map(tag => tag.substring(1).replace(/,/g, '')); // Remove # prefix and commas
+      const cleanTags = tagMatches.map((tag: string) => tag.substring(1).replace(/,/g, '')); // Remove # prefix and commas
 
       setGeneratedTags(cleanTags);
 
@@ -407,8 +446,8 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 追加したいタグを選択してください。選択したタグはまとめて追加されます。
               </Typography>
-              <Grid container spacing={1}>
-                {generatedTags.map((tag, index) => {
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {generatedTags.map((tag: string, index: number) => {
                   // Check if tag already exists in the system
                   const existingTagKey = Object.entries(tags).find(
                     ([_, tagObj]) => tagObj.name.ja === tag || tagObj.name.en === tag
@@ -421,27 +460,46 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
                   const isSelectedInModal = selectedModalTags.includes(tag);
 
                   return (
-                    <Grid item key={index}>
+                    <Box key={index} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                       <Chip
                         label={tag}
-                        color={isSelectedInModal ? "primary" : isAlreadySelected ? "success" : "default"}
+                        color={isSelectedInModal ? 'primary' : isAlreadySelected ? 'success' : 'default'}
                         onClick={() => handleTagSelect(tag)}
-                        sx={{ 
-                          m: 0.5, 
+                        sx={{
+                          m: 0.5,
                           fontSize: '1rem',
                           opacity: isAlreadySelected ? 0.7 : 1,
-                          '&:hover': { opacity: 0.9 }
+                          '&:hover': { opacity: 0.9 },
+                          // Ensure long tag text is fully visible inside the modal
+                          maxWidth: '100%',
+                          height: 'auto',
+                          alignItems: 'flex-start',
+                          whiteSpace: 'normal',
+                          '& .MuiChip-label': {
+                            whiteSpace: 'normal',
+                            overflow: 'visible',
+                            textOverflow: 'clip',
+                            display: 'block',
+                            lineHeight: 1.3,
+                            paddingTop: '4px',
+                            paddingBottom: '4px',
+                          },
                         }}
                       />
                       {isAlreadySelected && (
-                        <Typography variant="caption" display="block" color="text.secondary" sx={{ textAlign: 'center' }}>
+                        <Typography
+                          variant="caption"
+                          display="block"
+                          color="text.secondary"
+                          sx={{ textAlign: 'center', mt: 0.5 }}
+                        >
                           既に選択済み
                         </Typography>
                       )}
-                    </Grid>
+                    </Box>
                   );
                 })}
-              </Grid>
+              </Box>
             </DialogContent>
             <DialogActions>
               <Button onClick={handleCloseTagsModal} color="inherit">

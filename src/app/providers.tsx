@@ -3,7 +3,6 @@
 import { RecoilRoot } from 'recoil'
 import {ThemeProvider} from "@mui/material/styles";
 import theme from "@/theme/theme";
-import LoadingModal from "@/features/LoadingModal";
 import {useEffect, useState} from "react";
 
 export function Providers({ children }: { children: React.ReactNode }) {

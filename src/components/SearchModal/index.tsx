@@ -1,10 +1,10 @@
 import React from 'react'
 import { useAtom } from 'jotai'
-import { searchModalAtom } from '@/store/serchModalState'
+import { searchModalAtom } from '@/stores/serchModalState'
 import { Box, Modal } from '@mui/material'
 import TagsSection from '@/components/TagsSection'
 import theme from '@/theme/theme'
-import { searchSelectedTagAtom } from "@/store/searchSelectedTagAtom";
+import { searchSelectedTagAtom } from "@/stores/searchSelectedTagAtom";
 const style = {
   position: 'absolute',
   top: '50%',

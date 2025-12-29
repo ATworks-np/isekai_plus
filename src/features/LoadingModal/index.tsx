@@ -4,7 +4,7 @@ import React from 'react'
 import { useAtom } from 'jotai'
 import { Box, Modal } from '@mui/material'
 import CircularProgress from "@mui/material/CircularProgress";
-import { loadingModalAtom } from '@/store/loadingModalState'
+import { loadingModalAtom } from '@/stores/loadingModalState'
 
 const LoadingModal: React.FC = props => {
   const [open, setOpen] = useAtom(loadingModalAtom)

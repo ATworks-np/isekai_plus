@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { animeCommentsAtom } from "@/store/animeCommentsAtom";
+import { animeCommentsAtom } from "@/stores/animeCommentsAtom";
 import { useAtom } from 'jotai'
 import {collection, getDocs} from "firebase/firestore";
 import {db} from "@/firebase";

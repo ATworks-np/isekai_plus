@@ -5,9 +5,9 @@ import {addDoc, collection, doc} from "firebase/firestore";
 import {db, storage} from "@/firebase";
 import {ref, uploadBytes} from "firebase/storage";
 import {useAtom} from "jotai/index";
-import {customSnackbarAtom} from "@/store/customSnackbarState";
+import {customSnackbarAtom} from "@/stores/customSnackbarState";
 import useAnimeComments from "@/hooks/useAnimeComments";
-import {userAtom} from "@/store/userStore";
+import {userAtom} from "@/stores/userStore";
 
 const CommentInput: React.FC<{ id: string }> = (props) => {
   const [comment, setComment] = useState("");

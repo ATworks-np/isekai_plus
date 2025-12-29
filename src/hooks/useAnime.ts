@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { userAtom } from '@/store/userStore'
+import { userAtom } from '@/stores/userStore'
 import { getAuth } from 'firebase/auth'
 import { useAtom } from 'jotai'
-import { animeAtom } from "@/store/animeStore";
+import { animeAtom } from "@/stores/animeStore";
 import {doc, DocumentReference, getDoc} from "firebase/firestore";
 import {db} from "@/firebase";
 import User from "@/models/entities/user";

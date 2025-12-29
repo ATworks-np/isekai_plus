@@ -6,14 +6,14 @@ import React, {ReactNode, useEffect} from 'react'
 import { useRouter } from 'next/navigation'
 import {getAuth, GoogleAuthProvider, signInWithPopup, signOut} from "firebase/auth";
 import { useAtom } from "jotai";
-import { userAtom } from "@/store/userStore";
+import { userAtom } from "@/stores/userStore";
 import {doc, getDoc, serverTimestamp, setDoc} from "firebase/firestore";
 import {db} from "@/firebase";
 import User from "@/models/entities/user";
 import {Box} from "@mui/material";
 import GoogleButton from "react-google-button";
-import {loadingModalAtom} from "@/store/loadingModalState";
-import {customSnackbarAtom} from "@/store/customSnackbarState";
+import {loadingModalAtom} from "@/stores/loadingModalState";
+import {customSnackbarAtom} from "@/stores/customSnackbarState";
 
 const style = {
   marginTop: '400px',

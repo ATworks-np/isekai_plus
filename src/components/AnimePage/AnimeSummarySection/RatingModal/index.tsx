@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import { useAtom } from 'jotai'
-import { loginModalAtom } from '@/store/loginModalState'
+import { loginModalAtom } from '@/stores/loginModalState'
 import {Box, Button, Container, Modal, Stack, Typography} from '@mui/material'
 import theme from '@/theme/theme'
 import GoogleButton from 'react-google-button'
@@ -13,8 +13,8 @@ import user from "@/models/entities/user";
 import useUser from "@/hooks/useUser";
 import {IRatings, ratingLabels} from "@/models/interfaces/ratings"
 import useAnimeMyRatings from "@/hooks/useAnimeMyRatings";
-import {customSnackbarAtom} from "@/store/customSnackbarState";
-import {userAtom} from "@/store/userStore";
+import {customSnackbarAtom} from "@/stores/customSnackbarState";
+import {userAtom} from "@/stores/userStore";
 
 interface RatingModalProps {
   open: boolean

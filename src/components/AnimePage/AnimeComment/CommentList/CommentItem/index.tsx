@@ -6,8 +6,8 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/firebase";
 import { useAtom } from "jotai";
-import { userAtom } from "@/store/userStore";
-import { customSnackbarAtom } from "@/store/customSnackbarState";
+import { userAtom } from "@/stores/userStore";
+import { customSnackbarAtom } from "@/stores/customSnackbarState";
 import useAnimeComments from "@/hooks/useAnimeComments";
 
 interface CommentProps {

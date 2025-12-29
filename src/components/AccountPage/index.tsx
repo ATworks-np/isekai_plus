@@ -9,8 +9,8 @@ import {db, storage} from "@/firebase";
 import {ref, uploadBytes, getDownloadURL} from "firebase/storage";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useAtom } from "jotai";
-import {loadingModalAtom} from "@/store/loadingModalState";
-import {customSnackbarAtom} from "@/store/customSnackbarState";
+import {loadingModalAtom} from "@/stores/loadingModalState";
+import {customSnackbarAtom} from "@/stores/customSnackbarState";
 const AccountPage: React.FC = () => {
   const [open, setOpen] = useAtom<boolean>(loadingModalAtom)
   const [message, setMessage] = useAtom<string>(customSnackbarAtom)

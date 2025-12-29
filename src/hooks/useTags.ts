@@ -6,7 +6,7 @@ import { useAtom } from 'jotai'
 import User from '@/models/entities/user'
 import {collection, doc, getDoc, getDocs} from 'firebase/firestore'
 import { db } from '@/firebase'
-import {tagsAtom} from "@/store/tagStore";
+import {tagsAtom} from "@/stores/tagStore";
 
 const useTags = () => {
   const [tags, setTags] = useAtom(tagsAtom)

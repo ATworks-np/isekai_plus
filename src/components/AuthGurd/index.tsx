@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import useUser from '@/hooks/useUser'
 import type { ReactNode } from 'react'
-import {userAtom} from "@/store/userStore";
+import {userAtom} from "@/stores/userStore";
 import {useAtom} from "jotai";
 
 interface Props {
