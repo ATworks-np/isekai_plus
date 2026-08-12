@@ -32,6 +32,13 @@ service cloud.firestore {
         allow read: if true;
         allow write: if isAdmin();
       }
+
+      // API key hashes. Unmatched paths are denied by default, but state it
+      // explicitly: these must only ever be touched by the Admin SDK from the
+      // route handlers, never by a client.
+      match /apiKeys/{document=**} {
+        allow read, write: if false;
+      }
     }
   }
 }
