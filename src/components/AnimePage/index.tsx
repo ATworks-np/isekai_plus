@@ -1,33 +1,37 @@
 'use client'
 
-import logo from '../../logo.svg'
 import React from 'react'
-import styles from './tag.module.css'
-import { Box, Chip, Stack, Typography } from '@mui/material'
-import AnimeList from '../AnimeList'
-import SearchModal from '@/components/SearchModal'
-import LoginModal from '@/components/LoginModal'
-import useUser from '@/hooks/useUser'
+import { Stack } from '@mui/material'
 import AnimeSummarySection from "@/components/AnimePage/AnimeSummarySection";
-import { useParams } from 'next/navigation'
-import useAnime from "@/hooks/useAnime";
-import CommentItem from "@/components/AnimePage/AnimeComment/CommentList/CommentItem";
-import CommentList from "@/components/AnimePage/AnimeComment/CommentList";
 import CommentInput from "@/components/AnimePage/CommentInput";
 import AnimeComment from "@/components/AnimePage/AnimeComment";
-import {string} from "prop-types";
+import useSeasons from "@/hooks/useSeasons";
 import { IAnimeStatic } from "@/models/interfaces/animeStatic";
 
 const AnimePage: React.FC<IAnimeStatic> = (props) => {
-  const anime = useAnime({id: props.id ?? ""});
+  // Seasons live here rather than in the summary section because the comment
+  // box needs the same selection: a comment is recorded against the season the
+  // reader is looking at.
+  const { seasons, reloadSeasons } = useSeasons(props.id);
+  const [selectedSeasonId, setSelectedSeasonId] = React.useState<string>('');
+
+  const activeSeason =
+    seasons.find(season => season.id === selectedSeasonId) ?? seasons[seasons.length - 1];
+
+  if (!props.id) return null;
 
   return (
-    props.id ?
-      <Stack id='stack' direction="column" alignItems="center">
-      <AnimeSummarySection {...props} />
-      <AnimeComment id={props.id}/>
-      <CommentInput id={props.id}/>
-    </Stack> : null
+    <Stack id='stack' direction="column" alignItems="center">
+      <AnimeSummarySection
+        {...props}
+        seasons={seasons}
+        activeSeason={activeSeason}
+        onSelectSeason={setSelectedSeasonId}
+        onRatingSaved={reloadSeasons}
+      />
+      <AnimeComment id={props.id} seasons={seasons} />
+      <CommentInput id={props.id} seasonId={activeSeason?.id} />
+    </Stack>
   )
 }
 

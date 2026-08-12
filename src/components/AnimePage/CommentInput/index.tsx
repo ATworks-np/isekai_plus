@@ -9,7 +9,7 @@ import {customSnackbarAtom} from "@/stores/customSnackbarState";
 import useAnimeComments from "@/hooks/useAnimeComments";
 import {userAtom} from "@/stores/userStore";
 
-const CommentInput: React.FC<{ id: string }> = (props) => {
+const CommentInput: React.FC<{ id: string; seasonId?: string }> = (props) => {
   const [comment, setComment] = useState("");
   const [user, setUser] = useAtom(userAtom);
   const [message, setMessage] = useAtom<string>(customSnackbarAtom);
@@ -20,6 +20,9 @@ const CommentInput: React.FC<{ id: string }> = (props) => {
     try {
       const docRef  = await addDoc(collection(db, `versions/1/animes/${props.id}/comments`), {
         comment: comment,
+        // Records which season the reader had open. Comments still all live on
+        // the series, so this labels them rather than filing them away.
+        seasonId: props.seasonId ?? null,
         uid: user.props.uid,
         user: doc(db, `versions/1/users/${user.props.uid}`),
         userDisplayName: user.props.displayName,

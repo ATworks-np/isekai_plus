@@ -2,7 +2,7 @@ import React from 'react'
 import Grid from "@mui/material/Grid";
 import useAnime from "@/hooks/useAnime";
 import {Box, Container, Stack, Tab, Tabs, Typography} from "@mui/material";
-import useSeasons from "@/hooks/useSeasons";
+import { Season } from "@/hooks/useSeasons";
 import StarRating from "@/components/StarRating";
 import HelpIcon from '@mui/icons-material/Help';
 import RatingModal from "@/components/AnimePage/AnimeSummarySection/RatingModal";
@@ -25,19 +25,19 @@ const ratingLabels = {
 }
 
 
-const AnimeSummarySection: React.FC<IAnimeStatic> = props => {
+type AnimeSummarySectionProps = IAnimeStatic & {
+  seasons: Season[]
+  activeSeason: Season | undefined
+  onSelectSeason: (seasonId: string) => void
+  onRatingSaved: () => void
+}
+
+const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
   const [anime] = useAnime({id: props.id});
   const [user, setUser] = useAtom(userAtom);
   const thumbnailPrefix = 'https://storage.googleapis.com/jp-contents-matome.appspot.com/thumbnail/'
   const [openRatingModal, setOpenRatingModal] = React.useState(false);
-  const { seasons, reloadSeasons } = useSeasons(props.id);
-  const [selectedSeasonId, setSelectedSeasonId] = React.useState<string>('');
-
-  // Derived rather than synced through an effect, so a season loading in does
-  // not need a second render to pick a default.
-  const activeSeason =
-    seasons.find(season => season.id === selectedSeasonId) ?? seasons[seasons.length - 1];
-  // The latest season is what a visitor arriving during a broadcast came for.
+  const { seasons, activeSeason } = props;
   const showTabs = seasons.length > 1;
   const ratings = activeSeason?.ratings ?? anime.props.ratings;
 
@@ -56,7 +56,7 @@ const AnimeSummarySection: React.FC<IAnimeStatic> = props => {
         animeId={props.id}
         seasonId={activeSeason?.id}
         seasonLabel={showTabs ? activeSeason?.label : undefined}
-        onSaved={reloadSeasons}
+        onSaved={props.onRatingSaved}
       />
       <Box
         sx={{
@@ -89,7 +89,7 @@ const AnimeSummarySection: React.FC<IAnimeStatic> = props => {
         {showTabs && (
           <Tabs
             value={activeSeason?.id ?? false}
-            onChange={(_, value) => setSelectedSeasonId(value)}
+            onChange={(_, value) => props.onSelectSeason(value)}
             variant="scrollable"
             scrollButtons={false}
             sx={{

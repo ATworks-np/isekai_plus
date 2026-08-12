@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Avatar, Box, Typography, Stack, Button, TextField, IconButton } from "@mui/material";
+import { Avatar, Box, Chip, Typography, Stack, Button, TextField, IconButton } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -18,9 +18,10 @@ interface CommentProps {
   uid?: string;
   docId?: string;
   animeId: string;
+  seasonLabel?: string;
 }
 
-const CommentItem: React.FC<CommentProps> = ({ avatarUrl, name, comment, date, uid, docId, animeId }) => {
+const CommentItem: React.FC<CommentProps> = ({ avatarUrl, name, comment, date, uid, docId, animeId, seasonLabel }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedComment, setEditedComment] = useState(comment);
   const [user] = useAtom(userAtom);
@@ -70,9 +71,12 @@ const CommentItem: React.FC<CommentProps> = ({ avatarUrl, name, comment, date, u
       <Box sx={{ flexGrow: 1 }}>
         {/* 名前 */}
         <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography variant="subtitle1" fontWeight="bold">
-            {name}
-          </Typography>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Typography variant="subtitle1" fontWeight="bold">
+              {name}
+            </Typography>
+            {seasonLabel && <Chip size="small" label={seasonLabel} variant="outlined" />}
+          </Stack>
           {isOwnComment && !isEditing && (
             <IconButton size="small" onClick={handleEdit}>
               <EditIcon fontSize="small" />

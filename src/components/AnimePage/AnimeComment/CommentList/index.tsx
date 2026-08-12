@@ -6,6 +6,7 @@ import Comment from "@/models/entities/comment";
 interface CommentListProps {
   comments: Comment[];
   animeId: string;
+  seasonLabels?: Record<string, string>;
 }
 
 const CommentList: React.FC<CommentListProps> = (props) => {
@@ -21,6 +22,9 @@ const CommentList: React.FC<CommentListProps> = (props) => {
           uid={comment.props.uid}
           docId={comment.props.docId}
           animeId={props.animeId}
+          seasonLabel={
+            comment.props.seasonId ? props.seasonLabels?.[comment.props.seasonId] : undefined
+          }
         />
       ))}
       {props.comments.length === 0 && (

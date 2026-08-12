@@ -23,6 +23,7 @@ const useAnimeComments = (props: {id: string}) => {
             avatarUrl: data.userPhotoURL,
             uid: data.uid,
             docId: doc.id,
+            seasonId: data.seasonId,
           }
         ));
       })
