@@ -68,7 +68,7 @@ curl -X POST https://<your-domain>/api/v1/animes/ \
   -H "Content-Type: application/json" \
   -d '{
     "name": { "ja": "作品名", "en": "Title" },
-    "cours": ["2025年秋"],
+    "cours": ["2026-Q3"],
     "tags": ["tagId1", "tagId2"],
     "imageUrl": "https://example.com/thumbnail.jpg"
   }'
@@ -78,8 +78,11 @@ curl -X POST https://<your-domain>/api/v1/animes/ \
 curl -X PATCH https://<your-domain>/api/v1/animes/<id>/ \
   -H "X-API-Key: $ISEKAI_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{ "cours": ["2025年秋", "2026年冬"] }'
+  -d '{ "cours": ["2026-Q3", "2026-Q4"] }'
 ```
+
+`cours` は `YYYY-QN` 形式です（Q1=冬 / Q2=春 / Q3=夏 / Q4=秋）。配列は置換されるため、
+継続作品にクールを足すときは既存の値も含めて送ってください。
 
 PATCH は渡したフィールドだけを更新します。評価集計とコメント数は Firestore トリガーが
 管理しているため、更新しても保持されます。
