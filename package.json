@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "22"
+    "node": ">=22"
   },
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix"
+    "lint": "eslint",
+    "lint:fix": "eslint --fix"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -20,9 +20,9 @@
     "@mui/styled-engine-sc": "^7.0.2",
     "firebase": "^11.6.0",
     "jotai": "^2.12.3",
-    "next": "^15.5.7",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "next": "^16.3.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "react-google-button": "^0.8.0",
     "react-i18next": "^15.4.1",
     "react-router-dom": "^7.5.3",
@@ -30,12 +30,11 @@
     "styled-components": "^6.1.17"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
     "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
     "eslint": "^9",
-    "eslint-config-next": "^15.5.7",
+    "eslint-config-next": "^16.3.0",
     "typescript": "^5"
   }
 }

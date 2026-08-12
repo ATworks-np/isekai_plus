@@ -1,16 +1,15 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
+import coreWebVitals from "eslint-config-next/core-web-vitals";
+import typescript from "eslint-config-next/typescript";
 
 export default [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    // next lint scoped itself to the app source. The bare eslint CLI does not,
+    // so keep build output and the Cloud Functions codebase (CommonJS, with its
+    // own eslint.config.mjs) out of this config's reach.
+    ignores: ["functions/**", ".next/**", "out/**", ".firebase/**"],
+  },
+  ...coreWebVitals,
+  ...typescript,
   {
     rules: {
       "@typescript-eslint/no-unused-vars": 'off',
