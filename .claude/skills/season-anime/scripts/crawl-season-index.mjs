@@ -11,8 +11,11 @@
  * others, so this walks that graph from whatever is known until it stops
  * finding new seasons.
  *
- * Writes CSV: cour,year,season,tagId,url,verified,entries
- * `verified` says the page really carried work tables rather than just a name.
+ * Writes YAML holding each season's listing URL alongside its tag id, so the
+ * importer reads a URL rather than rebuilding one from an id and a base it
+ * would have to know separately. `entries` records how many work tables the
+ * page actually carried, so a season that resolves to a name but no content is
+ * visible rather than silently empty.
  */
 
 import { writeFileSync, mkdirSync } from 'fs'
@@ -23,7 +26,7 @@ const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) isekai-plus season index'
 const SEEDS = ['5806', '5228', '5947', '6212', '28330', '27657', '21894', '12077']
 const QUARTER = { 冬: 1, 春: 2, 夏: 3, 秋: 4 }
 const OLDEST_YEAR = 2016
-const output = process.argv[2] ?? '.claude/skills/season-anime/data/seasons.csv'
+const output = process.argv[2] ?? '.claude/skills/season-anime/data/seasons.yaml'
 
 const decodeEntities = html =>
   html
@@ -99,23 +102,27 @@ const main = async () => {
   console.log('')
 
   const rows = [...seen.values()].sort((a, b) => a.cour.localeCompare(b.cour))
-  const csv = [
-    'cour,year,season,tagId,url,verified,entries',
-    ...rows.map(row =>
-      [
-        row.cour,
-        row.year,
-        row.season,
-        row.tagId,
-        `${BASE}/tag/details.php?id=${row.tagId}`,
-        row.entries > 0 ? 'yes' : 'no',
-        row.entries,
-      ].join(',')
-    ),
+  const yaml = [
+    '# animatetimes.com のクール別作品一覧ページ。',
+    `# ${new URL(BASE).host} のタグIDに規則性はないため、crawl-season-index.mjs が`,
+    '# シーズンページ間のリンクを辿って収集したもの。',
+    '#',
+    '# entries: そのページから取得できた作品テーブル数（0 なら中身が無い）',
+    '',
+    `source: ${BASE}`,
+    'seasons:',
+    ...rows.flatMap(row => [
+      `  - cour: ${row.cour}`,
+      `    year: ${row.year}`,
+      `    season: ${row.season}`,
+      `    tagId: ${row.tagId}`,
+      `    url: ${BASE}/tag/details.php?id=${row.tagId}`,
+      `    entries: ${row.entries}`,
+    ]),
   ].join('\n')
 
   mkdirSync(dirname(output), { recursive: true })
-  writeFileSync(output, csv + '\n', 'utf8')
+  writeFileSync(output, yaml + '\n', 'utf8')
 
   console.log(`\n${output} に ${rows.length}クールを書き出しました`)
   const missing = []

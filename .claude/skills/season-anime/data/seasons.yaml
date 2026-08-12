@@ -1,0 +1,278 @@
+# animatetimes.com のクール別作品一覧ページ。
+# www.animatetimes.com のタグIDに規則性はないため、crawl-season-index.mjs が
+# シーズンページ間のリンクを辿って収集したもの。
+#
+# entries: そのページから取得できた作品テーブル数（0 なら中身が無い）
+
+source: https://www.animatetimes.com
+seasons:
+  - cour: 2016-Q1
+    year: 2016
+    season: 冬
+    tagId: 5646
+    url: https://www.animatetimes.com/tag/details.php?id=5646
+    entries: 44
+  - cour: 2016-Q2
+    year: 2016
+    season: 春
+    tagId: 10669
+    url: https://www.animatetimes.com/tag/details.php?id=10669
+    entries: 75
+  - cour: 2016-Q3
+    year: 2016
+    season: 夏
+    tagId: 10670
+    url: https://www.animatetimes.com/tag/details.php?id=10670
+    entries: 59
+  - cour: 2016-Q4
+    year: 2016
+    season: 秋
+    tagId: 10672
+    url: https://www.animatetimes.com/tag/details.php?id=10672
+    entries: 72
+  - cour: 2017-Q1
+    year: 2017
+    season: 冬
+    tagId: 14209
+    url: https://www.animatetimes.com/tag/details.php?id=14209
+    entries: 49
+  - cour: 2017-Q2
+    year: 2017
+    season: 春
+    tagId: 10679
+    url: https://www.animatetimes.com/tag/details.php?id=10679
+    entries: 70
+  - cour: 2017-Q3
+    year: 2017
+    season: 夏
+    tagId: 10680
+    url: https://www.animatetimes.com/tag/details.php?id=10680
+    entries: 53
+  - cour: 2017-Q4
+    year: 2017
+    season: 秋
+    tagId: 6631
+    url: https://www.animatetimes.com/tag/details.php?id=6631
+    entries: 58
+  - cour: 2018-Q1
+    year: 2018
+    season: 冬
+    tagId: 7355
+    url: https://www.animatetimes.com/tag/details.php?id=7355
+    entries: 56
+  - cour: 2018-Q2
+    year: 2018
+    season: 春
+    tagId: 7477
+    url: https://www.animatetimes.com/tag/details.php?id=7477
+    entries: 79
+  - cour: 2018-Q3
+    year: 2018
+    season: 夏
+    tagId: 7767
+    url: https://www.animatetimes.com/tag/details.php?id=7767
+    entries: 57
+  - cour: 2018-Q4
+    year: 2018
+    season: 秋
+    tagId: 7991
+    url: https://www.animatetimes.com/tag/details.php?id=7991
+    entries: 65
+  - cour: 2019-Q1
+    year: 2019
+    season: 冬
+    tagId: 8882
+    url: https://www.animatetimes.com/tag/details.php?id=8882
+    entries: 44
+  - cour: 2019-Q2
+    year: 2019
+    season: 春
+    tagId: 9101
+    url: https://www.animatetimes.com/tag/details.php?id=9101
+    entries: 58
+  - cour: 2019-Q3
+    year: 2019
+    season: 夏
+    tagId: 9298
+    url: https://www.animatetimes.com/tag/details.php?id=9298
+    entries: 44
+  - cour: 2019-Q4
+    year: 2019
+    season: 秋
+    tagId: 9348
+    url: https://www.animatetimes.com/tag/details.php?id=9348
+    entries: 59
+  - cour: 2020-Q1
+    year: 2020
+    season: 冬
+    tagId: 10978
+    url: https://www.animatetimes.com/tag/details.php?id=10978
+    entries: 48
+  - cour: 2020-Q2
+    year: 2020
+    season: 春
+    tagId: 11560
+    url: https://www.animatetimes.com/tag/details.php?id=11560
+    entries: 57
+  - cour: 2020-Q3
+    year: 2020
+    season: 夏
+    tagId: 11788
+    url: https://www.animatetimes.com/tag/details.php?id=11788
+    entries: 43
+  - cour: 2020-Q4
+    year: 2020
+    season: 秋
+    tagId: 12077
+    url: https://www.animatetimes.com/tag/details.php?id=12077
+    entries: 73
+  - cour: 2021-Q1
+    year: 2021
+    season: 冬
+    tagId: 13246
+    url: https://www.animatetimes.com/tag/details.php?id=13246
+    entries: 83
+  - cour: 2021-Q2
+    year: 2021
+    season: 春
+    tagId: 13577
+    url: https://www.animatetimes.com/tag/details.php?id=13577
+    entries: 90
+  - cour: 2021-Q3
+    year: 2021
+    season: 夏
+    tagId: 14266
+    url: https://www.animatetimes.com/tag/details.php?id=14266
+    entries: 66
+  - cour: 2021-Q4
+    year: 2021
+    season: 秋
+    tagId: 14603
+    url: https://www.animatetimes.com/tag/details.php?id=14603
+    entries: 75
+  - cour: 2022-Q1
+    year: 2022
+    season: 冬
+    tagId: 16229
+    url: https://www.animatetimes.com/tag/details.php?id=16229
+    entries: 65
+  - cour: 2022-Q2
+    year: 2022
+    season: 春
+    tagId: 18013
+    url: https://www.animatetimes.com/tag/details.php?id=18013
+    entries: 80
+  - cour: 2022-Q3
+    year: 2022
+    season: 夏
+    tagId: 19634
+    url: https://www.animatetimes.com/tag/details.php?id=19634
+    entries: 70
+  - cour: 2022-Q4
+    year: 2022
+    season: 秋
+    tagId: 20383
+    url: https://www.animatetimes.com/tag/details.php?id=20383
+    entries: 77
+  - cour: 2023-Q1
+    year: 2023
+    season: 冬
+    tagId: 21894
+    url: https://www.animatetimes.com/tag/details.php?id=21894
+    entries: 80
+  - cour: 2023-Q2
+    year: 2023
+    season: 春
+    tagId: 22908
+    url: https://www.animatetimes.com/tag/details.php?id=22908
+    entries: 75
+  - cour: 2023-Q3
+    year: 2023
+    season: 夏
+    tagId: 23575
+    url: https://www.animatetimes.com/tag/details.php?id=23575
+    entries: 78
+  - cour: 2023-Q4
+    year: 2023
+    season: 秋
+    tagId: 23734
+    url: https://www.animatetimes.com/tag/details.php?id=23734
+    entries: 93
+  - cour: 2024-Q1
+    year: 2024
+    season: 冬
+    tagId: 24176
+    url: https://www.animatetimes.com/tag/details.php?id=24176
+    entries: 69
+  - cour: 2024-Q2
+    year: 2024
+    season: 春
+    tagId: 25098
+    url: https://www.animatetimes.com/tag/details.php?id=25098
+    entries: 84
+  - cour: 2024-Q3
+    year: 2024
+    season: 夏
+    tagId: 25427
+    url: https://www.animatetimes.com/tag/details.php?id=25427
+    entries: 73
+  - cour: 2024-Q4
+    year: 2024
+    season: 秋
+    tagId: 25548
+    url: https://www.animatetimes.com/tag/details.php?id=25548
+    entries: 90
+  - cour: 2025-Q1
+    year: 2025
+    season: 冬
+    tagId: 26137
+    url: https://www.animatetimes.com/tag/details.php?id=26137
+    entries: 72
+  - cour: 2025-Q2
+    year: 2025
+    season: 春
+    tagId: 26886
+    url: https://www.animatetimes.com/tag/details.php?id=26886
+    entries: 102
+  - cour: 2025-Q3
+    year: 2025
+    season: 夏
+    tagId: 27428
+    url: https://www.animatetimes.com/tag/details.php?id=27428
+    entries: 96
+  - cour: 2025-Q4
+    year: 2025
+    season: 秋
+    tagId: 27657
+    url: https://www.animatetimes.com/tag/details.php?id=27657
+    entries: 82
+  - cour: 2026-Q1
+    year: 2026
+    season: 冬
+    tagId: 28330
+    url: https://www.animatetimes.com/tag/details.php?id=28330
+    entries: 82
+  - cour: 2026-Q2
+    year: 2026
+    season: 春
+    tagId: 5228
+    url: https://www.animatetimes.com/tag/details.php?id=5228
+    entries: 102
+  - cour: 2026-Q3
+    year: 2026
+    season: 夏
+    tagId: 5806
+    url: https://www.animatetimes.com/tag/details.php?id=5806
+    entries: 87
+  - cour: 2026-Q4
+    year: 2026
+    season: 秋
+    tagId: 5947
+    url: https://www.animatetimes.com/tag/details.php?id=5947
+    entries: 84
+  - cour: 2027-Q1
+    year: 2027
+    season: 冬
+    tagId: 6212
+    url: https://www.animatetimes.com/tag/details.php?id=6212
+    entries: 36
