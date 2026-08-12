@@ -89,6 +89,26 @@ export const authenticateApiKey = async (request: Request): Promise<ApiKeyAuth> 
   return { ok: true, keyId: doc.id }
 }
 
+export type UserAuth = { ok: true; uid: string } | { ok: false; status: number; error: string }
+
+/**
+ * Any signed-in user. Ratings are submitted by end users, so this only proves
+ * identity — it deliberately does not check the admin flag.
+ */
+export const authenticateUser = async (request: Request): Promise<UserAuth> => {
+  const auth = request.headers.get('authorization')
+  if (!auth?.startsWith('Bearer ')) {
+    return { ok: false, status: 401, error: 'Missing Firebase ID token.' }
+  }
+
+  try {
+    const decoded = await adminAuth().verifyIdToken(auth.slice('Bearer '.length).trim())
+    return { ok: true, uid: decoded.uid }
+  } catch {
+    return { ok: false, status: 401, error: 'Invalid or expired ID token.' }
+  }
+}
+
 export type AdminAuth = { ok: true; uid: string } | { ok: false; status: number; error: string }
 
 /**

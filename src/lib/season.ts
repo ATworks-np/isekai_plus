@@ -1,0 +1,155 @@
+import 'server-only'
+
+import { DocumentSnapshot, Transaction } from 'firebase-admin/firestore'
+import { InvalidInput } from '@/lib/anime'
+import { ANIMES_PATH, adminDb } from '@/lib/firebaseAdmin'
+
+export const RATING_KEYS = ['story', 'character', 'animation', 'message', 'worldview'] as const
+export type RatingKey = (typeof RATING_KEYS)[number]
+
+/**
+ * Seasons with no ratings are excluded from the series average. Including them
+ * would drag it toward zero, which is the opposite of what a missing rating means.
+ * Raise this if a floor on sample size is ever wanted — the series average is a
+ * plain mean over seasons, so a single-vote season otherwise carries the same
+ * weight as one with a hundred votes.
+ */
+const MIN_RATINGS_FOR_SERIES_AVERAGE = 1
+
+export const seasonsCollection = (seriesId: string) =>
+  adminDb().collection(`${ANIMES_PATH}/${seriesId}/seasons`)
+
+export const seasonDoc = (seriesId: string, seasonId: string) =>
+  adminDb().doc(`${ANIMES_PATH}/${seriesId}/seasons/${seasonId}`)
+
+export const userRatingDoc = (seriesId: string, seasonId: string, uid: string) =>
+  adminDb().doc(`${ANIMES_PATH}/${seriesId}/seasons/${seasonId}/userRatings/${uid}`)
+
+export type SeasonRatings = Record<RatingKey, number>
+
+const zeroRatings = (): SeasonRatings =>
+  Object.fromEntries(RATING_KEYS.map(key => [key, 0])) as SeasonRatings
+
+export const parseRatings = (value: unknown): SeasonRatings => {
+  if (typeof value !== 'object' || value === null) {
+    throw new InvalidInput('ratings must be an object with all five axes.')
+  }
+  const source = value as Record<string, unknown>
+  const result = zeroRatings()
+
+  for (const key of RATING_KEYS) {
+    const raw = source[key]
+    if (typeof raw !== 'number' || !Number.isFinite(raw)) {
+      throw new InvalidInput(`ratings.${key} must be a number.`)
+    }
+    if (raw < 0 || raw > 5) throw new InvalidInput(`ratings.${key} must be between 0 and 5.`)
+    result[key] = raw
+  }
+  return result
+}
+
+export type SeasonInput = {
+  order?: unknown
+  label?: unknown
+  cours?: unknown
+  programId?: unknown
+}
+
+export const buildSeasonWrite = (input: SeasonInput, { partial }: { partial: boolean }) => {
+  const write: Record<string, unknown> = {}
+
+  if (input.order !== undefined || !partial) {
+    const order = input.order
+    if (typeof order !== 'number' || !Number.isInteger(order) || order < 1) {
+      throw new InvalidInput('order must be a positive integer (1 for 第1期).')
+    }
+    write.order = order
+  }
+
+  if (input.label !== undefined || !partial) {
+    if (typeof input.label !== 'string' || !input.label.trim()) {
+      throw new InvalidInput('label must be a non-empty string, e.g. 第1期.')
+    }
+    write.label = input.label.trim()
+  }
+
+  if (input.cours !== undefined || !partial) {
+    if (!Array.isArray(input.cours)) throw new InvalidInput('cours must be an array of strings.')
+    write.cours = input.cours.map((entry, i) => {
+      if (typeof entry !== 'string' || !/^\d{4}-Q[1-4]$/.test(entry.trim())) {
+        throw new InvalidInput(`cours[${i}] must look like 2026-Q3.`)
+      }
+      return entry.trim()
+    })
+  }
+
+  if (input.programId !== undefined) {
+    write.programId =
+      input.programId === null ? null : String(input.programId).trim() || null
+  }
+
+  return write
+}
+
+export const serializeSeason = (doc: DocumentSnapshot) => {
+  const data = doc.data() ?? {}
+  return {
+    id: doc.id,
+    order: data.order ?? null,
+    label: data.label ?? '',
+    cours: data.cours ?? [],
+    programId: data.programId ?? null,
+    ratingCount: data.ratingCount ?? 0,
+    ratings: (data.ratings ?? zeroRatings()) as SeasonRatings,
+  }
+}
+
+type SeasonAggregate = { id: string; ratingCount: number; ratings: SeasonRatings }
+
+/**
+ * The series score is the plain mean of its seasons' scores, so a weak sequel
+ * pulls the series down regardless of how many people rated the strong season.
+ * That is the intended behaviour, not an oversight.
+ */
+export const seriesRatingFields = (seasons: SeasonAggregate[]) => {
+  const rated = seasons.filter(season => season.ratingCount >= MIN_RATINGS_FOR_SERIES_AVERAGE)
+  const fields: Record<string, number> = {}
+
+  for (const key of RATING_KEYS) {
+    fields[`${key}Rating`] = rated.length
+      ? rated.reduce((sum, season) => sum + (season.ratings?.[key] ?? 0), 0) / rated.length
+      : 0
+  }
+  return fields
+}
+
+/**
+ * Recomputes the series aggregate from every season, substituting the season the
+ * caller just changed. Reads happen before writes so this can run inside a
+ * transaction, where Firestore forbids a read after a write.
+ */
+export const readSeasonAggregates = async (
+  transaction: Transaction,
+  seriesId: string
+): Promise<SeasonAggregate[]> => {
+  const snapshot = await transaction.get(seasonsCollection(seriesId))
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ratingCount: doc.get('ratingCount') ?? 0,
+    ratings: (doc.get('ratings') ?? zeroRatings()) as SeasonRatings,
+  }))
+}
+
+export const withSeasonReplaced = (
+  aggregates: SeasonAggregate[],
+  replacement: SeasonAggregate
+): SeasonAggregate[] => {
+  const next = aggregates.filter(season => season.id !== replacement.id)
+  next.push(replacement)
+  return next
+}
+
+export const removeSeason = (aggregates: SeasonAggregate[], seasonId: string) =>
+  aggregates.filter(season => season.id !== seasonId)
+
+export type { SeasonAggregate }
