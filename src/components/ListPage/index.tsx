@@ -11,6 +11,7 @@ import SelectCoursSection from "@/components/SelectCoursSection";
 import NewsSection from "@/components/NewsSection";
 import Image from "next/image";
 import type { CSSProperties } from 'react'
+import SeasonCarousel from "@/components/SeasonCarousel";
 
 const stylesHead = {
   container:  {
@@ -28,9 +29,7 @@ const stylesHead = {
 const ListPage: React.FC = props => {
   return (
     <Stack>
-      <div style={stylesHead.container}>
-        <img src={'/icon.png'} alt="centered" style={stylesHead.image}/>
-      </div>
+      <SeasonCarousel />
       <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <NewsSection />
       </Box>

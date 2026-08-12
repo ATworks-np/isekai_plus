@@ -1,0 +1,10 @@
+const thumbnailPrefix = 'https://storage.googleapis.com/jp-contents-matome.appspot.com/thumbnail/'
+
+export const getAnimeURL = (anime_id: string): string => {
+  // 作品詳細ページのルートに遷移するURL
+  return `/animes/${anime_id}`
+}
+
+export const getThumbnailURL = (anime_id: string): string => {
+  return `${thumbnailPrefix}${anime_id}.jpg`
+}

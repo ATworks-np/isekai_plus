@@ -16,6 +16,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import {userAtom} from "@/stores/userStore";
 import { db } from '@/firebase';
 import { collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, where, serverTimestamp } from 'firebase/firestore';
+import { getThumbnailURL } from "@/utils/url"
 
 const MyBox = styled(Box)(({ theme }) => ({
   borderRadius: '20px',
@@ -55,8 +56,6 @@ const AnimeListItem: React.FC<AnimeListItemProps> = props => {
   const [userLiked, setUserLiked] = useState(false)
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
-
-  const thumbnailPrefix = 'https://storage.googleapis.com/jp-contents-matome.appspot.com/thumbnail/'
 
   // Fetch likes count and check if user has liked this anime
   useEffect(() => {
@@ -128,7 +127,7 @@ const AnimeListItem: React.FC<AnimeListItemProps> = props => {
   return (
     <MyBox display="flex">
       <Thumbnail
-        src={thumbnailPrefix + props.id + '.jpg'}
+        src={getThumbnailURL(props.id)}
         alt={props.name.ja}
         imgProps={{
           loading: 'lazy',
@@ -150,13 +149,6 @@ const AnimeListItem: React.FC<AnimeListItemProps> = props => {
           >
             {props.name['ja']}
           </Typography>
-          <Box display="flex" flexWrap="wrap" gap={0}>
-            {props.cours.map((e, index) => (
-              <Typography sx={{lineHeight: 1.2, fontSize: 8}} key={index} variant="caption" color={'#aaa'}>
-                {index != 0 ? '/' + e : e}
-              </Typography>
-            ))}
-          </Box>
           <Box display="flex" flexWrap="wrap" gap={0}>
             {Object.keys(props.tags).length > 0 && props.tags.map((tag, index) => (
               <Typography sx={{lineHeight: 1.2, fontSize: 10}} key={index} variant="caption" color="primary">

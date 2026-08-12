@@ -84,7 +84,34 @@ const UpperAppBar: React.FC = props => {
       <AppBar elevation={0}>
         <Toolbar>
           <Link href="/" style={{ textDecoration: 'none' }}>
-            <Typography component="div">いせかいぷらす</Typography>
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                px: 1,
+                py: 0.5,
+                borderRadius: 1,
+                backgroundColor: 'transparent',
+                position: 'relative',
+                overflow: 'visible',
+              }}
+           >
+              <Box
+                component="img"
+                src="/logo.png"
+                alt="いせかいぷらす"
+                sx={{
+                  height: 36,
+                  width: 'auto',
+                  display: 'block',
+                  // 画像文字の縁を白くぼかす（白グロー）
+                  filter:
+                    'drop-shadow(0 0 2px rgba(255,255,255,1)) drop-shadow(0 0 1px rgba(255,255,255,1))',
+                  position: 'relative',
+                  zIndex: 1,
+                }}
+              />
+            </Box>
           </Link>
           <Box sx={{ flexGrow: 1 }}>
             <IconButton aria-label="search" onClick={() => setOpenSerchModal(true)}>

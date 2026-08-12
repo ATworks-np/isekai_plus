@@ -152,6 +152,10 @@ const TagsSection: React.FC<TagsSectionProps> = props => {
               display: 'flex',
               flexWrap: 'wrap', // 折り返し
               gap: 1, // タグ間のスペース
+              // すべて表示時はスクロール可能にする
+              maxHeight: showAllTags ? 320 : 'none',
+              overflowY: showAllTags ? 'auto' : 'visible',
+              pr: showAllTags ? 1 : 0, // スクロールバー分の余白
             }}
           >
             {filteredTags.length === 0 && searchQuery ? (
