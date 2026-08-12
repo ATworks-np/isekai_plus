@@ -1,7 +1,8 @@
 import React from 'react'
 import Grid from "@mui/material/Grid";
 import useAnime from "@/hooks/useAnime";
-import {Box, Container, Stack, Typography} from "@mui/material";
+import {Box, Container, Stack, Tab, Tabs, Typography} from "@mui/material";
+import useSeasons from "@/hooks/useSeasons";
 import StarRating from "@/components/StarRating";
 import HelpIcon from '@mui/icons-material/Help';
 import RatingModal from "@/components/AnimePage/AnimeSummarySection/RatingModal";
@@ -29,20 +30,38 @@ const AnimeSummarySection: React.FC<IAnimeStatic> = props => {
   const [user, setUser] = useAtom(userAtom);
   const thumbnailPrefix = 'https://storage.googleapis.com/jp-contents-matome.appspot.com/thumbnail/'
   const [openRatingModal, setOpenRatingModal] = React.useState(false);
+  const { seasons, reloadSeasons } = useSeasons(props.id);
+  const [selectedSeasonId, setSelectedSeasonId] = React.useState<string>('');
+
+  // Derived rather than synced through an effect, so a season loading in does
+  // not need a second render to pick a default.
+  const activeSeason =
+    seasons.find(season => season.id === selectedSeasonId) ?? seasons[seasons.length - 1];
+  // The latest season is what a visitor arriving during a broadcast came for.
+  const showTabs = seasons.length > 1;
+  const ratings = activeSeason?.ratings ?? anime.props.ratings;
+
   return (
     <Box
       sx={{
         position: "relative",
         width: "100%",
         maxWidth: "800px",
-        height: "330px",
+        height: showTabs ? "378px" : "330px",
       }}
     >
-      <RatingModal open={openRatingModal} setOpen={setOpenRatingModal} id={props.id}/>
+      <RatingModal
+        open={openRatingModal}
+        setOpen={setOpenRatingModal}
+        animeId={props.id}
+        seasonId={activeSeason?.id}
+        seasonLabel={showTabs ? activeSeason?.label : undefined}
+        onSaved={reloadSeasons}
+      />
       <Box
         sx={{
           width: "100%",
-          height: "300px",
+          height: showTabs ? "348px" : "300px",
           backgroundImage: `url(${thumbnailPrefix + props.id + '.jpg'})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -67,6 +86,25 @@ const AnimeSummarySection: React.FC<IAnimeStatic> = props => {
           </Grid>
           <Grid size={0.5} />
         </Grid>
+        {showTabs && (
+          <Tabs
+            value={activeSeason?.id ?? false}
+            onChange={(_, value) => setSelectedSeasonId(value)}
+            variant="scrollable"
+            scrollButtons={false}
+            sx={{
+              minHeight: 40,
+              px: 2,
+              '& .MuiTab-root': { color: 'rgba(255,255,255,0.7)', minHeight: 40, py: 0 },
+              '& .Mui-selected': { color: 'white' },
+              '& .MuiTabs-indicator': { backgroundColor: 'white' },
+            }}
+          >
+            {seasons.map(season => (
+              <Tab key={season.id} value={season.id} label={season.label} />
+            ))}
+          </Tabs>
+        )}
         <Box style={{height: '10px'}}/>
         <Grid container spacing={2}>
           <Grid size={0.5} />
@@ -108,7 +146,7 @@ const AnimeSummarySection: React.FC<IAnimeStatic> = props => {
                         }}
                         onClick={()=> user.isAuthenticated() && setOpenRatingModal(true)}
                         >
-                          <StarRating rating={anime.props.ratings[key as keyof IRatings]}/>
+                          <StarRating rating={ratings[key as keyof IRatings]}/>
                         </Container>
                       </Grid>
                     </Grid>

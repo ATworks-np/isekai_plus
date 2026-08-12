@@ -8,10 +8,11 @@ export const dynamic = 'force-dynamic'
 
 type Context = { params: Promise<{ id: string }> }
 
+/**
+ * Public: the anime page renders the season tabs from this, and seasons carry
+ * nothing the site does not already publish. Writes below still need a key.
+ */
 export async function GET(request: Request, context: Context) {
-  const auth = await authenticateApiKey(request)
-  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
-
   const { id } = await context.params
 
   try {

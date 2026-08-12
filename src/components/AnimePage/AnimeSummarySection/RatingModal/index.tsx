@@ -1,25 +1,21 @@
-import React, {useEffect, useState} from 'react'
+import React, { useEffect, useState } from 'react'
 import { useAtom } from 'jotai'
-import { loginModalAtom } from '@/stores/loginModalState'
-import {Box, Button, Container, Modal, Stack, Typography} from '@mui/material'
+import { Box, Button, CircularProgress, Container, Modal, Stack, Typography } from '@mui/material'
+import { getAuth } from 'firebase/auth'
 import theme from '@/theme/theme'
-import GoogleButton from 'react-google-button'
-import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
-import User from '@/models/entities/user'
-import {updateDoc, doc, setDoc, writeBatch, serverTimestamp, collection} from 'firebase/firestore'
-import { db } from "@/firebase";
-import EditStarRatingsSection from "@/components/AnimePage/AnimeSummarySection/EditStarRatingsSection";
-import user from "@/models/entities/user";
-import useUser from "@/hooks/useUser";
-import {IRatings, ratingLabels} from "@/models/interfaces/ratings"
-import useAnimeMyRatings from "@/hooks/useAnimeMyRatings";
-import {customSnackbarAtom} from "@/stores/customSnackbarState";
-import {userAtom} from "@/stores/userStore";
+import EditStarRatingsSection from '@/components/AnimePage/AnimeSummarySection/EditStarRatingsSection'
+import { IRatings, ratingLabels } from '@/models/interfaces/ratings'
+import useSeasonMyRatings from '@/hooks/useSeasonMyRatings'
+import { customSnackbarAtom } from '@/stores/customSnackbarState'
+import { userAtom } from '@/stores/userStore'
 
 interface RatingModalProps {
   open: boolean
   setOpen: (open: boolean) => void
-  id: string
+  animeId: string
+  seasonId: string | undefined
+  seasonLabel?: string
+  onSaved?: () => void
 }
 
 const style = {
@@ -33,33 +29,59 @@ const style = {
   maxWidth: '800px',
 }
 
-const RatingModal: React.FC<RatingModalProps> = ({open, setOpen, id}) => {
-  const [user, setUser] = useAtom(userAtom);
-  const myRatings = useAnimeMyRatings({id: id, token: user?.props.token});
-  const [ratings, setRatings] = useState(myRatings);
-  const [message, setMessage] = useAtom<string>(customSnackbarAtom);
+const RatingModal: React.FC<RatingModalProps> = ({
+  open,
+  setOpen,
+  animeId,
+  seasonId,
+  seasonLabel,
+  onSaved,
+}) => {
+  const [user] = useAtom(userAtom)
+  const { myRatings, reloadMyRatings } = useSeasonMyRatings(animeId, seasonId)
+  const [ratings, setRatings] = useState<IRatings>(myRatings)
+  const [submitting, setSubmitting] = useState<boolean>(false)
+  const [message, setMessage] = useAtom<string>(customSnackbarAtom)
 
-  useEffect(()=>{
-    setRatings(myRatings);
-  },[myRatings]);
+  useEffect(() => {
+    setRatings(myRatings)
+  }, [myRatings])
 
-  const handleSubmit = async() => {
-    const batch = writeBatch(db); // バッチを作成
+  /**
+   * Posting to the API instead of writing Firestore directly: the server folds
+   * the user's rating, the season aggregate and the series average into one
+   * transaction, which the old trigger chain could not guarantee.
+   */
+  const handleSubmit = async () => {
+    if (!seasonId) return
+    const currentUser = getAuth().currentUser
+    if (!currentUser) {
+      setMessage('ログインが必要です')
+      return
+    }
 
+    setSubmitting(true)
     try {
-      Object.keys(ratingLabels).forEach((key) => {
-        const ref = doc(db, `versions/1/animes/${id}/ratings/${key}/userRatings/${user.props.uid}`); // ドキュメントの参照を取得
-        batch.set(ref, {
-          value: ratings[key as keyof IRatings],
-          updatedAt: serverTimestamp(),
-          createdAt: serverTimestamp(),
-        });
-      });
-      await batch.commit(); // バッチ処理をコミット
-      setMessage("送信しました");
-      setOpen(false);
+      const token = await currentUser.getIdToken()
+      const response = await fetch(`/api/v1/animes/${animeId}/seasons/${seasonId}/ratings/`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ratings }),
+      })
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}))
+        throw new Error(body.error ?? `HTTP ${response.status}`)
+      }
+
+      await reloadMyRatings()
+      onSaved?.()
+      setMessage('送信しました')
+      setOpen(false)
     } catch (error) {
-      setMessage("送信に失敗しました");
+      setMessage(`送信に失敗しました: ${error instanceof Error ? error.message : String(error)}`)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -67,18 +89,26 @@ const RatingModal: React.FC<RatingModalProps> = ({open, setOpen, id}) => {
     <Modal open={user.isAuthenticated() && open} onClose={() => setOpen(false)}>
       <Container sx={style}>
         <Stack alignItems="center" spacing={1}>
-          <Typography>
-            星を付ける
-          </Typography>
-          <EditStarRatingsSection ratings={ratings} ratingLabels={ratingLabels} setRating={(key, rate)=>setRatings({...ratings, [key]:rate})}/>
+          <Typography>星を付ける</Typography>
+          {seasonLabel && (
+            <Typography variant="caption" color="text.secondary">
+              {seasonLabel} の評価
+            </Typography>
+          )}
+          <EditStarRatingsSection
+            ratings={ratings}
+            ratingLabels={ratingLabels}
+            setRating={(key, rate) => setRatings({ ...ratings, [key]: rate })}
+          />
           <Button
             onClick={handleSubmit}
             variant="contained"
             color="primary"
             fullWidth
+            disabled={submitting || !seasonId}
             sx={{ mt: 2 }}
           >
-            送信
+            {submitting ? <CircularProgress size={24} /> : '送信'}
           </Button>
         </Stack>
       </Container>
