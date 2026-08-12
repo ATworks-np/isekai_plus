@@ -1,0 +1,64 @@
+# Firebase App Hosting の設定
+# https://firebase.google.com/docs/app-hosting/configure
+
+runConfig:
+  cpu: 1
+  memoryMiB: 512
+  concurrency: 80
+  minInstances: 0
+  maxInstances: 10
+
+env:
+  # Firebase Web SDK の設定値。
+  # これらはクライアントバンドルに埋め込まれる公開値なので Secret Manager は不要。
+  # NEXT_PUBLIC_* はビルド時にインライン展開されるため BUILD が必須。
+  - variable: NEXT_PUBLIC_FIREBASE_APIKEY
+    value: "AIzaSyCLLkK41XYsI-1LCXLaIkCs541lMhqZhBw"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_DOMAIN
+    value: "jp-contents-matome.firebaseapp.com"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "jp-contents-matome"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: "jp-contents-matome.appspot.com"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_SENDER_ID
+    value: "1083169622055"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:1083169622055:web:6e8b9eee722228d01de602"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    value: "G-R6XLLNZYRZ"
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # 管理画面の AI 機能で使用（src/components/AdminPage/AddTitle）。
+  # 現状 NEXT_PUBLIC_ 接頭辞のためクライアントバンドルに露出する。
+  # 有効化する前にキーをローテーションし、サーバー側呼び出しへ移すこと。
+  #   firebase apphosting:secrets:set openai-api-key
+  # - variable: NEXT_PUBLIC_OPENAI_API_KEY
+  #   secret: openai-api-key
+  #   availability:
+  #     - BUILD
