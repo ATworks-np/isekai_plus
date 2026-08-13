@@ -54,6 +54,14 @@ env:
       - BUILD
       - RUNTIME
 
+  # 読み取り関数のキャッシュ削除トークン。管理画面から呼ぶ。
+  # functions/resource/*.js にリテラルで書かれており公開リポジトリに入っている
+  # ため秘匿されていない。関数側と揃えて回すこと。
+  - variable: FUNCTIONS_CACHE_CLEAR_TOKEN
+    value: "38FEF305540D4A528BB053A5C1293C83"
+    availability:
+      - RUNTIME
+
   # 管理画面の AI 機能で使用（src/components/AdminPage/AddTitle）。
   # 現状 NEXT_PUBLIC_ 接頭辞のためクライアントバンドルに露出する。
   # 有効化する前にキーをローテーションし、サーバー側呼び出しへ移すこと。
