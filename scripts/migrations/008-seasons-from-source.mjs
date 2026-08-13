@@ -48,6 +48,17 @@ const SPINOFFS = {
   14716: 'drop', // Re:ゼロから始める休憩時間
 }
 
+/**
+ * Records whose cours were corrected by hand after a rebuild. The source lists
+ * a continuing broadcast only under the quarter it started in, so rebuilding
+ * these would drop the restored quarter again — Re:ゼロ's 4th season runs into
+ * 2026-Q3, which is the quarter airing now.
+ */
+const SKIP = new Set([
+  'yUgDDHQqPK2e7anRzxTz', // Re:ゼロから始める異世界生活
+  'H2NSrWWObImwUEel0OJZ', // 葬送のフリーレン
+])
+
 const apply = process.argv.includes('--apply')
 const showAll = process.argv.includes('--all')
 
@@ -151,6 +162,7 @@ const main = async () => {
   const tally = { during: 0, after: 0, before: 0, undated: 0 }
 
   for (const anime of animes.docs) {
+    if (SKIP.has(anime.id)) continue
     const tagId = anime.get('metadata.animatetimes.workTagId')
     const anchor = tagId ? byTagId.get(tagId) : null
     if (!anchor) continue
