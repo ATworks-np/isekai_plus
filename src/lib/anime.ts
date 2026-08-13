@@ -129,9 +129,12 @@ const isPrivateAddress = (address: string): boolean => {
 
 /**
  * Mirrors what the admin UI does on the client: store the thumbnail as both jpg
- * and webp under thumbnail/<animeId>, so getThumbnailURL keeps resolving.
+ * and webp under thumbnail/<key>, so getThumbnailURL keeps resolving.
+ *
+ * `key` is the anime id for a series and <animeId>/<seasonId> for a season, so
+ * a season's key visual sits beside its series' rather than overwriting it.
  */
-export const storeThumbnailFromUrl = async (animeId: string, rawUrl: unknown) => {
+export const storeThumbnailFromUrl = async (key: string, rawUrl: unknown) => {
   const url = await assertPublicUrl(asString(rawUrl, 'imageUrl'))
 
   const response = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(20_000) })
@@ -159,27 +162,27 @@ export const storeThumbnailFromUrl = async (animeId: string, rawUrl: unknown) =>
   }
 
   const bucket = adminBucket()
+  const names = [`thumbnail/${key}.jpg`, `thumbnail/${key}.webp`]
   await Promise.all([
-    bucket.file(`thumbnail/${animeId}.jpg`).save(jpeg, { contentType: 'image/jpeg', resumable: false }),
-    bucket.file(`thumbnail/${animeId}.webp`).save(webp, { contentType: 'image/webp', resumable: false }),
+    bucket.file(names[0]).save(jpeg, { contentType: 'image/jpeg', resumable: false }),
+    bucket.file(names[1]).save(webp, { contentType: 'image/webp', resumable: false }),
   ])
 
   // The bucket already grants allUsers object read, so this is belt and braces
   // for buckets without it. Uniform bucket-level access rejects it; ignore that.
-  await Promise.all(
-    [`thumbnail/${animeId}.jpg`, `thumbnail/${animeId}.webp`].map(name =>
-      bucket.file(name).makePublic().catch(() => {})
-    )
-  )
+  await Promise.all(names.map(name => bucket.file(name).makePublic().catch(() => {})))
 }
 
-export const deleteThumbnails = async (animeId: string) => {
+export const deleteThumbnails = async (key: string) => {
   const bucket = adminBucket()
   await Promise.all(
-    [`thumbnail/${animeId}.jpg`, `thumbnail/${animeId}.webp`].map(name =>
+    [`thumbnail/${key}.jpg`, `thumbnail/${key}.webp`].map(name =>
       bucket.file(name).delete({ ignoreNotFound: true })
     )
   )
 }
+
+export const thumbnailUrlFor = (key: string) =>
+  `https://storage.googleapis.com/${process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}/thumbnail/${key}.jpg`
 
 export const animeDoc = (id: string) => adminDb().doc(`${ANIMES_PATH}/${id}`)

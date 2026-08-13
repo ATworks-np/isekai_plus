@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { authenticateApiKey } from '@/lib/apiKey'
-import { InvalidInput, animeDoc } from '@/lib/anime'
+import { InvalidInput, animeDoc, storeThumbnailFromUrl } from '@/lib/anime'
 import { RATING_KEYS, buildSeasonWrite, seasonsCollection, serializeSeason } from '@/lib/season'
 
 export const runtime = 'nodejs'
@@ -59,10 +59,22 @@ export async function POST(request: Request, context: Context) {
 
     const ref = await seasonsCollection(id).add({
       ...write,
+      kind: (body as { kind?: string })?.kind === 'spinoff' ? 'spinoff' : 'season',
       ratingCount: 0,
       ratings: Object.fromEntries(RATING_KEYS.map(key => [key, 0])),
       ratingTotals: Object.fromEntries(RATING_KEYS.map(key => [key, 0])),
     })
+
+    const input = (body ?? {}) as Record<string, unknown>
+    if (input.imageUrl !== undefined) {
+      try {
+        await storeThumbnailFromUrl(`${id}/${ref.id}`, input.imageUrl)
+        await ref.update({ hasThumbnail: true })
+      } catch (error) {
+        await ref.delete().catch(() => {})
+        throw error
+      }
+    }
 
     return NextResponse.json(serializeSeason(await ref.get()), { status: 201 })
   } catch (error) {

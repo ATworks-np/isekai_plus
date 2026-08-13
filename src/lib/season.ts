@@ -1,7 +1,7 @@
 import 'server-only'
 
 import { DocumentSnapshot, Transaction } from 'firebase-admin/firestore'
-import { InvalidInput } from '@/lib/anime'
+import { InvalidInput, thumbnailUrlFor } from '@/lib/anime'
 import { ANIMES_PATH, adminDb } from '@/lib/firebaseAdmin'
 
 export const RATING_KEYS = ['story', 'character', 'animation', 'message', 'worldview'] as const
@@ -93,12 +93,16 @@ export const buildSeasonWrite = (input: SeasonInput, { partial }: { partial: boo
 
 export const serializeSeason = (doc: DocumentSnapshot) => {
   const data = doc.data() ?? {}
+  // The parent id is the anime; a season's key visual is stored beneath it.
+  const animeId = doc.ref.parent.parent?.id
   return {
     id: doc.id,
+    thumbnailUrl: data.hasThumbnail && animeId ? thumbnailUrlFor(`${animeId}/${doc.id}`) : null,
     order: data.order ?? null,
     label: data.label ?? '',
     cours: data.cours ?? [],
     programId: data.programId ?? null,
+    kind: data.kind ?? 'season',
     ratingCount: data.ratingCount ?? 0,
     ratings: (data.ratings ?? zeroRatings()) as SeasonRatings,
   }

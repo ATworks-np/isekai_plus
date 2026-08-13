@@ -39,6 +39,9 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
   const [openRatingModal, setOpenRatingModal] = React.useState(false);
   const { seasons, activeSeason } = props;
   const showTabs = seasons.length > 1;
+  // A season carries its own key visual once one has been stored; the series
+  // image stays the fallback so nothing goes blank mid-migration.
+  const thumbnail = activeSeason?.thumbnailUrl ?? thumbnailPrefix + props.id + '.jpg';
   const ratings = activeSeason?.ratings ?? anime.props.ratings;
 
   return (
@@ -62,7 +65,7 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
         sx={{
           width: "100%",
           height: showTabs ? "348px" : "300px",
-          backgroundImage: `url(${thumbnailPrefix + props.id + '.jpg'})`,
+          backgroundImage: `url(${thumbnail})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           filter: "blur(50px)", // ぼかし効果を適用
@@ -110,7 +113,7 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
           <Grid size={0.5} />
           <Grid size={4}>
               <img
-                src={thumbnailPrefix + props.id + '.jpg'}
+                src={thumbnail}
                 alt=""
                 style={{
                   height: '180px',

@@ -7,6 +7,8 @@ export type Season = {
   id: string
   order: number | null
   label: string
+  kind: 'season' | 'spinoff'
+  thumbnailUrl: string | null
   cours: string[]
   programId: string | null
   ratingCount: number

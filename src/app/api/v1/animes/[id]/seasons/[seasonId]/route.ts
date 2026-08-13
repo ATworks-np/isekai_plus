@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { authenticateApiKey } from '@/lib/apiKey'
-import { InvalidInput, animeDoc } from '@/lib/anime'
+import { InvalidInput, animeDoc, deleteThumbnails, storeThumbnailFromUrl } from '@/lib/anime'
 import { adminDb } from '@/lib/firebaseAdmin'
 import {
   buildSeasonWrite,
@@ -35,12 +35,17 @@ export async function PATCH(request: Request, context: Context) {
       return NextResponse.json({ error: `No season ${seasonId} on anime ${id}.` }, { status: 404 })
     }
 
-    const write = buildSeasonWrite((body ?? {}) as Record<string, unknown>, { partial: true })
-    if (Object.keys(write).length === 0) {
+    const input = (body ?? {}) as Record<string, unknown>
+    const write = buildSeasonWrite(input, { partial: true })
+    if (Object.keys(write).length === 0 && input.imageUrl === undefined) {
       return NextResponse.json({ error: 'Nothing to update.' }, { status: 400 })
     }
 
-    await ref.set(write, { merge: true })
+    if (Object.keys(write).length > 0) await ref.set(write, { merge: true })
+    if (input.imageUrl !== undefined) {
+      await storeThumbnailFromUrl(`${id}/${seasonId}`, input.imageUrl)
+      await ref.update({ hasThumbnail: true })
+    }
     return NextResponse.json(serializeSeason(await ref.get()))
   } catch (error) {
     if (error instanceof InvalidInput) {
@@ -72,6 +77,7 @@ export async function DELETE(request: Request, context: Context) {
 
     // recursiveDelete takes the season's userRatings subcollection with it.
     await adminDb().recursiveDelete(ref)
+    await deleteThumbnails(`${id}/${seasonId}`)
 
     return NextResponse.json({ id: seasonId, deleted: true })
   } catch (error) {
