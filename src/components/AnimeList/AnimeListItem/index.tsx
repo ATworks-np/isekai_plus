@@ -17,6 +17,7 @@ import {userAtom} from "@/stores/userStore";
 import { db } from '@/firebase';
 import { collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, where, serverTimestamp } from 'firebase/firestore';
 import { getThumbnailURL } from "@/utils/url"
+import { Season } from "@/hooks/useSeasons"
 
 const MyBox = styled(Box)(({ theme }) => ({
   borderRadius: '20px',
@@ -47,6 +48,8 @@ interface AnimeListItemProps {
   cours: string[];
   commentCount: number;
   rating: number;
+  season?: Season;
+  seasonCount?: number;
 }
 
 const AnimeListItem: React.FC<AnimeListItemProps> = props => {
@@ -127,7 +130,7 @@ const AnimeListItem: React.FC<AnimeListItemProps> = props => {
   return (
     <MyBox display="flex">
       <Thumbnail
-        src={getThumbnailURL(props.id)}
+        src={props.season?.thumbnailUrl ?? getThumbnailURL(props.id)}
         alt={props.name.ja}
         imgProps={{
           loading: 'lazy',
@@ -149,6 +152,14 @@ const AnimeListItem: React.FC<AnimeListItemProps> = props => {
           >
             {props.name['ja']}
           </Typography>
+          {(props.seasonCount ?? 0) > 1 && props.season && (
+            <Chip
+              size="small"
+              label={props.season.label}
+              variant="outlined"
+              sx={{ height: 18, fontSize: 10, alignSelf: 'flex-start', mb: 0.3 }}
+            />
+          )}
           <Box display="flex" flexWrap="wrap" gap={0}>
             {Object.keys(props.tags).length > 0 && props.tags.map((tag, index) => (
               <Typography sx={{lineHeight: 1.2, fontSize: 10}} key={index} variant="caption" color="primary">

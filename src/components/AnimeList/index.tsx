@@ -13,6 +13,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import { useAtom } from 'jotai'
 import { searchSelectedTagAtom } from '@/stores/searchSelectedTagAtom'
 import { courAtom } from '@/stores/coursState'
+import useAllSeasons, { seasonForDisplay } from '@/hooks/useAllSeasons'
 import useTags from "@/hooks/useTags";
 import {api} from "@/Routes/routs";
 
@@ -46,6 +47,7 @@ const AnimeList: React.FC = props => {
   const [tagsState, setTagsState] = useAtom<string[]>(searchSelectedTagAtom)
   const [coursState, setCoursState] = useAtom<string[]>(courAtom)
   const {} = useTags();
+  const seasonsByAnime = useAllSeasons();
 
   useEffect(() => {
     fetch(api.animes)
@@ -87,7 +89,17 @@ const AnimeList: React.FC = props => {
     <div style={styles.container}>
       <Stack spacing={2}>
         {animes.length > 0 ? (
-          filteredAnimes().map((anime: any, index: number) => <ContentListItem key={index} {...anime} />)
+          filteredAnimes().map((anime: any, index: number) => {
+            const seasons = seasonsByAnime[anime.id]
+            return (
+              <ContentListItem
+                key={index}
+                {...anime}
+                season={seasonForDisplay(seasons, coursState)}
+                seasonCount={seasons?.length ?? 0}
+              />
+            )
+          })
         ) : (
           <Box sx={{ display: 'flex' }}>
             <CircularProgress color="secondary" />
