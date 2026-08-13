@@ -93,12 +93,50 @@ curl -s https://animes-mu4s3uqxga-uc.a.run.app/statics   # 一覧（metadata は
 - **workTagId が一致する作品がある** → 登録済み。何もしない
 - **同じシリーズの別作品がある**（`seriesTagId` が一致、または既存作品の
   `workTagId` が新作品の `seriesTagId` と一致）→ 新規レコードを作らず、
-  既存レコードに**期を追加**する（手順7）
-- **どちらでもない** → 新規レコード（手順6）
+  既存レコードに**期を追加**する（手順8）
+- **どちらでもない** → 新規レコード（手順7）
+
+いずれの場合も、**何期なのかは手順6で確定させてから書き込む。**
 
 シリーズIDは続編にしか付かない。1期同士の紐付けはタイトル照合になる。
 
-## 6. 新規レコードを作る
+## 6. 何期なのかを確定する
+
+**登録する前に必ず実行する。** 続編を第1期として登録する事故を防ぐためのもので、
+実際に幼女戦記Ⅱ・乙女ゲー世界はモブに厳しい世界です2・クレバテスII が
+第1期として登録され、後から直す羽目になっている。
+
+```bash
+node .claude/skills/season-anime/scripts/series-plan.mjs --cour 2026-Q3 --title "幼女戦記Ⅱ"
+node .claude/skills/season-anime/scripts/series-plan.mjs 26812          # workTagId でも可
+```
+
+シリーズ全体を放送順に並べ、`isTarget` で対象を示した JSON を返す。
+
+```json
+{
+  "seriesTitle": "幼女戦記",
+  "allCours": ["2017-Q1", "2026-Q3"],
+  "seasons": [
+    { "order": 1, "label": "第1期", "cours": ["2017-Q1"], "workTagId": 5321,  "thumbnailUrl": "..." },
+    { "order": 2, "label": "第2期", "cours": ["2026-Q3"], "workTagId": 14369, "isTarget": true }
+  ],
+  "target": { "order": 2, "label": "第2期", ... }
+}
+```
+
+判断はこの出力に従う。
+
+- `seasons` が1件 → 手順7で新規レコードを作る
+- **2件以上で対象が `第1期` でない** → 先行する期も一緒に登録する。
+  レコードの `cours` は `allCours`、期は `seasons` の全件を作る。
+  対象だけ登録すると「2期なのに第1期」になる
+- スピンオフ（`kind: "spinoff"`）は採番されず、ラベルが作品名になる。
+  そのまま従う
+
+`seriesTitle` がレコード名になる。期固有の名前は付けない。
+
+## 7. 新規レコードを作る
 
 ```bash
 curl -X POST "$ISEKAI_API_BASE/api/v1/animes/" \
@@ -125,7 +163,13 @@ curl -X POST "$ISEKAI_API_BASE/api/v1/animes/" \
 - `imageUrl` — `thumbnail.url`
 - `metadata` — `workTagId` は必須、`seriesTagId` は取れた場合のみ
 
-## 7. 既存シリーズに期を追加する
+### 先行する期も作る
+
+`seasons` が複数あるのにレコードが無い場合、レコードを作ったあと残りの期を
+手順8で追加する。第1期は作成時に自動で作られるので、`cours` と `imageUrl` は
+`seasons[0]` のものを渡すこと。対象の期のものではない。
+
+## 8. 既存シリーズに期を追加する
 
 ```bash
 curl -X POST "$ISEKAI_API_BASE/api/v1/animes/<id>/seasons/" \
@@ -153,7 +197,7 @@ curl -X PATCH "$ISEKAI_API_BASE/api/v1/animes/<id>/" \
 ユーザーに確認する。副題だけの続編（マッシュル 神覚者候補選抜試験編）は
 **期として扱う**ので、混同しない。
 
-## 8. 追加する内容を提示して確認を取る
+## 9. 追加する内容を提示して確認を取る
 
 書き込む前に、追加・更新の一覧をユーザーに見せて承認を取る。本番データへの
 書き込みで、誤判定がそのまま公開サイトに出るため。ユーザーが「確認不要」と
@@ -161,7 +205,7 @@ curl -X PATCH "$ISEKAI_API_BASE/api/v1/animes/<id>/" \
 
 提示する内容: タイトル / 新規か期追加か / 異世界と判断した理由（1行）。
 
-## 9. 認証情報
+## 10. 認証情報
 
 `.env.local`（gitignore 済み）から読む。
 
@@ -173,7 +217,7 @@ ISEKAI_API_BASE=https://ani-mato.net
 未設定なら、管理画面 `/admin` の「API キー」から発行して `.env.local` に
 追記するようユーザーに依頼する。**キーの値をチャットに出力しない。**
 
-## 10. 結果を報告する
+## 11. 結果を報告する
 
 新規追加、期追加、スキップの件数を伝える。失敗した作品はタイトルと
 エラー内容をそのまま出す。黙って落とさない。
