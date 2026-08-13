@@ -29,6 +29,7 @@ const ANIMES_PATH = 'versions/1/animes'
 const MERGES = [
   { target: '葬送のフリーレン', source: '葬送のフリーレン 第2期', label: '第2期' },
   { target: '姫様“拷問”の時間です', source: '姫様“拷問”の時間です　第2期', label: '第2期' },
+  { target: '嘆きの亡霊は引退したい', source: '嘆きの亡霊は引退したい 第2クール', label: '第2期' },
 ]
 
 const mode = process.argv.includes('--apply')

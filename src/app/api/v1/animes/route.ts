@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { authenticateApiKey } from '@/lib/apiKey'
 import { InvalidInput, buildAnimeWrite, storeThumbnailFromUrl } from '@/lib/anime'
 import { ANIMES_PATH, adminDb } from '@/lib/firebaseAdmin'
+import { RATING_KEYS } from '@/lib/season'
 import { serializeAnime } from '@/app/api/v1/animes/serialize'
 
 export const runtime = 'nodejs'
@@ -22,7 +23,27 @@ export async function POST(request: Request) {
 
   try {
     const write = await buildAnimeWrite(input, { partial: false })
+    if (input.metadata !== undefined) {
+      if (typeof input.metadata !== 'object' || input.metadata === null) {
+        throw new InvalidInput('metadata must be an object.')
+      }
+      Object.assign(write, { metadata: input.metadata })
+    }
+
     const ref = await adminDb().collection(ANIMES_PATH).add(write)
+
+    // Ratings hang off a season, and the anime page draws its tabs from them,
+    // so a work with none can never be rated. Every record carries at least one.
+    await ref.collection('seasons').doc('season-1').set({
+      order: 1,
+      label: '第1期',
+      kind: 'season',
+      cours: write.cours ?? [],
+      programId: null,
+      ratingCount: 0,
+      ratings: Object.fromEntries(RATING_KEYS.map(key => [key, 0])),
+      ratingTotals: Object.fromEntries(RATING_KEYS.map(key => [key, 0])),
+    })
 
     if (input.imageUrl !== undefined) {
       try {
