@@ -42,6 +42,27 @@ const CORRECTIONS = [
     // and a three year old show reappearing there defeats it.
     remove: ['2026-Q3'],
   },
+  {
+    name: '転生したらスライムだった件',
+    seasonLabel: '第1期',
+    // Ran 2018年10月1日 to 2019年3月25日, which is two cours; the site lists it
+    // only under the quarter it started. 2022-Q2 is the same season repeated.
+    remove: ['2022-Q2'],
+    add: ['2019-Q1'],
+  },
+  {
+    name: '本好きの下剋上 司書になるためには手段を選んでいられません',
+    seasonLabel: '第3期',
+    // 2026-Q1 is season 3 repeated ahead of season 4, per Wikipedia's MANPA
+    // schedule. Season 3 itself ran April to June 2022.
+    remove: ['2026-Q1'],
+  },
+  {
+    name: '本好きの下剋上 司書になるためには手段を選んでいられません',
+    seasonLabel: '第4期',
+    // 領主の養女 started 2026年4月4日 as a continuous two cour run.
+    add: ['2026-Q3'],
+  },
 ]
 
 const env = Object.fromEntries(
@@ -81,23 +102,37 @@ const main = async () => {
       continue
     }
 
+    const remove = correction.remove ?? []
+    const add = correction.add ?? []
     const seasons = await ref.collection('seasons').orderBy('order').get()
-    const before = [...new Set((anime.get('cours') ?? []).filter(Boolean))].sort()
-    const after = before.filter(cour => !correction.remove.includes(cour))
+    // A correction naming a season touches only that one; without a name it
+    // applies to every season carrying the cour.
+    const targets = correction.seasonLabel
+      ? seasons.docs.filter(season => season.get('label') === correction.seasonLabel)
+      : seasons.docs
 
-    console.log(`=== ${correction.name}`)
-    console.log(`  cours: ${JSON.stringify(before)} -> ${JSON.stringify(after)}`)
-    console.log(`  latestCour: ${anime.get('latestCour')} -> ${latestCourOf(after)}`)
-
-    const seasonUpdates = seasons.docs
+    const seasonUpdates = targets
       .map(season => {
-        const cours = (season.get('cours') ?? []).filter(
-          cour => !correction.remove.includes(cour)
-        )
+        const current = season.get('cours') ?? []
+        const cours = [...new Set([...current.filter(c => !remove.includes(c)), ...add])].sort()
         return { season, cours }
       })
-      .filter(({ season, cours }) => cours.length !== (season.get('cours') ?? []).length)
+      .filter(({ season, cours }) => JSON.stringify(cours) !== JSON.stringify([...(season.get('cours') ?? [])].sort()))
 
+    // The work's cours is the union of its seasons', so derive it rather than
+    // patching it separately and letting the two disagree.
+    const after = [
+      ...new Set(
+        seasons.docs.flatMap(season => {
+          const update = seasonUpdates.find(u => u.season.id === season.id)
+          return update ? update.cours : (season.get('cours') ?? [])
+        })
+      ),
+    ].sort()
+
+    console.log(`=== ${correction.name}${correction.seasonLabel ? ` / ${correction.seasonLabel}` : ''}`)
+    console.log(`  cours: ${JSON.stringify([...(anime.get('cours') ?? [])].sort())} -> ${JSON.stringify(after)}`)
+    console.log(`  latestCour: ${anime.get('latestCour')} -> ${latestCourOf(after)}`)
     seasonUpdates.forEach(({ season, cours }) =>
       console.log(
         `  ${season.get('label')}: ${JSON.stringify(season.get('cours'))} -> ${JSON.stringify(cours)}`
