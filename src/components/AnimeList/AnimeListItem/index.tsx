@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Chip, Snackbar, Alert } from '@mui/material'
+import { Box, Snackbar, Alert } from '@mui/material'
 import { styled } from '@mui/material'
 import { Avatar } from '@mui/material'
 import { Typography } from '@mui/material'
@@ -129,15 +129,36 @@ const AnimeListItem: React.FC<AnimeListItemProps> = props => {
 
   return (
     <MyBox display="flex">
-      <Thumbnail
-        src={props.season?.thumbnailUrl ?? getThumbnailURL(props.id)}
-        alt={props.name.ja}
-        imgProps={{
-          loading: 'lazy',
-          decoding: 'async',
-        }}
-        sx={{ width: 80, height: 80 }}
-      />
+      <Box sx={{ position: 'relative', flexShrink: 0, width: 80, height: 80 }}>
+        <Thumbnail
+          src={props.season?.thumbnailUrl ?? getThumbnailURL(props.id)}
+          alt={props.name.ja}
+          imgProps={{
+            loading: 'lazy',
+            decoding: 'async',
+          }}
+          sx={{ width: 80, height: 80 }}
+        />
+        {(props.seasonCount ?? 0) > 1 && props.season && (
+          <Box
+            sx={{
+              position: 'absolute',
+              right: 2,
+              bottom: 2,
+              px: 0.5,
+              borderRadius: '4px',
+              // Sits on artwork of any brightness, so it carries its own ground.
+              backgroundColor: 'rgba(0,0,0,0.65)',
+              color: 'white',
+              fontSize: 10,
+              lineHeight: '14px',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {props.season.label}
+          </Box>
+        )}
+      </Box>
       <SumaryBox>
         <Link href={`/animes/${props.id}`}>
           <Typography
@@ -152,14 +173,6 @@ const AnimeListItem: React.FC<AnimeListItemProps> = props => {
           >
             {props.name['ja']}
           </Typography>
-          {(props.seasonCount ?? 0) > 1 && props.season && (
-            <Chip
-              size="small"
-              label={props.season.label}
-              variant="outlined"
-              sx={{ height: 18, fontSize: 10, alignSelf: 'flex-start', mb: 0.3 }}
-            />
-          )}
           <Box display="flex" flexWrap="wrap" gap={0}>
             {Object.keys(props.tags).length > 0 && props.tags.map((tag, index) => (
               <Typography sx={{lineHeight: 1.2, fontSize: 10}} key={index} variant="caption" color="primary">
