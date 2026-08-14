@@ -33,6 +33,15 @@ const CORRECTIONS = [
     // programme reappearing on a later season page, not a second broadcast.
     remove: ['2026-Q2'],
   },
+  {
+    animeId: null, // resolved by name below
+    name: '帰還者の魔法は特別です',
+    // 2026-Q3 is a rerun of season 1 ahead of the sequel, which Wikipedia and
+    // the site's own news put in October — 2026-Q4. A rerun is not a broadcast
+    // season: the current-season filter exists to show what is newly airing,
+    // and a three year old show reappearing there defeats it.
+    remove: ['2026-Q3'],
+  },
 ]
 
 const env = Object.fromEntries(
@@ -59,9 +68,14 @@ const latestCourOf = cours => {
 const main = async () => {
   console.log(`mode: ${apply ? 'apply' : 'dry-run'}\n`)
 
+  const all = await db.collection(ANIMES_PATH).get()
+
   for (const correction of CORRECTIONS) {
-    const ref = db.doc(`${ANIMES_PATH}/${correction.animeId}`)
-    const anime = await ref.get()
+    const found = correction.animeId
+      ? all.docs.find(doc => doc.id === correction.animeId)
+      : all.docs.find(doc => doc.get('name')?.ja === correction.name)
+    const ref = found?.ref ?? db.doc(`${ANIMES_PATH}/${correction.animeId}`)
+    const anime = found ?? (await ref.get())
     if (!anime.exists) {
       console.log(`SKIP ${correction.name}: レコードなし\n`)
       continue
