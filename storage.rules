@@ -1,10 +1,24 @@
 rules_version = '2';
 
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
+// Objects are served to readers through storage.googleapis.com, which is the
+// raw GCS API and is governed by the bucket's IAM rather than by these rules.
+// So read here stays closed: allowing it would not make anything readable that
+// is not already, and denying it does not hide anything.
 service firebase.storage {
   match /b/{bucket}/o {
+
+    // A signed-in user's own profile photo. Written from the account page as
+    // users/photos/<uid>.<ext>, so the uid is the file name without its
+    // extension — hence the prefix match rather than a whole-name comparison.
+    match /users/photos/{fileName} {
+      allow write: if request.auth != null
+        && fileName.matches('^' + request.auth.uid + '\\.[A-Za-z0-9]+$')
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // Thumbnails are written by the API through the Admin SDK, which does not
+    // pass through these rules at all. Nothing should reach them from a client.
     match /{allPaths=**} {
       allow read, write: if false;
     }
