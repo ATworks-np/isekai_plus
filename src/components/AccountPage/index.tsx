@@ -19,7 +19,11 @@ const AccountPage: React.FC = () => {
   const [name, setName] = React.useState(user.props.displayName)
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoExt, setPhotoExt] = useState<string | undefined>(undefined);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  // Only the locally picked file lives in state; the saved photo is read
+  // straight from the user, so a fresh sign-in does not need an effect to
+  // copy it across.
+  const [pickedImageUrl, setPickedImageUrl] = useState<string | null>(null);
+  const imageUrl = pickedImageUrl ?? user.props.photoURL;
 
   const handleSubmit = async (e: React.FormEvent) => {
     if(!user.props.uid) return;
@@ -54,15 +58,10 @@ const AccountPage: React.FC = () => {
       const fileExtension = file.name.split('.').pop();
       setPhotoExt(fileExtension);
 
-      setImageUrl(URL.createObjectURL(file));
+      setPickedImageUrl(URL.createObjectURL(file));
     }
   };
 
-  useEffect(() => {
-    if (user.props.photoURL) {
-      setImageUrl(user.props.photoURL);
-    }
-  }, [user]);
 
   return <>
     <Container style={{marginTop: '50px'}}>

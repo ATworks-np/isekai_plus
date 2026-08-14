@@ -7,7 +7,6 @@ import StarRating from "@/components/StarRating";
 import HelpIcon from '@mui/icons-material/Help';
 import RatingModal from "@/components/AnimePage/AnimeSummarySection/RatingModal";
 import {IRatings} from "@/models/interfaces/ratings";
-import AddTitle from "@/components/AdminPage/AddTitle";
 import AnimeTitle from "@/components/AnimePage/AnimeSummarySection/AnimeTitle";
 import useUser from "@/hooks/useUser";
 import Image from "next/image";

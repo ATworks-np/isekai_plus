@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useAtom } from 'jotai'
 import { Box, Button, CircularProgress, Container, Modal, Stack, Typography } from '@mui/material'
 import { getAuth } from 'firebase/auth'
@@ -39,13 +39,12 @@ const RatingModal: React.FC<RatingModalProps> = ({
 }) => {
   const [user] = useAtom(userAtom)
   const { myRatings, reloadMyRatings } = useSeasonMyRatings(animeId, seasonId)
-  const [ratings, setRatings] = useState<IRatings>(myRatings)
+  // null until the user touches a star, so ratings loading in are shown
+  // without an effect copying them into state.
+  const [draft, setDraft] = useState<IRatings | null>(null)
+  const ratings = draft ?? myRatings
   const [submitting, setSubmitting] = useState<boolean>(false)
   const [message, setMessage] = useAtom<string>(customSnackbarAtom)
-
-  useEffect(() => {
-    setRatings(myRatings)
-  }, [myRatings])
 
   /**
    * Posting to the API instead of writing Firestore directly: the server folds
@@ -74,6 +73,7 @@ const RatingModal: React.FC<RatingModalProps> = ({
         throw new Error(body.error ?? `HTTP ${response.status}`)
       }
 
+      setDraft(null)
       await reloadMyRatings()
       onSaved?.()
       setMessage('送信しました')
@@ -98,7 +98,7 @@ const RatingModal: React.FC<RatingModalProps> = ({
           <EditStarRatingsSection
             ratings={ratings}
             ratingLabels={ratingLabels}
-            setRating={(key, rate) => setRatings({ ...ratings, [key]: rate })}
+            setRating={(key, rate) => setDraft({ ...ratings, [key]: rate })}
           />
           <Button
             onClick={handleSubmit}

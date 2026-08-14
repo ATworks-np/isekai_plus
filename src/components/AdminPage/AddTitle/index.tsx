@@ -65,17 +65,22 @@ import {loadingModalAtom} from "@/stores/loadingModalState";
 import {customSnackbarAtom} from "@/stores/customSnackbarState";
 import useAnime from "@/hooks/useAnime";
 
+/**
+ * Edit only. Creating a work sets source ids and a season, which this form
+ * never did — records added through it arrived unlinked and unratable — so
+ * registration goes through the write API and the season-anime skill.
+ */
 type AddTitleProps = {
-  id: string | undefined;
+  id: string;
 };
 
 const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
   const [thumbnail, setThumbnail] = useState<File | null>(null);
-  const [titleJP, setTitleJP] = useState<string>('');
-  const [titleEN, setTitleEN] = useState<string>('');
-  const [cours, setCours] = useState<string>('');
+  const [titleJPDraft, setTitleJP] = useState<string | null>(null);
+  const [titleENDraft, setTitleEN] = useState<string | null>(null);
+  const [coursDraft, setCours] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [tagsState, setTagsState] = useState<string[]>([]);
+  const [tagsDraft, setTagsState] = useState<string[] | null>(null);
   const [newTag, setNewTag] = useState<{ [key:string]: string }>({});
   const [generatedTags, setGeneratedTags] = useState<string[]>([]);
   const [isGeneratingTags, setIsGeneratingTags] = useState<boolean>(false);
@@ -88,18 +93,16 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
 
   const [anime] = useAnime({id: id});
 
-  useEffect(() => {
-    if (!id || !anime || !anime.props) return;
-
-    setTitleJP(anime.props.name.ja);
-    setTitleEN(anime.props.name.en);
-    setCours(anime.props.cours.join(','));
-    setTagsState(anime.props.tagIds);
-
-  }, [anime])
+  // The fetched record shows through until a field is touched, so loading it
+  // does not mean copying four values into state from an effect.
+  const loaded = anime?.props?.id === id ? anime.props : undefined
+  const titleJP = titleJPDraft ?? loaded?.name.ja ?? ''
+  const titleEN = titleENDraft ?? loaded?.name.en ?? ''
+  const cours = coursDraft ?? loaded?.cours.join(',') ?? ''
+  const tagsState = tagsDraft ?? loaded?.tagIds ?? []
 
   const handleSubmit = async (e: React.FormEvent) => {
-    if (id && !titleJP || !titleEN || (!id && !thumbnail)) {
+    if (!titleJP || !titleEN) {
       setMessage('すべてのフィールドを入力してください');
       return;
     }
@@ -115,15 +118,9 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
         tags: tagsState.map((key: string) => doc(db, key)),
       };
 
-      let docRef;
-      if (id) {
-        // update（存在するidで上書き）
-        docRef = doc(db, 'versions/1/animes', id);
-        await setDoc(docRef, data, { merge: true }); // merge: true で既存の値を保持
-      } else {
-        // 新規追加
-        docRef = await addDoc(collection(db, 'versions/1/animes'), data);
-      }
+      // merge so the ratings, seasons and metadata the form does not know about survive
+      const docRef = doc(db, 'versions/1/animes', id);
+      await setDoc(docRef, data, { merge: true });
 
       if(thumbnail){
         const ext = thumbnail.type === 'image/webp' ? 'webp' : 'jpg';
@@ -144,7 +141,7 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
       }
 
       setOpen(false);
-      setMessage(`アニメが追加されました`);
+      setMessage(`アニメを更新しました`);
       router.push('/admin');
     } catch (error) {
       setMessage('Firestore への保存に失敗しました');
@@ -192,7 +189,7 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
       setMessage(`タグが追加されました:${docRef.id}`);
 
       // Add the new tag to tagsState immediately using its path
-      setTagsState(prev => [...prev, newTagPath]);
+      setTagsState([...tagsState, newTagPath]);
 
       // Also sync tags to update the global tags state
       syncTags();
@@ -323,7 +320,7 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
       if (existingTagKey) {
         // If tag exists and not already selected, add it to selected tags
         if (!tagsState.includes(existingTagKey)) {
-          setTagsState(prev => [...prev, existingTagKey]);
+          setTagsState([...tagsState, existingTagKey]);
         }
       } else {
         // If tag doesn't exist, create a new one
@@ -341,7 +338,7 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
           const newTagPath = docRef.path;
 
           // Add the new tag to tagsState immediately using its path
-          setTagsState(prev => [...prev, newTagPath]);
+          setTagsState([...tagsState, newTagPath]);
         } catch (error) {
           console.error('Error adding new tag:', error);
           setMessage('タグの追加に失敗しました');

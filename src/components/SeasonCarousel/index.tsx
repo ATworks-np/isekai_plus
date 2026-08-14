@@ -34,7 +34,7 @@ const SeasonCarousel: React.FC<SeasonCarouselProps> = ({ skeleton = false }) => 
   const theme = useTheme()
   const [animes, setAnimes] = useState<AnimeItem[]>([])
   const [loading, setLoading] = useState<boolean>(true)
-  const [index, setIndex] = useState<number>(0)
+  const [rawIndex, setIndex] = useState<number>(0)
   const [isHovering, setIsHovering] = useState<boolean>(false)
   const [isPointerDown, setIsPointerDown] = useState<boolean>(false)
   const [dragStartX, setDragStartX] = useState<number | null>(null)
@@ -64,11 +64,9 @@ const SeasonCarousel: React.FC<SeasonCarouselProps> = ({ skeleton = false }) => 
     [animes, currentCours]
   )
 
-  // Safety: clamp index when data changes
-  useEffect(() => {
-    if (currentSeasonAnimes.length === 0) return
-    setIndex((prev) => (prev >= currentSeasonAnimes.length ? 0 : prev))
-  }, [currentSeasonAnimes.length])
+  // Clamped while rendering rather than corrected afterwards: an effect would
+  // paint one frame with an index past the end of a shortened list.
+  const index = currentSeasonAnimes.length > 0 && rawIndex >= currentSeasonAnimes.length ? 0 : rawIndex
 
   // Auto-play every 5s, pause on hover (mouse only), while dragging, or when tab hidden
   useEffect(() => {

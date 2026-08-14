@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Box, Chip, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, InputAdornment, Typography } from '@mui/material'
 import { styled } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
@@ -18,23 +18,25 @@ const MyChip = styled(Chip)(({ theme }) => ({
 
 interface TagsSectionProps {
   tagsState: string[];
-  setTagsState: React.Dispatch<React.SetStateAction<string[]>>;
+  // Takes the next list rather than a state setter, so a caller is free to
+  // derive the current one instead of storing it.
+  setTagsState: (tags: string[]) => void;
 }
 
 const TagsSection: React.FC<TagsSectionProps> = props => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [tagToDelete, setTagToDelete] = useState<{ key: string, name: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [filteredTags, setFilteredTags] = useState<[string, any][]>([]);
   const [showAllTags, setShowAllTags] = useState<boolean>(false);
 
   const {tags, syncTags} = useTags();
 
-  // Filter tags based on search query, selected tags, and showAllTags state
-  useEffect(() => {
-    if (!tags) return;
+  // Derived, not stored: this is a pure function of tags, the query and the
+  // toggles, so keeping it in state meant rendering once with the old list.
+  const filteredTags = useMemo(() => {
+    if (!tags) return [];
 
-    const filtered = Object.entries(tags).filter(([key, tag]) => {
+    return Object.entries(tags).filter(([key, tag]) => {
       // Always include selected tags
       if (props.tagsState?.includes(key)) {
         return true;
@@ -61,8 +63,6 @@ const TagsSection: React.FC<TagsSectionProps> = props => {
 
       return jaMatch || enMatch;
     });
-
-    setFilteredTags(filtered);
   }, [tags, searchQuery, props.tagsState, showAllTags]);
 
   const handleDeleteClick = (event: React.MouseEvent, key: string, name: string) => {
@@ -84,7 +84,7 @@ const TagsSection: React.FC<TagsSectionProps> = props => {
 
       // Remove the tag from tagsState if it's selected
       if (props.tagsState?.includes(tagToDelete.key)) {
-        props.setTagsState(prevTags => prevTags.filter(tag => tag !== tagToDelete.key));
+        props.setTagsState(props.tagsState.filter(tag => tag !== tagToDelete.key));
       }
 
       // Sync tags to update the UI
@@ -172,10 +172,10 @@ const TagsSection: React.FC<TagsSectionProps> = props => {
                   onClick={() => {
                     if (props.tagsState?.includes(key)) {
                       // key が含まれている場合は削除
-                      props.setTagsState(prevTags => prevTags.filter(tag => tag !== key))
+                      props.setTagsState(props.tagsState.filter(tag => tag !== key))
                     } else {
                       // key が含まれていない場合は追加
-                      props.setTagsState(prevTags => [...prevTags, key])
+                      props.setTagsState([...props.tagsState, key])
                     }
                   }}
                   deleteIcon={<CloseIcon />}

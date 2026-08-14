@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Avatar, Box, Chip, Typography, Stack, Button, TextField, IconButton } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
@@ -23,17 +23,16 @@ interface CommentProps {
 
 const CommentItem: React.FC<CommentProps> = ({ avatarUrl, name, comment, date, uid, docId, animeId, seasonLabel }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedComment, setEditedComment] = useState(comment);
+  // null means "not edited yet", so the prop shows through and a saved edit
+  // arriving from the server does not have to be copied into state.
+  const [draft, setDraft] = useState<string | null>(null);
+  const editedComment = draft ?? comment;
   const [user] = useAtom(userAtom);
   const [message, setMessage] = useAtom<string>(customSnackbarAtom);
   const { refreshAnimeComments } = useAnimeComments({ id: animeId });
 
   const isOwnComment = user.props.uid === uid;
 
-  // Update editedComment when comment prop changes
-  useEffect(() => {
-    setEditedComment(comment);
-  }, [comment]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -41,7 +40,7 @@ const CommentItem: React.FC<CommentProps> = ({ avatarUrl, name, comment, date, u
 
   const handleCancel = () => {
     setIsEditing(false);
-    setEditedComment(comment);
+    setDraft(null);
   };
 
   const handleSave = async () => {
@@ -54,6 +53,7 @@ const CommentItem: React.FC<CommentProps> = ({ avatarUrl, name, comment, date, u
       });
 
       setIsEditing(false);
+      setDraft(null);
       refreshAnimeComments();
       setMessage("コメントが更新されました");
     } catch (error) {
@@ -91,7 +91,7 @@ const CommentItem: React.FC<CommentProps> = ({ avatarUrl, name, comment, date, u
               fullWidth
               multiline
               value={editedComment}
-              onChange={(e) => setEditedComment(e.target.value)}
+              onChange={(e) => setDraft(e.target.value)}
               size="small"
               sx={{ 
                 mb: 1,
