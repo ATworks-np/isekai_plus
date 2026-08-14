@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const db = admin.firestore();
 const {onRequest} = require("firebase-functions/v2/https");
+const {coursByAnime, coursOf} = require("./cours");
 
 const caches = {};
 
@@ -20,6 +21,7 @@ app.get("/", async (req, res) => {
   try {
     if(!('titles' in caches)){
       const animesCollectionRef = db.collection('versions/1/animes');
+      const cours = await coursByAnime();
       const titles = [];
       animesCollectionRef.get().then((querySnapshot) => {
         querySnapshot.docs.forEach((doc) => {
@@ -27,7 +29,7 @@ app.get("/", async (req, res) => {
           const data = {
             id: doc.id,
             name: docDate.name,
-            cours: docDate.cours,
+            cours: cours.get(doc.id) || [],
             commentCount: docDate.commentCount,
             tags: docDate.tags.map(tag => tag.path),
             ratings: {
@@ -114,7 +116,7 @@ app.get("/:id/statics", async (req, res) => {
     const data = {
       id: docSnap.id,
       name: docData.name,
-      cours: docData.cours,
+      cours: await coursOf(docSnap.id),
       tags: (docData.tags || []).map(tag => tag.path), // tagsが未定義でも安全に処理
     };
 
@@ -130,13 +132,14 @@ app.get("/statics", async (req, res) => {
   try {
     const animesCollectionRef = db.collection('versions/1/animes');
     const snapshot = await animesCollectionRef.get();
+    const cours = await coursByAnime();
 
     const data = snapshot.docs.map(doc => {
       const docData = doc.data();
       return {
         id: doc.id,
         name: docData.name,
-        cours: docData.cours,
+        cours: cours.get(doc.id) || [],
         tags: (docData.tags || []).map(tag => tag.path), // tags安全処理
       };
     });

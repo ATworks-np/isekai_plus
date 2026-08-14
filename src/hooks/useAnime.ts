@@ -26,7 +26,6 @@ const useAnime = (props: {id: string | undefined}) => {
         id: animeData.id,
         name: animeData.name,
         tagIds: animeData.tags.map((e: any)=>e.path),
-        cours: animeData.cours,
         ratings: {
           story: animeData.storyRating || 0,
           character: animeData.characterRating || 0,

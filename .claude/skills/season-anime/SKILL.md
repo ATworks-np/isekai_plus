@@ -129,7 +129,7 @@ node .claude/skills/season-anime/scripts/series-plan.mjs 26812          # workTa
 
 - `seasons` が1件 → 手順7で新規レコードを作る
 - **2件以上で対象が `第1期` でない** → 先行する期も一緒に登録する。
-  レコードの `cours` は `allCours`、期は `seasons` の全件を作る。
+  `seasons` の全件を作り、それぞれに自分のクールを持たせる。
   対象だけ登録すると「2期なのに第1期」になる
 - スピンオフ（`kind: "spinoff"`）は採番されず、ラベルが作品名になる。
   そのまま従う
@@ -151,14 +151,15 @@ curl -X POST "$ISEKAI_API_BASE/api/v1/animes/" \
   }'
 ```
 
-第1期が自動で作られる。`cours` はそのまま期にも入る。
+第1期が自動で作られ、`cours` はその期に入る。**クールは期が持つもので、レコード
+自体は持たない。**
 
 ### フィールドの決め方
 
 - `name.ja` — `seriesTitle` があればそれ、なければ `title`。レコードは
   シリーズを表すので、「〜 4th season」のような期固有の名前は付けない
 - `name.en` — 英題がないので `name.ja` と同じ値
-- `cours` — YAML の `cours` をそのまま
+- `cours` — YAML の `cours` をそのまま。第1期のクールになる
 - `tags` — **常に空配列**。タグ付けは別途
 - `imageUrl` — `thumbnail.url`
 - `metadata` — `workTagId` は必須、`seriesTagId` は取れた場合のみ
@@ -181,13 +182,15 @@ curl -X POST "$ISEKAI_API_BASE/api/v1/animes/<id>/seasons/" \
 `order` はシリーズ内で一意。既存の期を `GET /api/v1/animes/<id>/seasons/` で
 確認してから決める。
 
-シリーズの `cours` にも追記する（置換なので既存の値を全部含めて送る）。
+**クールは期にしか持たせない。** シリーズの `cours` はサイト側が期から計算する
+ので、レコードに追記する必要はない（`PATCH /api/v1/animes/<id>/` に `cours` を
+渡すと 400 になる）。既存の期のクールを直したいときは期を PATCH する。
 
 ```bash
-curl -X PATCH "$ISEKAI_API_BASE/api/v1/animes/<id>/" \
+curl -X PATCH "$ISEKAI_API_BASE/api/v1/animes/<id>/seasons/<seasonId>/" \
   -H "X-API-Key: $ISEKAI_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{ "cours": ["2024-Q2","2026-Q3"] }'
+  -d '{ "cours": ["2022-Q4","2023-Q1"] }'
 ```
 
 ### スピンオフ

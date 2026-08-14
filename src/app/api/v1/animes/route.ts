@@ -1,8 +1,16 @@
 import { NextResponse } from 'next/server'
+import { DocumentSnapshot } from 'firebase-admin/firestore'
 import { authenticateApiKey } from '@/lib/apiKey'
-import { InvalidInput, buildAnimeWrite, latestCourOf, storeThumbnailFromUrl } from '@/lib/anime'
+import {
+  InvalidInput,
+  animeDoc,
+  buildAnimeWrite,
+  parseCours,
+  storeThumbnailFromUrl,
+} from '@/lib/anime'
 import { ANIMES_PATH, adminDb } from '@/lib/firebaseAdmin'
 import { RATING_KEYS, serializeSeason } from '@/lib/season'
+import { invalidateSeasonIndex, seasonIndex, workSeasons } from '@/lib/seasonIndex'
 import { serializeAnime } from '@/app/api/v1/animes/serialize'
 
 export const runtime = 'nodejs'
@@ -33,14 +41,27 @@ const decodeCursor = (raw: string): { v: unknown; id: string } | null => {
   }
 }
 
+/** Firestore's order: value descending, ties broken by id descending. */
+const compareDesc = (a: Ranked, b: Ranked) => {
+  const left = a.value ?? ''
+  const right = b.value ?? ''
+  if (left < right) return 1
+  if (left > right) return -1
+  return a.id < b.id ? 1 : a.id > b.id ? -1 : 0
+}
+
+type Ranked = { id: string; value: string | number | null }
+
 /**
  * The list, a page at a time.
  *
  * The page used to pull all 155 works and filter in the browser, then read
  * every like document of every row to show a count. Filtering and ordering
- * happen here now, against fields kept on the work: latestCour because
- * Firestore cannot order by the largest element of an array, likeCount and
- * ratingAverage because it cannot count a subcollection or average five fields.
+ * happen here now — likeCount, commentCount and ratingAverage as Firestore
+ * queries, since it cannot count a subcollection or average five fields, and
+ * broadcast date from the season index, since cours live on the seasons and
+ * Firestore can neither filter a collection by a subcollection's field nor
+ * order by the largest element of an array.
  */
 export async function GET(request: Request) {
   const url = new URL(request.url)
@@ -60,46 +81,93 @@ export async function GET(request: Request) {
   const limit = Math.min(Number(url.searchParams.get('limit')) || PAGE_SIZE, MAX_PAGE_SIZE)
   const field = SORTS[sort]
 
+  const rawCursor = url.searchParams.get('cursor')
+  const cursor = rawCursor ? decodeCursor(rawCursor) : null
+  if (rawCursor && !cursor) {
+    return NextResponse.json({ error: 'Invalid cursor.' }, { status: 400 })
+  }
+
   try {
-    let query = adminDb()
-      .collection(ANIMES_PATH)
-      .orderBy(field, 'desc')
-      // Ties are broken by id so a cursor always lands somewhere definite.
-      .orderBy('__name__', 'desc')
+    // Loaded whatever the sort is: the response carries each work's seasons,
+    // and reading them from here costs one query rather than one per row.
+    const index = await seasonIndex()
 
-    if (cour) query = query.where('cours', 'array-contains', cour)
+    const docs = new Map<string, DocumentSnapshot>()
+    let page: DocumentSnapshot[]
+    let hasMore: boolean
 
-    const rawCursor = url.searchParams.get('cursor')
-    if (rawCursor) {
-      const cursor = decodeCursor(rawCursor)
-      if (!cursor) return NextResponse.json({ error: 'Invalid cursor.' }, { status: 400 })
-      query = query.startAfter(cursor.v, cursor.id)
+    if (sort === 'recent' || cour) {
+      // Ordering or filtering by cour means starting from the seasons, so the
+      // page is cut here and only its works are read.
+      let candidates = [...index.values()]
+      if (cour) candidates = candidates.filter(entry => entry.cours.includes(cour))
+
+      let ranked: Ranked[] = candidates.map(entry => ({
+        id: entry.animeId,
+        value: entry.latestCour,
+      }))
+
+      if (sort !== 'recent') {
+        // The counts live on the work, so a cour-filtered list ordered by one
+        // has to read its candidates. A cour holds a couple of dozen works.
+        const snapshots = await adminDb().getAll(
+          ...candidates.map(entry => animeDoc(entry.animeId))
+        )
+        snapshots.forEach(doc => docs.set(doc.id, doc))
+        ranked = snapshots.map(doc => ({ id: doc.id, value: doc.get(field) ?? 0 }))
+      }
+
+      ranked.sort(compareDesc)
+
+      // Positional rather than by index, so a work added or removed between
+      // pages cannot make the cursor skip or repeat the rest of the list.
+      const after = cursor
+        ? ranked.filter(entry => compareDesc(entry, { id: cursor.id, value: cursor.v as never }) > 0)
+        : ranked
+
+      const wanted = after.slice(0, limit)
+      hasMore = after.length > wanted.length
+
+      const missing = wanted.filter(entry => !docs.has(entry.id))
+      if (missing.length) {
+        const snapshots = await adminDb().getAll(...missing.map(entry => animeDoc(entry.id)))
+        snapshots.forEach(doc => docs.set(doc.id, doc))
+      }
+      page = wanted.map(entry => docs.get(entry.id)!).filter(doc => doc.exists)
+    } else {
+      let query = adminDb()
+        .collection(ANIMES_PATH)
+        .orderBy(field, 'desc')
+        // Ties are broken by id so a cursor always lands somewhere definite.
+        .orderBy('__name__', 'desc')
+
+      if (cursor) query = query.startAfter(cursor.v, cursor.id)
+
+      const snapshot = await query.limit(limit).get()
+      page = snapshot.docs
+      hasMore = snapshot.size === limit
     }
 
-    const snapshot = await query.limit(limit).get()
+    const items = page.map(doc => {
+      const entry = workSeasons(index, doc.id)
+      return {
+        ...serializeAnime(doc, entry.cours),
+        commentCount: doc.get('commentCount') ?? 0,
+        likeCount: doc.get('likeCount') ?? 0,
+        latestCour: entry.latestCour,
+        ratings: Object.fromEntries(RATING_KEYS.map(key => [key, doc.get(`${key}Rating`) ?? 0])),
+        rating: doc.get('ratingAverage') ?? 0,
+        seasons: entry.seasons.map(serializeSeason),
+      }
+    })
 
-    const items = await Promise.all(
-      snapshot.docs.map(async doc => {
-        const seasons = await doc.ref.collection('seasons').orderBy('order').get()
-        return {
-          ...serializeAnime(doc),
-          commentCount: doc.get('commentCount') ?? 0,
-          likeCount: doc.get('likeCount') ?? 0,
-          latestCour: doc.get('latestCour') ?? null,
-          ratings: Object.fromEntries(
-            RATING_KEYS.map(key => [key, doc.get(`${key}Rating`) ?? 0])
-          ),
-          rating: doc.get('ratingAverage') ?? 0,
-          seasons: seasons.docs.map(serializeSeason),
-        }
-      })
-    )
+    const last = page[page.length - 1]
+    const lastValue =
+      sort === 'recent' ? workSeasons(index, last?.id ?? '').latestCour : last?.get(field)
 
-    const last = snapshot.docs[snapshot.docs.length - 1]
     return NextResponse.json({
       items,
-      nextCursor:
-        snapshot.size === limit && last ? encodeCursor(last.get(field), last.id) : null,
+      nextCursor: hasMore && last ? encodeCursor(lastValue, last.id) : null,
     })
   } catch (error) {
     console.error('GET /api/v1/animes failed', error)
@@ -122,6 +190,8 @@ export async function POST(request: Request) {
 
   try {
     const write = await buildAnimeWrite(input, { partial: false })
+    // cours belongs to a season, not to the work; here it seeds the first one.
+    const cours = input.cours === undefined ? [] : parseCours(input.cours)
     if (input.metadata !== undefined) {
       if (typeof input.metadata !== 'object' || input.metadata === null) {
         throw new InvalidInput('metadata must be an object.')
@@ -131,23 +201,24 @@ export async function POST(request: Request) {
 
     const ref = await adminDb().collection(ANIMES_PATH).add({
       ...write,
-      latestCour: latestCourOf(write.cours),
       likeCount: 0,
       ratingAverage: 0,
     })
 
     // Ratings hang off a season, and the anime page draws its tabs from them,
-    // so a work with none can never be rated. Every record carries at least one.
+    // so a work with none can never be rated. Every record carries at least one,
+    // which is also what lets the season index stand in for the work list.
     await ref.collection('seasons').doc('season-1').set({
       order: 1,
       label: '第1期',
       kind: 'season',
-      cours: write.cours ?? [],
+      cours,
       programId: null,
       ratingCount: 0,
       ratings: Object.fromEntries(RATING_KEYS.map(key => [key, 0])),
       ratingTotals: Object.fromEntries(RATING_KEYS.map(key => [key, 0])),
     })
+    invalidateSeasonIndex()
 
     if (input.imageUrl !== undefined) {
       try {
@@ -161,7 +232,7 @@ export async function POST(request: Request) {
     }
 
     const created = await ref.get()
-    return NextResponse.json(serializeAnime(created), { status: 201 })
+    return NextResponse.json(serializeAnime(created, cours), { status: 201 })
   } catch (error) {
     if (error instanceof InvalidInput) {
       return NextResponse.json({ error: error.message }, { status: 400 })

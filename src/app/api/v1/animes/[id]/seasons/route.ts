@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { authenticateApiKey } from '@/lib/apiKey'
 import { InvalidInput, animeDoc, storeThumbnailFromUrl } from '@/lib/anime'
 import { RATING_KEYS, buildSeasonWrite, seasonsCollection, serializeSeason } from '@/lib/season'
+import { invalidateSeasonIndex } from '@/lib/seasonIndex'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -76,6 +77,7 @@ export async function POST(request: Request, context: Context) {
       }
     }
 
+    invalidateSeasonIndex()
     return NextResponse.json(serializeSeason(await ref.get()), { status: 201 })
   } catch (error) {
     if (error instanceof InvalidInput) {

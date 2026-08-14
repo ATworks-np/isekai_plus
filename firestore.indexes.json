@@ -1,41 +1,4 @@
 {
-  "indexes": [
-    {
-      "collectionGroup": "animes",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "cours", "arrayConfig": "CONTAINS" },
-        { "fieldPath": "latestCour", "order": "DESCENDING" },
-        { "fieldPath": "__name__", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "animes",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "cours", "arrayConfig": "CONTAINS" },
-        { "fieldPath": "likeCount", "order": "DESCENDING" },
-        { "fieldPath": "__name__", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "animes",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "cours", "arrayConfig": "CONTAINS" },
-        { "fieldPath": "commentCount", "order": "DESCENDING" },
-        { "fieldPath": "__name__", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "animes",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "cours", "arrayConfig": "CONTAINS" },
-        { "fieldPath": "ratingAverage", "order": "DESCENDING" },
-        { "fieldPath": "__name__", "order": "DESCENDING" }
-      ]
-    }
-  ],
+  "indexes": [],
   "fieldOverrides": []
 }

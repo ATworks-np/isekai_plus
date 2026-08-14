@@ -5,10 +5,11 @@ import {
   animeDoc,
   buildAnimeWrite,
   deleteThumbnails,
-  latestCourOf,
   storeThumbnailFromUrl,
 } from '@/lib/anime'
 import { adminDb } from '@/lib/firebaseAdmin'
+import { seasonsCollection } from '@/lib/season'
+import { invalidateSeasonIndex } from '@/lib/seasonIndex'
 import { serializeAnime } from '@/app/api/v1/animes/serialize'
 
 export const runtime = 'nodejs'
@@ -37,6 +38,15 @@ export async function PATCH(request: Request, context: Context) {
       return NextResponse.json({ error: `No anime with id ${id}.` }, { status: 404 })
     }
 
+    // Which cours a work aired in is a property of its seasons, and patching a
+    // copy on the work was how the two came to disagree.
+    if (input.cours !== undefined) {
+      return NextResponse.json(
+        { error: 'cours belongs to a season. Use /api/v1/animes/<id>/seasons/<seasonId>.' },
+        { status: 400 }
+      )
+    }
+
     const write = await buildAnimeWrite(input, { partial: true })
 
     if (Object.keys(write).length === 0 && input.imageUrl === undefined) {
@@ -45,14 +55,15 @@ export async function PATCH(request: Request, context: Context) {
 
     // Merge so the rating aggregates and commentCount maintained by the
     // Firestore triggers survive a partial update.
-    if (Object.keys(write).length > 0) {
-      const patch: Record<string, unknown> = { ...write }
-      if (write.cours) patch.latestCour = latestCourOf(write.cours)
-      await ref.set(patch, { merge: true })
-    }
+    if (Object.keys(write).length > 0) await ref.set(write, { merge: true })
     if (input.imageUrl !== undefined) await storeThumbnailFromUrl(id, input.imageUrl)
 
-    return NextResponse.json(serializeAnime(await ref.get()))
+    const seasons = await seasonsCollection(id).get()
+    const cours = [
+      ...new Set(seasons.docs.flatMap(season => (season.get('cours') ?? []) as string[])),
+    ].sort()
+
+    return NextResponse.json(serializeAnime(await ref.get(), cours))
   } catch (error) {
     if (error instanceof InvalidInput) {
       return NextResponse.json({ error: error.message }, { status: 400 })
@@ -78,6 +89,7 @@ export async function DELETE(request: Request, context: Context) {
     // this one owns comments, likes and per-user ratings.
     await adminDb().recursiveDelete(ref)
     await deleteThumbnails(id)
+    invalidateSeasonIndex()
 
     return NextResponse.json({ id, deleted: true })
   } catch (error) {

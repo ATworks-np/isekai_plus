@@ -78,7 +78,6 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [titleJPDraft, setTitleJP] = useState<string | null>(null);
   const [titleENDraft, setTitleEN] = useState<string | null>(null);
-  const [coursDraft, setCours] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [tagsDraft, setTagsState] = useState<string[] | null>(null);
   const [newTag, setNewTag] = useState<{ [key:string]: string }>({});
@@ -98,7 +97,6 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
   const loaded = anime?.props?.id === id ? anime.props : undefined
   const titleJP = titleJPDraft ?? loaded?.name.ja ?? ''
   const titleEN = titleENDraft ?? loaded?.name.en ?? ''
-  const cours = coursDraft ?? loaded?.cours.join(',') ?? ''
   const tagsState = tagsDraft ?? loaded?.tagIds ?? []
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -114,7 +112,6 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
           ja: titleJP,
           en: titleEN,
         },
-        cours: cours.split(','),
         tags: tagsState.map((key: string) => doc(db, key)),
       };
 
@@ -398,14 +395,6 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
           margin="normal"
           value={titleEN}
           onChange={(e) => setTitleEN(e.target.value)}
-        />
-        <TextField
-          label="放送クール"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          value={cours}
-          onChange={(e) => setCours(e.target.value)}
         />
         <TagsSection tagsState={tagsState} setTagsState={setTagsState} />
 

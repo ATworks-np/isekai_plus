@@ -7,9 +7,11 @@ import {
   readSeasonAggregates,
   removeSeason,
   seasonDoc,
+  seasonsCollection,
   serializeSeason,
   seriesRatingFields,
 } from '@/lib/season'
+import { invalidateSeasonIndex } from '@/lib/seasonIndex'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -46,6 +48,7 @@ export async function PATCH(request: Request, context: Context) {
       await storeThumbnailFromUrl(`${id}/${seasonId}`, input.imageUrl)
       await ref.update({ hasThumbnail: true })
     }
+    invalidateSeasonIndex()
     return NextResponse.json(serializeSeason(await ref.get()))
   } catch (error) {
     if (error instanceof InvalidInput) {
@@ -68,6 +71,16 @@ export async function DELETE(request: Request, context: Context) {
       return NextResponse.json({ error: `No season ${seasonId} on anime ${id}.` }, { status: 404 })
     }
 
+    // A work is listed and filtered through its seasons, so one with none would
+    // disappear from the site while still existing. Delete the work instead.
+    const siblings = await seasonsCollection(id).get()
+    if (siblings.size <= 1) {
+      return NextResponse.json(
+        { error: 'A work must keep at least one season. Delete the work itself instead.' },
+        { status: 409 }
+      )
+    }
+
     // Dropping a season changes the series mean, so recompute it from what is
     // left before the season's own ratings disappear.
     await adminDb().runTransaction(async transaction => {
@@ -78,6 +91,7 @@ export async function DELETE(request: Request, context: Context) {
     // recursiveDelete takes the season's userRatings subcollection with it.
     await adminDb().recursiveDelete(ref)
     await deleteThumbnails(`${id}/${seasonId}`)
+    invalidateSeasonIndex()
 
     return NextResponse.json({ id: seasonId, deleted: true })
   } catch (error) {

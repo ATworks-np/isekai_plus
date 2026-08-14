@@ -19,7 +19,6 @@ export type AnimeInput = {
 
 export type AnimeWrite = {
   name?: { ja: string; en: string }
-  cours?: string[]
   tags?: DocumentReference[]
 }
 
@@ -30,9 +29,17 @@ const asString = (value: unknown, field: string): string => {
   return value.trim()
 }
 
-const parseCours = (value: unknown): string[] => {
+/**
+ * A cour is a season's, never a work's — the work's is the union of its
+ * seasons'. Create still accepts one because it seeds the first season.
+ */
+export const parseCours = (value: unknown): string[] => {
   if (!Array.isArray(value)) throw new InvalidInput('cours must be an array of strings.')
-  return value.map((entry, i) => asString(entry, `cours[${i}]`))
+  return value.map((entry, i) => {
+    const cour = asString(entry, `cours[${i}]`)
+    if (!/^\d{4}-Q[1-4]$/.test(cour)) throw new InvalidInput(`cours[${i}] must look like 2026-Q3.`)
+    return cour
+  })
 }
 
 /**
@@ -77,9 +84,6 @@ export const buildAnimeWrite = async (body: AnimeInput, { partial }: { partial: 
       en: asString(body.name.en, 'name.en'),
     }
   }
-
-  if (body.cours !== undefined) write.cours = parseCours(body.cours)
-  else if (!partial) write.cours = []
 
   if (body.tags !== undefined) write.tags = await resolveTags(body.tags)
   else if (!partial) write.tags = []
@@ -188,11 +192,8 @@ export const thumbnailUrlFor = (key: string) =>
 export const animeDoc = (id: string) => adminDb().doc(`${ANIMES_PATH}/${id}`)
 
 /**
- * The most recent cour a work aired in, as a sortable scalar.
- *
- * Firestore cannot order by the largest element of an array, and the list sorts
- * newest first by default, so the maximum is stored alongside the array.
- * YYYY-QN compares correctly as a string.
+ * The most recent cour in a set, or null if there is none. YYYY-QN compares
+ * correctly as a string, so this is the maximum.
  */
 export const latestCourOf = (cours: unknown): string | null => {
   if (!Array.isArray(cours)) return null

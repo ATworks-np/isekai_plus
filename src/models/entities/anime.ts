@@ -8,7 +8,6 @@ interface IAnime {
     en: string
   }
   tagIds: string[]
-  cours: string[]
   ratings:IRatings;
 }
 
@@ -28,7 +27,6 @@ class Anime implements IAnimeClass {
       id: '',
       name: { ja: '', en: '' },
       tagIds: [],
-      cours: [],
       ratings: {
         story: 0,
         character: 0,
