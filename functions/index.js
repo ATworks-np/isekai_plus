@@ -21,14 +21,10 @@ exports.animes = animes;
 // トリガーファイルをインポート
 const { incrementCommentCount } = require("./triggers/incrementCommentCount");
 const { decrementCommentCount } = require("./triggers/decrementCommentCount");
-const { onRatingCreated } = require("./triggers/agregateRating");
-const { onRatingUpdated } = require("./triggers/agregateRating");
-const { onRankingAggregationWrite } = require("./triggers/agregateRating");
 
 // トリガーをエクスポート
+// 評価の集計は PUT /api/v1/animes/:id/seasons/:seasonId/ratings が
+// トランザクションで行うため、旧トリガー3本は削除済み。
 exports.incrementCommentCount = incrementCommentCount;
 exports.decrementCommentCount = decrementCommentCount;
-exports.onRatingCreated = onRatingCreated;
-exports.onRatingUpdated = onRatingUpdated;
-exports.onRankingAggregationWrite = onRankingAggregationWrite;
 

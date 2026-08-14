@@ -6,7 +6,6 @@ import StarOutlineIcon from "@mui/icons-material/StarOutline";
 import Grid from "@mui/material/Grid";
 import HelpIcon from "@mui/icons-material/Help";
 import EditStarRating from "@/components/AnimePage/AnimeSummarySection/EditStarRating";
-import useAnimeMyRatings from "@/hooks/useAnimeMyRatings";
 import {IRatings} from "@/models/interfaces/ratings";
 
 interface StarRatingSectionProps {

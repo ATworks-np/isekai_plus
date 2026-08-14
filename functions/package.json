@@ -11,7 +11,7 @@
     "build": "echo 'Skipping build as this is a JavaScript project'"
   },
   "engines": {
-    "node": "18"
+    "node": "22"
   },
   "main": "index.js",
   "dependencies": {
