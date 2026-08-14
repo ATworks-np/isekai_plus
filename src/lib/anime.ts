@@ -186,3 +186,18 @@ export const thumbnailUrlFor = (key: string) =>
   `https://storage.googleapis.com/${process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}/thumbnail/${key}.jpg`
 
 export const animeDoc = (id: string) => adminDb().doc(`${ANIMES_PATH}/${id}`)
+
+/**
+ * The most recent cour a work aired in, as a sortable scalar.
+ *
+ * Firestore cannot order by the largest element of an array, and the list sorts
+ * newest first by default, so the maximum is stored alongside the array.
+ * YYYY-QN compares correctly as a string.
+ */
+export const latestCourOf = (cours: unknown): string | null => {
+  if (!Array.isArray(cours)) return null
+  const valid = cours.filter(
+    (cour): cour is string => typeof cour === 'string' && /^\d{4}-Q[1-4]$/.test(cour)
+  )
+  return valid.length ? valid.sort()[valid.length - 1] : null
+}

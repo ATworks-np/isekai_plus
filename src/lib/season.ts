@@ -124,6 +124,12 @@ export const seriesRatingFields = (seasons: SeasonAggregate[]) => {
       ? rated.reduce((sum, season) => sum + (season.ratings?.[key] ?? 0), 0) / rated.length
       : 0
   }
+
+  // One number to order by. Firestore cannot sort on the mean of five fields,
+  // and the read API was computing it per response.
+  fields.ratingAverage =
+    RATING_KEYS.reduce((sum, key) => sum + fields[`${key}Rating`], 0) / RATING_KEYS.length
+
   return fields
 }
 

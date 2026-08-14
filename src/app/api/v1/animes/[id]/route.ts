@@ -5,6 +5,7 @@ import {
   animeDoc,
   buildAnimeWrite,
   deleteThumbnails,
+  latestCourOf,
   storeThumbnailFromUrl,
 } from '@/lib/anime'
 import { adminDb } from '@/lib/firebaseAdmin'
@@ -44,7 +45,11 @@ export async function PATCH(request: Request, context: Context) {
 
     // Merge so the rating aggregates and commentCount maintained by the
     // Firestore triggers survive a partial update.
-    if (Object.keys(write).length > 0) await ref.set(write, { merge: true })
+    if (Object.keys(write).length > 0) {
+      const patch: Record<string, unknown> = { ...write }
+      if (write.cours) patch.latestCour = latestCourOf(write.cours)
+      await ref.set(patch, { merge: true })
+    }
     if (input.imageUrl !== undefined) await storeThumbnailFromUrl(id, input.imageUrl)
 
     return NextResponse.json(serializeAnime(await ref.get()))

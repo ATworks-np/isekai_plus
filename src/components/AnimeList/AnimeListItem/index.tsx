@@ -14,8 +14,7 @@ import Link from "next/link";
 import {tagsAtom} from "@/stores/tagStore";
 import EditIcon from "@mui/icons-material/Edit";
 import {userAtom} from "@/stores/userStore";
-import { db } from '@/firebase';
-import { collection, doc, getDoc, getDocs, setDoc, deleteDoc, query, where, serverTimestamp } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 import { getThumbnailURL } from "@/utils/url"
 import { Season } from "@/hooks/useSeasons"
 
@@ -43,10 +42,10 @@ interface AnimeListItemProps {
     ja: string
     en: string
   };
-  thumbnail: string;
   tags: string[];
   cours: string[];
   commentCount: number;
+  likeCount?: number;
   rating: number;
   season?: Season;
   seasonCount?: number;
@@ -55,36 +54,40 @@ interface AnimeListItemProps {
 const AnimeListItem: React.FC<AnimeListItemProps> = props => {
   const [tags, setTags] = useAtom(tagsAtom)
   const [user, setUser] = useAtom(userAtom)
-  const [likeCount, setLikeCount] = useState(0)
-  const [userLiked, setUserLiked] = useState(false)
+  // The count arrives with the row; only this user's own state has to be asked
+  // for, and only once they are signed in.
+  const [likeDelta, setLikeDelta] = useState(0)
+  const likeCount = Math.max(0, (props.likeCount ?? 0) + likeDelta)
+  const [likedByUser, setLikedByUser] = useState(false)
+  // Signing out makes this false without an effect having to reset it.
+  const userLiked = Boolean(user.props.uid) && likedByUser
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
 
-  // Fetch likes count and check if user has liked this anime
   useEffect(() => {
-    const fetchLikes = async () => {
+    if (!user.props.uid) return
+    let cancelled = false
+
+    const load = async () => {
       try {
-        // Get all likes for this anime using subcollection
-        const likesRef = collection(db, `versions/1/animes/${props.id}/likes`)
-        const querySnapshot = await getDocs(likesRef)
-
-        // Set the like count
-        setLikeCount(querySnapshot.size)
-
-        // Check if current user has liked this anime
-        if (user.props.uid) {
-          const userLikeDocRef = doc(db, `versions/1/animes/${props.id}/likes/${user.props.uid}`)
-          const userLikeDoc = await getDoc(userLikeDocRef)
-          setUserLiked(userLikeDoc.exists())
-        } else {
-          setUserLiked(false)
-        }
+        const currentUser = getAuth().currentUser
+        if (!currentUser) return
+        const token = await currentUser.getIdToken()
+        const response = await fetch(`/api/v1/animes/${props.id}/likes/`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!response.ok) throw new Error(`HTTP ${response.status}`)
+        const data = await response.json()
+        if (!cancelled) setLikedByUser(Boolean(data.liked))
       } catch (error) {
-        console.error('Error fetching likes:', error)
+        if (!cancelled) console.error('いいねの取得に失敗しました', error)
       }
     }
 
-    fetchLikes()
+    load()
+    return () => {
+      cancelled = true
+    }
   }, [props.id, user.props.uid])
 
   // Handle Snackbar close
@@ -95,35 +98,36 @@ const AnimeListItem: React.FC<AnimeListItemProps> = props => {
     setSnackbarOpen(false);
   };
 
-  // Handle like/unlike
+  /**
+   * Through the API so likeCount stays on the work: the list orders by it, and
+   * Firestore cannot order by the size of a subcollection.
+   */
   const handleLikeToggle = async () => {
-    if (!user.props.uid) {
-      // User is not logged in, can't like
-      setSnackbarMessage('Please log in to like this anime')
+    const currentUser = getAuth().currentUser
+    if (!currentUser) {
+      setSnackbarMessage('いいねするにはログインしてください')
       setSnackbarOpen(true)
       return
     }
 
-    try {
-      // Use subcollection structure
-      const likeRef = doc(db, `versions/1/animes/${props.id}/likes/${user.props.uid}`)
+    const next = !userLiked
+    // Optimistic: the count is the row's plus this user's own change.
+    setLikedByUser(next)
+    setLikeDelta(delta => delta + (next ? 1 : -1))
 
-      if (userLiked) {
-        // Unlike
-        await deleteDoc(likeRef)
-        setLikeCount(prev => prev - 1)
-        setUserLiked(false)
-      } else {
-        // Like
-        await setDoc(likeRef, {
-          userId: user.props.uid,
-          createdAt: serverTimestamp()
-        })
-        setLikeCount(prev => prev + 1)
-        setUserLiked(true)
-      }
+    try {
+      const token = await currentUser.getIdToken()
+      const response = await fetch(`/api/v1/animes/${props.id}/likes/`, {
+        method: next ? 'PUT' : 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
     } catch (error) {
-      console.error('Error toggling like:', error)
+      console.error('いいねの更新に失敗しました', error)
+      setLikedByUser(!next)
+      setLikeDelta(delta => delta - (next ? 1 : -1))
+      setSnackbarMessage('いいねの更新に失敗しました')
+      setSnackbarOpen(true)
     }
   }
 
