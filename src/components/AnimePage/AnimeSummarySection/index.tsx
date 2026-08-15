@@ -199,12 +199,20 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
                               has not arrived: the stars would fill in front of
                               the reader as though the work had just been rated. */}
                           {props.loadingSeasons ? (
-                            <Skeleton
-                              variant="text"
-                              width={110}
-                              height={24}
-                              sx={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-                            />
+                            // The row is 20px tall and there are five of them, so
+                            // a skeleton even four pixels taller pushed the page
+                            // below the header down by twenty. It is drawn
+                            // shorter than the row and centred, which leaves the
+                            // height to the label beside it and keeps the five
+                            // from merging into one grey block.
+                            <Box sx={{ height: 20, display: 'flex', alignItems: 'center' }}>
+                              <Skeleton
+                                variant="rectangular"
+                                width={110}
+                                height={12}
+                                sx={{ backgroundColor: 'rgba(255,255,255,0.25)', borderRadius: '3px' }}
+                              />
+                            </Box>
                           ) : (
                             <StarRating rating={ratings[key as keyof IRatings]}/>
                           )}

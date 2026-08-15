@@ -13,7 +13,12 @@ const theme = createTheme({
     background: {
       default: '#F6F8F9',
     },
-    text: { primary: '#193238', secondary: '#DDD' },
+    // secondary was #DDD, which is a colour for text on the blurred key visual,
+    // not for text on the page: on the #F6F8F9 background it contrasts about
+    // 1.1 to 1 and cannot be read at all. Everything that actually sits on
+    // artwork asks for white explicitly. This is #193238 lightened to the point
+    // where it still passes AA on the page background.
+    text: { primary: '#193238', secondary: '#5B7178' },
   },
   typography: {
     fontFamily: "'Noto Sans JP', sans-serif",
