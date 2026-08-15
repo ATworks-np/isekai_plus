@@ -5,6 +5,7 @@ import { Stack } from '@mui/material'
 import AnimeSummarySection from "@/components/AnimePage/AnimeSummarySection";
 import CommentInput from "@/components/AnimePage/CommentInput";
 import AnimeComment from "@/components/AnimePage/AnimeComment";
+import AnimeDetailsSection from "@/components/AnimePage/AnimeDetailsSection";
 import useSeasons from "@/hooks/useSeasons";
 import { IAnimeStatic } from "@/models/interfaces/animeStatic";
 
@@ -29,6 +30,7 @@ const AnimePage: React.FC<IAnimeStatic> = (props) => {
         onSelectSeason={setSelectedSeasonId}
         onRatingSaved={reloadSeasons}
       />
+      <AnimeDetailsSection id={props.id} />
       <AnimeComment id={props.id} seasons={seasons} />
       <CommentInput id={props.id} seasonId={activeSeason?.id} />
     </Stack>
