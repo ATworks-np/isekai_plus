@@ -43,13 +43,16 @@ const ANIMES_PATH = 'versions/1/animes'
 const TAGS_PATH = 'versions/1/tags'
 const WORKS_DIR = '.claude/skills/season-anime/data/works'
 const CACHE_DIR = '.cache/grok-tags'
-const CONCURRENCY = 3
+const DICTIONARY = 'data/tags.yaml'
+// Each work already fans out into eight group requests at once.
+const CONCURRENCY = 1
 const TIMEOUT_MS = 15 * 60 * 1000
 const FETCH_TIMEOUT_MS = 20 * 1000
 const MODEL = 'grok-4.6'
 const EFFORT = 'high'
 
-const APPEARANCE = /巨乳|貧乳|むちむち|見た目幼女/
+/** Verdicts that mean a tag may be applied. */
+const ACCEPTED = /^検証済み|^画像\d+\/\d+一致/
 
 const SCHEMA = JSON.stringify({
   type: 'object',
@@ -83,32 +86,55 @@ const SCHEMA = JSON.stringify({
   required: ['tags', 'newTags', 'characterPageUrl'],
 })
 
-const promptFor = (work, vocabulary) => `異世界アニメのまとめサイトで、作品「${work.title}」に付けるタグを選んでください。
+const groupSection = (dictionary, key) => {
+  const group = dictionary.groups.find(entry => entry.key === key)
+  const tags = dictionary.tags.filter(tag => tag.group === key && !tag.aliasOf)
+  const lines = tags.map(tag => {
+    const examples = tag.examples?.length ? `（例: ${tag.examples.slice(0, 3).join('、')}）` : ''
+    const narrower = tag.narrower?.length ? ` ※より具体的な ${tag.narrower.join('・')} があればそちらを選ぶ` : ''
+    return `- ${tag.name}: ${tag.criteria}${narrower}${examples}`
+  })
+  return `### ${group.label}${group.note ? `（${group.note}）` : ''}\n${lines.join('\n')}`
+}
 
-## 使えるタグ（この中からのみ選ぶ）
+const promptFor = (work, dictionary, key) => `異世界アニメのまとめサイト「いせかいぷらす」で、作品「${work.title}」に付けるタグを選んでください。
 
-${vocabulary.join('、')}
+いまは **${dictionary.groups.find(group => group.key === key).label}** の群だけを見ます。
+
+## この群のタグと判定基準
+
+一覧に無い語は選べません。各行は「タグ名: そのタグを付ける条件（例: すでに付いている作品）」です。
+
+${groupSection(dictionary, key)}
 
 ## あらすじ（サイト掲載のもの）
 
 ${work.synopsis || '（あらすじの記録なし。ウェブで調べること）'}
 
-## 指示
+## 手順
 
-- **上の一覧にあるタグだけを選ぶ。** 一覧に無い語を tags に書かない
-- 5〜8個。確信のあるものだけでよく、無理に数を埋めない
-- タグごとに根拠を付ける
-  - あらすじに書いてあるなら source="synopsis"、quote にあらすじの該当部分を
-    **一字一句そのまま**写す（url は ""）
-  - あらすじに無いなら、ウェブを検索して実際にページを開き、source="web"、
-    url にそのページ、quote にそのページに書かれていた一文をそのまま写す
+1. **必ずウェブを検索し、Wikipedia か pixiv百科事典 の記事を最低1つは開く。**
+   あらすじは数行しかないので、それだけで答えると必ず取りこぼす
+2. 上の一覧を**1行ずつ上から順に**見て、当てはまるかどうかを判断する。
+   飛ばさない。この群に当てはまるものが無ければ空で返してよい
+
+## 根拠の付け方
+
+- あらすじに書いてあるなら source="synopsis"、quote にあらすじの該当部分を
+  **一字一句そのまま**写す（url は ""）
+- あらすじに無いなら、ウェブを検索して実際にページを開き、source="web"、
+  url にそのページ、quote にそのページに書かれていた一文をそのまま写す
 - **quote はあとで機械的に照合する。** 実在しない文を書くと検出される
+- 出典は取得できるページを選ぶ。公式サイトは取得できないことがあるので、
+  Wikipedia・pixiv百科事典・ニュース記事など確実に読めるページを優先する
 - 根拠を示せないタグは選ばない。推測で付けない
+
+## そのほか
+
+- 判定基準に合わないタグは、作品の雰囲気が近くても選ばない
 - 一覧に無いが必要だと思うタグは newTags に理由付きで挙げる（作成はしない）
 - 公式サイトのキャラクター紹介ページのURLが分かれば characterPageUrl に入れる
-  （キャラの立ち絵が載っているページ。無ければ ""）
-
-作品の内容に照らして、読み手が探すときに使う言葉を選んでください。`
+`
 
 const firstJsonObject = text => {
   const start = text.indexOf('{')
@@ -140,12 +166,12 @@ const firstJsonObject = text => {
   return null
 }
 
-const ask = async (work, vocabulary) => {
+const askGroup = async (work, dictionary, key) => {
   const { stdout } = await run(
     'grok',
     [
       '-p',
-      promptFor(work, vocabulary),
+      promptFor(work, dictionary, key),
       '--model',
       MODEL,
       '--effort',
@@ -162,6 +188,55 @@ const ask = async (work, vocabulary) => {
   const answer = envelope.structuredOutput ?? firstJsonObject(envelope.text ?? '')
   if (!answer) throw new Error(envelope.structuredOutputError ?? '構造化出力が空でした')
   return { answer, costUsd: envelope.total_cost_usd ?? 0 }
+}
+
+/**
+ * One request per group rather than one for the whole vocabulary.
+ *
+ * Handed all hundred tags with their criteria at once, the model returned a
+ * single tag for 骸骨騎士様 and did not search at all — a list that long turns
+ * the task into skimming. A group at a time is short enough to read line by
+ * line, which is what the instruction asks for, and it makes each group's
+ * decision independent of the others.
+ */
+const ask = async (work, dictionary) => {
+  const tags = []
+  const newTags = []
+  let characterPageUrl = ''
+  let costUsd = 0
+
+  // The body group is decided from the pictures, further down. The rest are
+  // independent questions, so they are asked at the same time.
+  const results = await Promise.all(
+    dictionary.groups
+      .filter(group => group.key !== 'body')
+      .map(group => askGroup(work, dictionary, group.key).catch(() => null))
+  )
+
+  const groupLabels = new Set(dictionary.groups.map(group => group.label))
+  for (const result of results.filter(Boolean)) {
+    costUsd += result.costUsd
+    // A group's own label came back as a tag once, quoting the line of the
+    // prompt that names it.
+    tags.push(...(result.answer.tags ?? []).filter(entry => !groupLabels.has(entry.tag)))
+    newTags.push(...(result.answer.newTags ?? []))
+    if (!characterPageUrl && result.answer.characterPageUrl) {
+      characterPageUrl = result.answer.characterPageUrl
+    }
+  }
+
+  const seen = new Set()
+  return {
+    answer: {
+      tags: tags.filter(entry => !seen.has(entry.tag) && seen.add(entry.tag)),
+      // Two groups proposing 世直し is one proposal.
+      newTags: newTags.filter(
+        (entry, index) => newTags.findIndex(other => other.name === entry.name) === index
+      ),
+      characterPageUrl,
+    },
+    costUsd,
+  }
 }
 
 const stripHtml = html =>
@@ -338,7 +413,7 @@ ${paths.map(path => `- ${path}`).join('\n')}
 
 ## 選べるタグ
 
-${vocabulary.join('、')}
+${vocabulary.map(line => `- ${line}`).join('\n')}
 
 ## 指示
 
@@ -368,20 +443,70 @@ const askImage = async (work, paths, vocabulary) => {
   return { answer: answer ?? { tags: [], observed: '' }, costUsd: envelope?.total_cost_usd ?? 0 }
 }
 
+const IMAGE_PASSES = 3
+const IMAGE_AGREEMENT = 2
+
 /**
- * A picture cannot be quoted, so it is asked about twice and only what both
- * passes saw is kept. One pass of 魔都精兵のスレイブ's key visual is how 巨乳
- * arrived attached to a sentence that was not on the page it cited.
+ * A picture cannot be quoted, so it is asked about three times and kept if two
+ * passes saw it.
+ *
+ * Unanimity of two was the first rule and it was too strict in one direction
+ * and not at all in the other: 骸骨騎士様's maid lost 巨乳メイド and kept the
+ * vaguer 巨乳 because only one pass named the specific tag, while a single pass
+ * is exactly what produced 巨乳 attached to a natalie sentence that does not
+ * exist. Two of three keeps the specific tag and still needs corroboration.
  */
-const askImageTwice = async (work, paths, vocabulary) => {
-  const first = await askImage(work, paths, vocabulary)
-  const second = await askImage(work, paths, vocabulary)
-  const agreed = (first.answer.tags ?? []).filter(tag => (second.answer.tags ?? []).includes(tag))
-  return {
-    tags: [...new Set(agreed)],
-    observed: first.answer.observed ?? '',
-    costUsd: first.costUsd + second.costUsd,
+const askImageSeveralTimes = async (work, paths, vocabulary) => {
+  const counts = new Map()
+  let observed = ''
+  let costUsd = 0
+
+  for (let pass = 0; pass < IMAGE_PASSES; pass++) {
+    const result = await askImage(work, paths, vocabulary)
+    costUsd += result.costUsd
+    if (!observed) observed = result.answer.observed ?? ''
+    for (const tag of new Set(result.answer.tags ?? [])) {
+      counts.set(tag, (counts.get(tag) ?? 0) + 1)
+    }
   }
+
+  return {
+    tags: [...counts].filter(([, seen]) => seen >= IMAGE_AGREEMENT).map(([tag]) => tag),
+    counts: Object.fromEntries(counts),
+    observed,
+    costUsd,
+  }
+}
+
+/**
+ * Asks again for the tags whose source could not be read.
+ *
+ * 魔都精兵のスレイブ lost ハーレム, エロ and 恋愛 to an official site that will
+ * not answer a fetch, and a later run found all three on Wikipedia. The answer
+ * was right and only the citation was unusable, which is worth one more ask.
+ */
+const RETRY_VERDICTS = /到達不可|ページに記述なし|あらすじに該当なし/
+
+const askAgainForSources = async (work, rejected) => {
+  if (!rejected.length) return { tags: [], costUsd: 0 }
+
+  const prompt = `作品「${work.title}」について、次のタグを提案しましたが、挙げられた出典が確認できませんでした。
+
+${rejected.map(entry => `- ${entry.tag}: ${entry.url || 'あらすじ'} に「${entry.quote}」は見つかりませんでした`).join('\n')}
+
+タグ自体が正しいと考えるなら、**別の確実に読めるページ**（Wikipedia、pixiv百科事典、
+ニュース記事など）を開いて、そこに実際に書かれている一文を引用し直してください。
+公式サイトは取得できないことがあるので避けてください。
+正しい根拠が見つからないタグは、答えに含めないでください。`
+
+  const { stdout } = await run(
+    'grok',
+    ['-p', prompt, '--model', MODEL, '--effort', EFFORT, '--json-schema', SCHEMA, '--output-format', 'json'],
+    { timeout: TIMEOUT_MS, maxBuffer: 32 * 1024 * 1024, windowsHide: true }
+  )
+  const envelope = firstJsonObject(stdout)
+  const answer = envelope?.structuredOutput ?? firstJsonObject(envelope?.text ?? '')
+  return { tags: answer?.tags ?? [], costUsd: envelope?.total_cost_usd ?? 0 }
 }
 
 const load = async () => {
@@ -421,18 +546,19 @@ const report = (works, byName) => {
       const verdict = cached.verification?.[entry.tag] ?? '未検証'
       const known = byName.has(entry.tag.trim())
       const mark = !known ? '一覧外' : verdict
-      if (known && verdict === '検証済み') accepted.push(entry.tag)
-      console.log(`  ${mark === '検証済み' ? '採用' : '除外'}  ${entry.tag}  [${mark}]`)
+      if (known && ACCEPTED.test(verdict)) accepted.push(entry.tag)
+      console.log(`  ${known && ACCEPTED.test(verdict) ? '採用' : '除外'}  ${entry.tag}  [${mark}]`)
       console.log(`        ${entry.source === 'synopsis' ? 'あらすじ' : entry.url.slice(0, 60)}`)
       console.log(`        「${(entry.quote ?? '').slice(0, 60)}」`)
     }
 
     for (const tag of cached.image?.tags ?? []) {
+      const seen = cached.image.counts?.[tag]
       // A tag the text already carried does not become two tags because the
       // picture agrees with it.
       const already = accepted.includes(tag)
       if (byName.has(tag.trim()) && !already) accepted.push(tag)
-      console.log(`  ${!byName.has(tag.trim()) ? '除外' : already ? '重複' : '採用'}  ${tag}  [画像2回一致]`)
+      console.log(`  ${!byName.has(tag.trim()) ? '除外' : already ? '重複' : '採用'}  ${tag}  [画像${seen ?? '?'}/3一致]`)
       console.log(`        キービジュアル: ${cached.image.observed}`)
     }
 
@@ -450,7 +576,10 @@ const main = async () => {
   const { byName, works } = await load()
 
   const noAppearance = process.argv.includes('--no-appearance')
-  const vocabulary = [...byName.keys()].filter(name => !noAppearance || !APPEARANCE.test(name))
+  // The vocabulary and what each tag means, from the file rather than from the
+  // names alone: two runs of the same work should be answering the same question.
+  const dictionary = parse(readFileSync(DICTIONARY, 'utf8'))
+  if (noAppearance) dictionary.tags = dictionary.tags.filter(tag => tag.group !== 'body')
 
   const onlyAt = process.argv.indexOf('--only')
   const only = onlyAt === -1 ? null : process.argv[onlyAt + 1]
@@ -463,7 +592,11 @@ const main = async () => {
 
   if (process.argv.includes('--report')) return report(selected, byName)
 
-  console.log(`対象 ${selected.length}件 / 使えるタグ ${vocabulary.length}種（外見タグ ${byName.size - vocabulary.length}種は除外）\n`)
+  console.log(
+    `対象 ${selected.length}件 / 辞書 v${dictionary.version} ${dictionary.tags.length}種` +
+      (noAppearance ? '（外見タグは除外）' : '') +
+      '\n'
+  )
 
   let index = 0
   let spent = 0
@@ -473,38 +606,68 @@ const main = async () => {
       const work = selected[index++]
       const position = index
       try {
-        const { answer, costUsd } = await ask(work, vocabulary)
+        const { answer, costUsd } = await ask(work, dictionary)
         spent += costUsd
 
         const verification = {}
+        const evidence = {}
         for (const entry of answer.tags ?? []) {
           verification[entry.tag] = (await verifyTag(entry, work.synopsis)).verdict
+          evidence[entry.tag] = entry
         }
 
-        // What the key visual shows, for the tags no text describes.
+        // One more ask for the ones whose citation could not be read.
+        const rejected = (answer.tags ?? []).filter(entry =>
+          RETRY_VERDICTS.test(verification[entry.tag] ?? '')
+        )
+        const retry = await askAgainForSources(work, rejected)
+        spent += retry.costUsd
+        for (const entry of retry.tags) {
+          const verdict = (await verifyTag(entry, work.synopsis)).verdict
+          if (verdict === '検証済み') {
+            verification[entry.tag] = '検証済み(再取得)'
+            evidence[entry.tag] = entry
+          }
+        }
+
+        // What the key visual and the character portraits show.
         let image = null
         if (!noAppearance) {
           const keyVisual = await fetchThumbnail(work.id)
           const portraits = await characterImages(work.id, answer.characterPageUrl)
           const paths = [keyVisual, ...portraits].filter(Boolean)
           if (paths.length) {
-            const appearance = vocabulary.filter(name => APPEARANCE.test(name))
-            const seen = await askImageTwice(work, paths, appearance)
+            const appearance = dictionary.tags
+              .filter(tag => tag.group === 'body' && !tag.aliasOf)
+              .map(tag => `${tag.name}: ${tag.criteria}`)
+            const seen = await askImageSeveralTimes(work, paths, appearance)
             spent += seen.costUsd
-            image = { tags: seen.tags, observed: seen.observed, paths }
+            image = { tags: seen.tags, counts: seen.counts, observed: seen.observed, paths }
             for (const tag of seen.tags) {
-              if (!verification[tag]) verification[tag] = '画像2回一致'
+              if (!verification[tag]) verification[tag] = `画像${seen.counts[tag]}/${IMAGE_PASSES}一致`
             }
           }
         }
 
         writeFileSync(
           `${CACHE_DIR}/${work.id}.json`,
-          JSON.stringify({ title: work.title, answer, image, verification, costUsd }, null, 2)
+          JSON.stringify(
+            {
+              title: work.title,
+              dictionaryVersion: dictionary.version,
+              answer,
+              evidence,
+              image,
+              verification,
+              costUsd,
+            },
+            null,
+            2
+          )
         )
 
         const accepted = Object.entries(verification).filter(
-          ([tag, verdict]) => byName.has(tag.trim()) && (verdict === '検証済み' || verdict === '画像2回一致')
+          ([tag, verdict]) => byName.has(tag.trim()) && ACCEPTED.test(verdict)
         )
         console.log(
           `[${position}/${selected.length}] ${work.title.slice(0, 24)}  採用${accepted.length}  画像${image?.paths.length ?? 0}枚→${image?.tags.length ?? 0}件  ($${spent.toFixed(2)})`

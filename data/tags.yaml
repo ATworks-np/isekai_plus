@@ -1,0 +1,877 @@
+version: 1
+groups:
+  - key: isekai
+    label: 異世界
+    note: このサイトの中心。どの作品も必ず確認する
+  - key: reborn
+    label: 転生・転移
+    note: このサイトの中心。転生か転移かを取り違えない
+  - key: skill
+    label: スキル・能力
+    note: このサイトの中心。数値や能力の見せ方
+  - key: body
+    label: 外見（巨乳系ほか）
+    note: このサイトの中心。画像を見て判定する
+  - key: race
+    label: 種族
+    note: ""
+  - key: role
+    label: 役割・職業
+    note: ""
+  - key: place
+    label: 舞台
+    note: ""
+  - key: plot
+    label: 物語の型
+    note: ""
+  - key: mood
+    label: 作風
+    note: ""
+tags:
+  - name: 異世界ファンタジー
+    id: SgGzDcsraKYeYjFHB8Ix
+    group: isekai
+    criteria: 剣と魔法の異世界が舞台。転生・転移の有無は問わない
+    used: 43
+    examples:
+      - ライザのアトリエ
+      - Aランクパーティを離脱した俺は、元教え子たちと迷宮深部を目指す。
+      - 悪役令嬢転生おじさん
+      - 完璧すぎて可愛げがないと婚約破棄された聖女は隣国に売られる
+  - name: ゲーム内
+    id: jywNnfFUfhVnxMk0G9RP
+    group: isekai
+    criteria: 舞台がゲームの世界。VRMMOや乙女ゲーム
+    used: 10
+    examples:
+      - 悪役令嬢転生おじさん
+      - 悲劇の元凶となる最強外道ラスボス女王は民の為に尽くします。
+      - 野生のラスボスが現れた！
+      - この世界は不完全すぎる
+  - name: パラレルワールド
+    id: 78wVupA9uc4PhyCHIOZJ
+    group: isekai
+    criteria: 並行世界。異世界とは別
+    used: 1
+    examples:
+      - なぜ僕の世界を誰も覚えていないのか？
+  - name: 異世界転生
+    id: Xx3XabMZwfQIRaYMxrJy
+    group: reborn
+    criteria: 死んで別の体に生まれ変わる。転移と取り違えない
+    used: 26
+    examples:
+      - 悪役令嬢転生おじさん
+      - 悲劇の元凶となる最強外道ラスボス女王は民の為に尽くします。
+      - 転生したら第七王子だったので、気ままに魔術を極めます
+      - 貴族転生 ～恵まれた生まれから最強の力を得る～
+  - name: 前世の記憶
+    id: LlPBttKDwvjJRwgnorQB
+    group: reborn
+    criteria: 前世を覚えていて、その知識で行動する
+    used: 24
+    examples:
+      - 悪役令嬢転生おじさん
+      - 悲劇の元凶となる最強外道ラスボス女王は民の為に尽くします。
+      - 転生したら第七王子だったので、気ままに魔術を極めます
+      - ひとりぼっちの異世界攻略
+  - name: 異世界転移
+    id: 4pmXcDmmBkYIKsqKDR2K
+    group: reborn
+    criteria: 元の体のまま異世界へ移動する。死んでいない
+    used: 14
+    examples:
+      - THE NEW GATE
+      - アラフォー男の異世界通販
+      - 野生のラスボスが現れた！
+      - 結婚指輪物語
+  - name: 生まれて転生
+    id: JM9mc0BZJn7sogxoMkQU
+    group: reborn
+    criteria: 赤子から人生をやり直す。前世の記憶を持って生まれる
+    used: 11
+    examples:
+      - 転生したら第七王子だったので、気ままに魔術を極めます
+      - ヘルモード ～やり込み好きのゲーマーは廃設定の異世界で無双する～
+      - 最強の王様、二度目の人生は何をする？
+      - Re:Monster
+  - name: 異世界召喚
+    id: aupfbVu0V2gtT8aXDeXo
+    group: reborn
+    criteria: 異世界の側から呼び出される。本人の意思ではない
+    used: 11
+    examples:
+      - 捨てられ聖女の異世界ごはん旅 隠れスキルでキャンピングカーを召喚しました
+      - いずれ最強の錬金術師？
+      - 異世界召喚は二度目です
+      - サラリーマンが異世界に行ったら四天王になった話
+  - name: 悪役令嬢
+    id: ufAqRmAo29fXqQQsChw8
+    group: reborn
+    criteria: 乙女ゲームの悪役令嬢に転生する
+    used: 4
+    examples:
+      - 悪役令嬢転生おじさん
+      - 悲劇の元凶となる最強外道ラスボス女王は民の為に尽くします。
+      - 悪役令嬢レベル99 ～私は裏ボスですが魔王ではありません～
+      - ループ7回目の悪役令嬢は、元敵国で自由気ままな花嫁生活を満喫する
+  - name: 人以外に転生
+    id: orO3yFk94tD2gTM6zivw
+    group: reborn
+    criteria: 転生先が人間でない。自動販売機、スライム、豚など
+    used: 3
+    examples:
+      - 自動販売機に生まれ変わった俺は迷宮を彷徨う
+      - 豚のレバーは加熱しろ
+      - Sランクモンスターの《ベヒーモス》だけど、猫と間違われてエルフ娘の騎士として暮らしてます
+  - name: 勇者召喚
+    id: UNv7VlqGP3XMYQCvrV8C
+    group: reborn
+    criteria: 召喚のうち、勇者として召喚された場合
+    used: 2
+    examples:
+      - 盾の勇者の成り上がり
+      - 治癒魔法の間違った使い方
+  - name: 事故死
+    id: jwCYorNz6hHjP7Sj43Kf
+    group: reborn
+    criteria: 転生のきっかけが事故。トラックなど
+    used: 2
+    examples:
+      - 悪役令嬢転生おじさん
+      - 精霊幻想記
+  - name: タイムリープ
+    id: c3D2G2FCkSf48GHvtbpc
+    group: reborn
+    criteria: 同じ人生の過去に戻る。異世界ではない
+    used: 1
+    examples:
+      - ティアムーン帝国物語～断頭台から始まる、姫の転生逆転ストーリー～
+  - name: 不死ループ
+    id: 1dYZNS7VYocYSLxZW09F
+    group: reborn
+    criteria: 死ぬたびに巻き戻る。死に戻り
+    used: 0
+    examples: []
+  - name: 俺TSUEEE
+    id: JSB1pxyoFBkbN8JwwFus
+    group: skill
+    criteria: 主人公が圧倒的に強く、それが売り
+    used: 23
+    examples:
+      - THE NEW GATE
+      - 転生したら第七王子だったので、気ままに魔術を極めます
+      - 俺だけレベルアップな件
+      - 没落予定の貴族だけど、暇だったから魔法を極めてみた
+  - name: 魔法
+    id: ArXmF8m4kuFkFKwN3HYF
+    group: skill
+    criteria: 魔法が使われる。ファンタジー全般ではなく描写があること
+    narrower:
+      - 補助魔法
+      - 魔法工学
+    used: 21
+    examples:
+      - 捨てられ聖女の異世界ごはん旅 隠れスキルでキャンピングカーを召喚しました
+      - 貴族転生 ～恵まれた生まれから最強の力を得る～
+      - 父は英雄、母は精霊、娘の私は転生者。
+      - ひきこまり吸血姫の悶々
+  - name: スキル
+    id: lUOjFereI0hrralwj6JO
+    group: skill
+    criteria: 習得・付与される能力が名前付きで扱われる
+    used: 19
+    examples:
+      - THE NEW GATE
+      - 捨てられ聖女の異世界ごはん旅 隠れスキルでキャンピングカーを召喚しました
+      - いずれ最強の錬金術師？
+      - とあるおっさんのＶＲＭＭＯ活動記
+  - name: ステータス画面
+    id: 8ezBQq9FvXjBqKvesNMi
+    group: skill
+    criteria: 数値やウィンドウが画面に出る
+    used: 18
+    examples:
+      - THE NEW GATE
+      - アラフォー男の異世界通販
+      - いずれ最強の錬金術師？
+      - 野生のラスボスが現れた！
+  - name: 勘違い最強
+    id: mFJri6iSfOQQYPsbNQGg
+    group: skill
+    criteria: 本人は自覚がないのに周囲が最強だと勘違いする
+    used: 7
+    examples:
+      - 片田舎のおっさん、剣聖になる
+      - 味方が弱すぎて補助魔法に徹していた宮廷魔法師、追放されて最強を目指す
+      - 嘆きの亡霊は引退したい
+      - 一瞬で治療していたのに役立たずと追放された天才治癒師、闇ヒーラーとして楽しく生きる
+  - name: 魔法工学
+    id: VXVG2XiaYtlLEn3t7at3
+    group: skill
+    criteria: 魔法を技術・産業として扱う
+    used: 4
+    examples:
+      - 信じていた仲間達にダンジョン奥地で殺されかけたがギフト『無限ガチャ』でレベル9999の仲間達を手に入れて元パーティーメンバーと世界に復讐＆『ざまぁ！』します！
+      - 株式会社マジルミエ
+      - 杖と剣のウィストリア
+      - 魔王2099
+  - name: 固有職
+    id: bQKPeD2RbOTIhOCxWMBf
+    group: skill
+    criteria: 主人公だけの職業・クラス
+    used: 3
+    examples:
+      - 最強タンクの迷宮攻略～体力9999のレアスキル持ちタンク、勇者パーティーを追放される～
+      - 不遇職【鑑定士】が実は最強だった
+      - 暴食のベルセルク
+  - name: マナ
+    id: yKxTJpbB0d081M2HQeqO
+    group: skill
+    criteria: 魔力がマナとして扱われる
+    used: 3
+    examples:
+      - 完璧すぎて可愛げがないと婚約破棄された聖女は隣国に売られる
+      - 信じていた仲間達にダンジョン奥地で殺されかけたがギフト『無限ガチャ』でレベル9999の仲間達を手に入れて元パーティーメンバーと世界に復讐＆『ざまぁ！』します！
+      - 最強の王様、二度目の人生は何をする？
+  - name: 能力無し
+    id: 2BgU1XHxogrIDm1r2YQE
+    group: skill
+    criteria: 能力を持たないことが出発点
+    used: 2
+    examples:
+      - 「お前ごときが魔王に勝てると思うな」と勇者パーティを追放されたので、王都で気ままに暮らしたい
+      - 無職の英雄 ～別にスキルなんか要らなかったんだが～
+  - name: 喋る武器
+    id: Xilefo6Fdb8F55w1hpMN
+    group: skill
+    criteria: 意思を持つ武器が出る
+    used: 2
+    examples:
+      - 暴食のベルセルク
+      - 姫様“拷問”の時間です
+  - name: 補助魔法
+    id: tunIaKvgB0FUp9AqpyxY
+    group: skill
+    criteria: バフや支援の魔法が主人公の軸
+    used: 2
+    examples:
+      - 味方が弱すぎて補助魔法に徹していた宮廷魔法師、追放されて最強を目指す
+      - 勇者パーティを追い出された器用貧乏
+  - name: 不死身
+    id: 1lBevTTb5Qxpob1mn30X
+    group: skill
+    criteria: 死なない、あるいは何度でも蘇る
+    used: 1
+    examples:
+      - 勇者刑に処す 懲罰勇者9004隊刑務記録
+  - name: レベル
+    id: 6QXx1X6Fuks6koT1EBH9
+    group: skill
+    criteria: レベルという概念で強さが測られる
+    used: 1
+    examples:
+      - 信じていた仲間達にダンジョン奥地で殺されかけたがギフト『無限ガチャ』でレベル9999の仲間達を手に入れて元パーティーメンバーと世界に復讐＆『ざまぁ！』します！
+  - name: 職業鑑定
+    id: 875jkFcaWqkvzyyYjubR
+    group: skill
+    criteria: 職業を鑑定する儀式や制度がある
+    used: 1
+    examples:
+      - ヘルモード ～やり込み好きのゲーマーは廃設定の異世界で無双する～
+  - name: エーテル
+    id: FrrCXcXDlfnhaL0ezEwd
+    group: skill
+    criteria: 魔力がエーテルとして扱われる
+    used: 1
+    examples:
+      - 勇者のクズ
+  - name: 隠れスキル
+    id: pYHk15TDUeOUE05TkRRY
+    group: skill
+    criteria: ハズレ扱いの能力が実は強い
+    used: 1
+    examples:
+      - 捨てられ聖女の異世界ごはん旅 隠れスキルでキャンピングカーを召喚しました
+  - name: 魔法適性鑑定
+    id: uHEefx5BcdR6HAzvqPDa
+    group: skill
+    criteria: 魔法の適性を測る儀式や制度がある
+    used: 1
+    examples:
+      - 貴族転生 ～恵まれた生まれから最強の力を得る～
+  - name: 加護
+    id: whIR6Y43YqcPOhRu82qn
+    group: skill
+    criteria: 神や精霊から与えられた力
+    used: 1
+    examples:
+      - 転生貴族の異世界冒険録 ～自重を知らない神々の使徒～
+  - name: 巨乳剣士
+    id: HoKsHT1bHn7GZE7VHKAB
+    group: body
+    criteria: 胸の大きなキャラが剣を持って戦う
+    used: 19
+    examples:
+      - Aランクパーティを離脱した俺は、元教え子たちと迷宮深部を目指す。
+      - THE NEW GATE
+      - 転生したら第七王子だったので、気ままに魔術を極めます
+      - 片田舎のおっさん、剣聖になる
+  - name: 巨乳メイド
+    id: UeeNIxvIOQxEOg2SlU0u
+    group: body
+    criteria: 胸の大きなキャラがメイド服
+    used: 10
+    examples:
+      - 転生したら第七王子だったので、気ままに魔術を極めます
+      - 貴族転生 ～恵まれた生まれから最強の力を得る～
+      - 信じていた仲間達にダンジョン奥地で殺されかけたがギフト『無限ガチャ』でレベル9999の仲間達を手に入れて元パーティーメンバーと世界に復讐＆『ざまぁ！』します！
+      - ひきこまり吸血姫の悶々
+  - name: ケモ耳
+    id: wKaIsUPE32dNjSspJoeq
+    group: body
+    criteria: 獣の耳や尻尾を持つキャラがいる
+    used: 9
+    examples:
+      - アラフォー男の異世界通販
+      - 信じていた仲間達にダンジョン奥地で殺されかけたがギフト『無限ガチャ』でレベル9999の仲間達を手に入れて元パーティーメンバーと世界に復讐＆『ざまぁ！』します！
+      - とあるおっさんのＶＲＭＭＯ活動記
+      - レベル1だけどユニークスキルで最強です
+  - name: 巨乳エルフ
+    id: EfpJVawy2gs5pMfTNWM7
+    group: body
+    criteria: 胸の大きなエルフ
+    used: 7
+    examples:
+      - Aランクパーティを離脱した俺は、元教え子たちと迷宮深部を目指す。
+      - 信じていた仲間達にダンジョン奥地で殺されかけたがギフト『無限ガチャ』でレベル9999の仲間達を手に入れて元パーティーメンバーと世界に復讐＆『ざまぁ！』します！
+      - ちょっとだけ愛が重いダークエルフが異世界から追いかけてきた
+      - 名湯『異世界の湯』開拓記 ～アラフォー温泉マニアの転生先は、のんびり温泉天国でした～
+  - name: 巨乳神官
+    id: h5GHuCx3D9eWFUoeCQqb
+    group: body
+    criteria: 胸の大きなキャラが神官・僧侶
+    used: 4
+    examples:
+      - パーティーから追放されたその治癒師、実は最強につき
+      - ちょっとだけ愛が重いダークエルフが異世界から追いかけてきた
+      - ゴブリンスレイヤー
+      - 異世界失格
+  - name: 巨乳
+    id: WGCmasJuyGqiTAiMOFea
+    group: body
+    criteria: 胸の大きなキャラがいる。職業が特定できないとき
+    narrower:
+      - 巨乳剣士
+      - 巨乳メイド
+      - 巨乳エルフ
+      - 巨乳神官
+    used: 3
+    examples:
+      - 味方が弱すぎて補助魔法に徹していた宮廷魔法師、追放されて最強を目指す
+      - 異世界のんびり農家
+      - 解雇された暗黒兵士（30代）のスローなセカンドライフ
+  - name: 見た目幼女
+    id: rmw02pe4zbEBmIcj0DWP
+    group: body
+    criteria: 外見が幼女。中身は問わない
+    used: 2
+    examples:
+      - 片田舎のおっさん、剣聖になる
+      - 勇者刑に処す 懲罰勇者9004隊刑務記録
+  - name: 貧乳エルフ
+    id: 4fEIjp2mgAjfWnifmGGH
+    group: body
+    criteria: 胸の小さなエルフ
+    used: 1
+    examples:
+      - 葬送のフリーレン
+  - name: むちむち太もも
+    id: QCk1TkpGWs0X1yyHPVxR
+    group: body
+    criteria: 太ももを強調した描写がある
+    used: 1
+    examples:
+      - ライザのアトリエ
+  - name: 双子
+    id: sxy1ZcYCNOSYTrayqKIJ
+    group: body
+    criteria: 双子のキャラがいる
+    used: 1
+    examples:
+      - 異世界黙示録マイノグーラ～破滅の文明で始める世界征服～
+  - name: 神
+    id: TpqCFFANOeMFxWpPPX6J
+    group: race
+    criteria: 神が登場人物として出る
+    used: 6
+    examples:
+      - いずれ最強の錬金術師？
+      - 魔王2099
+      - 白豚貴族ですが前世の記憶が生えたのでひよこな弟育てます
+      - 魔王学院の不適合者～史上最強の魔王の始祖、転生して子孫たちの学校へ通う～
+  - name: ダークエルフ
+    id: 01zOF0lycQouZbUSH7Xw
+    group: race
+    criteria: ダークエルフが出る
+    used: 3
+    examples:
+      - ちょっとだけ愛が重いダークエルフが異世界から追いかけてきた
+      - 異世界黙示録マイノグーラ～破滅の文明で始める世界征服～
+      - ダンジョン飯
+  - name: 獣人
+    id: kKk1Ylnjn2ah7pPKTLAz
+    group: race
+    criteria: 獣人という種族が出る
+    used: 2
+    examples:
+      - 捨てられ聖女の異世界ごはん旅 隠れスキルでキャンピングカーを召喚しました
+      - 贄姫と獣の王
+  - name: 魔族
+    id: 8nLMpz9QNhx73EGiYcMX
+    group: race
+    criteria: 魔族が出る
+    used: 1
+    examples:
+      - 勇者パーティーにかわいい子がいたので、告白してみた。
+  - name: 精霊
+    id: IY4jlovcY0OYlkVutwxn
+    group: race
+    criteria: 精霊が出る
+    used: 1
+    examples:
+      - 父は英雄、母は精霊、娘の私は転生者。
+  - name: 女神
+    id: aIRxQEztw3bQYObBn0Vw
+    group: race
+    criteria: 女神が登場人物として出る
+    used: 1
+    examples:
+      - 勇者刑に処す 懲罰勇者9004隊刑務記録
+  - name: エルフ
+    id: r0m3xOENLJOTFW3aNdsk
+    group: race
+    criteria: エルフが出る
+    used: 1
+    examples:
+      - 捨てられ聖女の異世界ごはん旅 隠れスキルでキャンピングカーを召喚しました
+  - name: 吸血鬼
+    id: tYrqVn5qAQI73LdfCTAI
+    group: race
+    criteria: 吸血鬼が出る
+    used: 1
+    examples:
+      - ひきこまり吸血姫の悶々
+  - name: 貴族令嬢
+    id: QzBYc42WBdwmAmYJB3Cm
+    group: role
+    criteria: 貴族の令嬢が出る
+    used: 14
+    examples:
+      - ブチ切れ令嬢は報復を誓いました。 ～魔導書の力で祖国を叩き潰します～
+      - 転生したら第七王子だったので、気ままに魔術を極めます
+      - アラフォー男の異世界通販
+      - 没落予定の貴族だけど、暇だったから魔法を極めてみた
+  - name: 学生
+    id: rXZeQe0Zkcrdb1Pivf91
+    group: role
+    criteria: 主人公が学生
+    used: 12
+    examples:
+      - ひとりぼっちの異世界攻略
+      - 父は英雄、母は精霊、娘の私は転生者。
+      - 魔王2099
+      - 神は遊戯に飢えている。
+  - name: 冒険者ギルド
+    id: z79jH82Lg4Xxykucu3H3
+    group: role
+    criteria: 冒険者ギルドが出る
+    used: 10
+    examples:
+      - Aランクパーティを離脱した俺は、元教え子たちと迷宮深部を目指す。
+      - 捨てられ聖女の異世界ごはん旅 隠れスキルでキャンピングカーを召喚しました
+      - パーティーから追放されたその治癒師、実は最強につき
+      - 自動販売機に生まれ変わった俺は迷宮を彷徨う
+  - name: 勇者
+    id: XTOERTv2Q6D6IT6ab4ig
+    group: role
+    criteria: 勇者が出る
+    used: 9
+    examples:
+      - 勇者のクズ
+      - 葬送のフリーレン
+      - 「お前ごときが魔王に勝てると思うな」と勇者パーティを追放されたので、王都で気ままに暮らしたい
+      - 勇者パーティーにかわいい子がいたので、告白してみた。
+  - name: 王女
+    id: ahDYkjkpvU7NeBkmt8kO
+    group: role
+    criteria: 王女が出る
+    used: 6
+    examples:
+      - 悲劇の元凶となる最強外道ラスボス女王は民の為に尽くします。
+      - 結婚指輪物語
+      - 最強の王様、二度目の人生は何をする？
+      - ティアムーン帝国物語～断頭台から始まる、姫の転生逆転ストーリー～
+  - name: 魔女
+    id: 1CaRzfLxuIhYnAQ1LXYB
+    group: role
+    criteria: 魔女が出る
+    used: 5
+    examples:
+      - エリスの聖杯
+      - 異世界召喚は二度目です
+      - スライム倒して300年、知らないうちにレベルMAXになってました
+      - Unnamed Memory
+  - name: 料理
+    id: XR5lAxVq3HvP7z5sm43E
+    group: role
+    criteria: 料理が話の軸
+    used: 5
+    examples:
+      - 捨てられ聖女の異世界ごはん旅 隠れスキルでキャンピングカーを召喚しました
+      - とんでもスキルで異世界放浪メシ
+      - おかしな転生
+      - 姫様“拷問”の時間です
+  - name: 聖女
+    id: WbDarZBHML4plFQ9IHeO
+    group: role
+    criteria: 聖女が出る
+    used: 4
+    examples:
+      - 完璧すぎて可愛げがないと婚約破棄された聖女は隣国に売られる
+      - 捨てられ聖女の異世界ごはん旅 隠れスキルでキャンピングカーを召喚しました
+      - 聖女の魔力は万能です
+      - 異世界黙示録マイノグーラ～破滅の文明で始める世界征服～
+  - name: アルケミスト（薬師）
+    id: Kr1hyRuPIDn42PofZ1OQ
+    group: role
+    criteria: 錬金術師・薬師が出る
+    aliasOf: アルケミスト
+    used: 3
+    examples:
+      - ライザのアトリエ
+      - ポーション、わが身を助ける
+      - ポーション頼みで生き延びます！
+  - name: 魔王
+    id: rIPq5yBazJArUIZ1dm9e
+    group: role
+    criteria: 魔王が出る
+    used: 3
+    examples:
+      - 「お前ごときが魔王に勝てると思うな」と勇者パーティを追放されたので、王都で気ままに暮らしたい
+      - 魔王2099
+      - 勇者刑に処す 懲罰勇者9004隊刑務記録
+  - name: 王子
+    id: zg7xr8pqVQVcrQqWGq0U
+    group: role
+    criteria: 王子が出る
+    used: 3
+    examples:
+      - 悪役令嬢レベル99 ～私は裏ボスですが魔王ではありません～
+      - 即死チートが最強すぎて、異世界のやつらがまるで相手にならないんですが。
+      - ループ7回目の悪役令嬢は、元敵国で自由気ままな花嫁生活を満喫する
+  - name: 勇者パーティー
+    id: 1i0ke4sMOM5zAqJUZ5Pz
+    group: role
+    criteria: 勇者のパーティが話の単位
+    used: 2
+    examples:
+      - 気絶勇者と暗殺姫
+      - 勇者パーティを追い出された器用貧乏
+  - name: 暗殺者
+    id: 5imlPA1b9RLLgwO1r4rY
+    group: role
+    criteria: 暗殺者が出る
+    used: 2
+    examples:
+      - 暗殺者である俺のステータスが勇者よりも明らかに強いのだが
+      - 気絶勇者と暗殺姫
+  - name: 領主
+    id: VE6PbpUGphZU4aLiLE04
+    group: role
+    criteria: 主人公が領主
+    used: 2
+    examples:
+      - 盾の勇者の成り上がり
+      - おかしな転生
+  - name: 魔王の娘
+    id: Vwf6bIcwpT7Rxp9aS0D0
+    group: role
+    criteria: 魔王の娘が出る
+    used: 2
+    examples:
+      - 気絶勇者と暗殺姫
+      - 姫様“拷問”の時間です
+  - name: 調教師
+    id: 6aaV341IQG7QiQodjxTg
+    group: role
+    criteria: テイマー・調教師が出る
+    used: 1
+    examples:
+      - 気絶勇者と暗殺姫
+  - name: 犯罪者主人公
+    id: 7x0lO3iTT4Qcl8neRNBJ
+    group: role
+    criteria: 主人公が犯罪者
+    used: 1
+    examples:
+      - 勇者刑に処す 懲罰勇者9004隊刑務記録
+  - name: 英雄
+    id: 8YCFZWcbTyql2kidCxwe
+    group: role
+    criteria: 英雄と呼ばれる存在が軸
+    used: 1
+    examples:
+      - ヘルモード ～やり込み好きのゲーマーは廃設定の異世界で無双する～
+  - name: 聖騎士
+    id: 9F5XBleMtX6lwLLT0x2N
+    group: role
+    criteria: 聖騎士が出る
+    used: 1
+    examples:
+      - 勇者刑に処す 懲罰勇者9004隊刑務記録
+  - name: グルメ
+    id: MZBNizY57UBxcxGgWGNv
+    group: role
+    criteria: 食べ歩きや食事そのものが売り
+    used: 1
+    examples:
+      - 捨てられ聖女の異世界ごはん旅 隠れスキルでキャンピングカーを召喚しました
+  - name: 令嬢主人公
+    id: NdgZGEaUqwlEx0mqZ57l
+    group: role
+    criteria: 主人公が令嬢。転生の有無は問わない
+    used: 1
+    examples:
+      - ブチ切れ令嬢は報復を誓いました。 ～魔導書の力で祖国を叩き潰します～
+  - name: キャンプ
+    id: QOKUEk2QlLs1GpxUPYQF
+    group: role
+    criteria: 野営・キャンプが売り
+    used: 1
+    examples:
+      - 捨てられ聖女の異世界ごはん旅 隠れスキルでキャンピングカーを召喚しました
+  - name: 騎士団
+    id: Y5SW7ywE2XPQHUn4fpJl
+    group: role
+    criteria: 騎士団が組織として出る
+    used: 1
+    examples:
+      - ヘルモード ～やり込み好きのゲーマーは廃設定の異世界で無双する～
+  - name: 王
+    id: imryBqGjcjEalZsiwklT
+    group: role
+    criteria: 王が出る
+    used: 1
+    examples:
+      - 贄姫と獣の王
+  - name: 国づくり
+    id: kPXAlBL3Qh8E6PLcRXPn
+    group: role
+    criteria: 国や町を作る話
+    used: 1
+    examples:
+      - 異世界黙示録マイノグーラ～破滅の文明で始める世界征服～
+  - name: 商人ギルド
+    id: m8FRXFlxUSIWoYSaIehO
+    group: role
+    criteria: 商人ギルドが出る
+    used: 1
+    examples:
+      - アラフォー男の異世界通販
+  - name: 農家
+    id: qGn59KfzLUvk13DVvEO2
+    group: role
+    criteria: 農業が話の軸
+    used: 1
+    examples:
+      - 異世界のんびり農家
+  - name: 賢者
+    id: sATDEcrlx81t4LjCNSHC
+    group: role
+    criteria: 賢者が出る
+    used: 1
+    examples:
+      - 「お前ごときが魔王に勝てると思うな」と勇者パーティを追放されたので、王都で気ままに暮らしたい
+  - name: 団長
+    id: sERv3i5l9z3lqgCND7ol
+    group: role
+    criteria: 団長が出る
+    used: 1
+    examples:
+      - 姫様“拷問”の時間です
+  - name: 先生
+    id: t4n7cRTqeKhoVjTOkb6G
+    group: role
+    criteria: 主人公が教える側
+    used: 1
+    examples:
+      - 片田舎のおっさん、剣聖になる
+  - name: 四天王
+    id: xYw6Fu3ihdPdr0jljvpc
+    group: role
+    criteria: 四天王が出る
+    used: 1
+    examples:
+      - Helck
+  - name: アルケミスト(薬師)
+    id: gjspROkyojCNKNxd6JtC
+    group: role
+    criteria: 錬金術師・薬師が出る
+    aliasOf: アルケミスト
+    used: 0
+    examples: []
+  - name: ダンジョン
+    id: 3fadJNs2luQUTCopK8sk
+    group: place
+    criteria: ダンジョン攻略が話の軸
+    used: 18
+    examples:
+      - 捨てられ聖女の異世界ごはん旅 隠れスキルでキャンピングカーを召喚しました
+      - 俺だけレベルアップな件
+      - パーティーから追放されたその治癒師、実は最強につき
+      - 葬送のフリーレン
+  - name: 学園
+    id: BRQ03DUdaEML4ar0BVVt
+    group: place
+    criteria: 学園が主な舞台
+    used: 5
+    examples:
+      - ひきこまり吸血姫の悶々
+      - 杖と剣のウィストリア
+      - 悪役令嬢レベル99 ～私は裏ボスですが魔王ではありません～
+      - 聖剣学院の魔剣使い
+  - name: 現代
+    id: ppfgt79cwjTSmcJONgZJ
+    group: place
+    criteria: 現代日本が舞台に含まれる
+    used: 4
+    examples:
+      - 異世界でチート能力を手にした俺は、現実世界をも無双する ～レベルアップは人生を変えた～
+      - 株式会社マジルミエ
+      - 魔法少女にあこがれて
+      - 帰還者の魔法は特別です
+  - name: 中世風
+    id: 2hA4DmR7Be4TpJXjYBWA
+    group: place
+    criteria: 中世ヨーロッパ風の文明
+    used: 3
+    examples:
+      - エリスの聖杯
+      - アルスの巨獣
+      - 暗殺者である俺のステータスが勇者よりも明らかに強いのだが
+  - name: 貴族社会
+    id: 8PWDXFsJB5oLhi8SSZqI
+    group: place
+    criteria: 貴族社会の力関係が話の軸
+    used: 2
+    examples:
+      - エリスの聖杯
+      - 貴族転生 ～恵まれた生まれから最強の力を得る～
+  - name: ハーレム
+    id: 0n6ZgJGexEmVkUPI6hJ2
+    group: plot
+    criteria: 主人公の周りに複数の異性が集まる
+    used: 15
+    examples:
+      - 片田舎のおっさん、剣聖になる
+      - 没落予定の貴族だけど、暇だったから魔法を極めてみた
+      - 信じていた仲間達にダンジョン奥地で殺されかけたがギフト『無限ガチャ』でレベル9999の仲間達を手に入れて元パーティーメンバーと世界に復讐＆『ざまぁ！』します！
+      - 陰の実力者になりたくて！
+  - name: パーティ追放
+    id: 0AWcpEtJuhzNyHLwswMl
+    group: plot
+    criteria: パーティを追放されるところから始まる
+    used: 11
+    examples:
+      - パーティーから追放されたその治癒師、実は最強につき
+      - 信じていた仲間達にダンジョン奥地で殺されかけたがギフト『無限ガチャ』でレベル9999の仲間達を手に入れて元パーティーメンバーと世界に復讐＆『ざまぁ！』します！
+      - 最強タンクの迷宮攻略～体力9999のレアスキル持ちタンク、勇者パーティーを追放される～
+      - 味方が弱すぎて補助魔法に徹していた宮廷魔法師、追放されて最強を目指す
+  - name: エロ
+    id: CN4Dx7QkQZkveGQCrIYz
+    group: plot
+    criteria: 性的な描写が売りの一つ
+    used: 4
+    examples:
+      - ちょっとだけ愛が重いダークエルフが異世界から追いかけてきた
+      - 魔法少女にあこがれて
+      - 勇者が死んだ！
+      - Sランクモンスターの《ベヒーモス》だけど、猫と間違われてエルフ娘の騎士として暮らしてます
+  - name: 復讐
+    id: OComd04Ypym0Tb35vcPl
+    group: plot
+    criteria: 復讐が動機
+    used: 4
+    examples:
+      - ブチ切れ令嬢は報復を誓いました。 ～魔導書の力で祖国を叩き潰します～
+      - エリスの聖杯
+      - 信じていた仲間達にダンジョン奥地で殺されかけたがギフト『無限ガチャ』でレベル9999の仲間達を手に入れて元パーティーメンバーと世界に復讐＆『ざまぁ！』します！
+      - 勇者刑に処す 懲罰勇者9004隊刑務記録
+  - name: スローライフ
+    id: bYQZ4Exbi26AHMVmtLgi
+    group: plot
+    criteria: のんびり暮らすことが目的
+    used: 3
+    examples:
+      - ポーション、わが身を助ける
+      - 異世界のんびり農家
+      - 解雇された暗黒兵士（30代）のスローなセカンドライフ
+  - name: 恋愛
+    id: 9hzmUO77d6GEruwsPy4Z
+    group: plot
+    criteria: 恋愛が主軸
+    used: 1
+    examples:
+      - 贄姫と獣の王
+  - name: ファンタジー
+    id: 8ObFcCgXfDxqWZPP9oFL
+    group: mood
+    criteria: 異世界と言い切れないファンタジー。異世界ファンタジーと併用しない
+    used: 10
+    examples:
+      - ブチ切れ令嬢は報復を誓いました。 ～魔導書の力で祖国を叩き潰します～
+      - エリスの聖杯
+      - 悲劇の元凶となる最強外道ラスボス女王は民の為に尽くします。
+      - 野生のラスボスが現れた！
+  - name: ゆるふわ
+    id: EHvfc5vkXZu7EmVGfAm1
+    group: mood
+    criteria: 緊張感のない柔らかい作風
+    used: 3
+    examples:
+      - 攻略うぉんてっど！～異世界救います！？～
+      - 異世界はスマートフォンとともに。
+      - 姫様“拷問”の時間です
+  - name: ダークファンタジー
+    id: FYzraRkE1jwUpsakKc4E
+    group: mood
+    criteria: 陰惨・残酷な描写を含む
+    used: 1
+    examples:
+      - 勇者刑に処す 懲罰勇者9004隊刑務記録
+  - name: 日常
+    id: GQad2QMq14F5y4vO8R1h
+    group: mood
+    criteria: 事件よりも日々の暮らしを描く
+    used: 0
+    examples: []
+  - name: コメディ
+    id: TRGPvfVvX3eEsrMX6KQr
+    group: mood
+    criteria: 笑わせることが主眼
+    used: 0
+    examples: []
+  - name: 日常系
+    id: avJRtNtemCdHtFeVkGBn
+    group: mood
+    criteria: 事件よりも日々の暮らしを描く
+    aliasOf: 日常
+    used: 0
+    examples: []
+  - name: 青春
+    id: bSOybh6UtvFslUdJTmP9
+    group: mood
+    criteria: 若者の成長や関係が主眼
+    used: 0
+    examples: []
