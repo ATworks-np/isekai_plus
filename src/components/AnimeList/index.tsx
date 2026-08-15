@@ -17,17 +17,14 @@ const AnimeList: React.FC = props => {
   const [sort, setSort] = useState<SortKey>('recent')
   useTags()
 
-  // One cour at a time server side; the picker allows several, so the rest are
-  // still applied here over what has loaded.
-  const [primaryCour, ...extraCours] = coursState
-  const { items, loading, done, loadMore } = useAnimeList(sort, primaryCour ?? null)
+  // The picker selects one cour, which is what the server filters by, so
+  // nothing is left to narrow here.
+  const [selectedCour] = coursState
+  const { items, loading, done, loadMore } = useAnimeList(sort, selectedCour ?? null)
 
   const visible = useMemo(
-    () =>
-      items
-        .filter(anime => !extraCours.length || anime.cours.some(cour => coursState.includes(cour)))
-        .filter(anime => !tagsState.length || tagsState.every(key => anime.tags.includes(key))),
-    [items, tagsState, coursState, extraCours.length]
+    () => items.filter(anime => !tagsState.length || tagsState.every(key => anime.tags.includes(key))),
+    [items, tagsState]
   )
 
   const sentinelRef = useRef<HTMLDivElement | null>(null)

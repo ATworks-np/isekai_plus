@@ -15,6 +15,7 @@ import StarIcon from '@mui/icons-material/Star';
 import {IAnimeStatic} from "@/models/interfaces/animeStatic";
 import {useAtom} from "jotai";
 import { userAtom } from '@/stores/userStore';
+import { courRangeLabel } from '@/utils/cour';
 const ratingLabels = {
   story: 'ストーリー',
   character: 'キャラ',
@@ -42,6 +43,9 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
   // image stays the fallback so nothing goes blank mid-migration.
   const thumbnail = activeSeason?.thumbnailUrl ?? thumbnailPrefix + props.id + '.jpg';
   const ratings = activeSeason?.ratings ?? anime.props.ratings;
+  // The season's own cours, not the work's: with the tabs open the reader is
+  // looking at one season, and the work's span covers all of them.
+  const courLabel = courRangeLabel(activeSeason?.cours ?? []);
 
   return (
     <Box
@@ -85,6 +89,13 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
           <Grid size={0.5} />
           <Grid size={11} >
             <AnimeTitle name={props.name.ja}/>
+            {/* Which quarter the season on screen aired in. The tabs say which
+                season it is; without this the page never says when. */}
+            {courLabel && (
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.75)' }}>
+                {courLabel}
+              </Typography>
+            )}
           </Grid>
           <Grid size={0.5} />
         </Grid>

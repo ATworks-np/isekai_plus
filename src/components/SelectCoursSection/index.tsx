@@ -33,11 +33,12 @@ const SelectCoursSection: React.FC = () => {
     return { label, key, year: quarterYear, quarter: quarters[quarterIndex] };
   });
 
+  // One cour at a time. The list is filtered by cour on the server, which takes
+  // a single quarter, so a second chip only ever narrowed the page that had
+  // already loaded — the same choice behaved differently depending on how far
+  // the reader had scrolled. Selecting again clears it.
   const onClick = (cours: string) => {
-    setCoursState((prev) => {
-      if (prev.includes(cours)) return prev.filter((item) => item !== cours);
-      return [...prev, cours];
-    });
+    setCoursState((prev) => (prev.includes(cours) ? [] : [cours]));
   };
 
   return (
