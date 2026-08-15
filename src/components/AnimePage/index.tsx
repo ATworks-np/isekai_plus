@@ -13,7 +13,7 @@ const AnimePage: React.FC<IAnimeStatic> = (props) => {
   // Seasons live here rather than in the summary section because the comment
   // box needs the same selection: a comment is recorded against the season the
   // reader is looking at.
-  const { seasons, reloadSeasons } = useSeasons(props.id);
+  const { seasons, loading: loadingSeasons, reloadSeasons } = useSeasons(props.id);
   const [selectedSeasonId, setSelectedSeasonId] = React.useState<string>('');
 
   const activeSeason =
@@ -27,6 +27,7 @@ const AnimePage: React.FC<IAnimeStatic> = (props) => {
         {...props}
         seasons={seasons}
         activeSeason={activeSeason}
+        loadingSeasons={loadingSeasons}
         onSelectSeason={setSelectedSeasonId}
         onRatingSaved={reloadSeasons}
       />

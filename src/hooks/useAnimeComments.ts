@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { animeCommentsAtom } from "@/stores/animeCommentsAtom";
 import { useAtom } from 'jotai'
 import {collection, getDocs} from "firebase/firestore";
@@ -7,6 +7,10 @@ import Comment from "@/models/entities/comment";
 import {date2YYYYMMDD} from "@/utils/date";
 const useAnimeComments = (props: {id: string}) => {
   const [animeComments, setAnimeComments] = useAtom(animeCommentsAtom);
+  // The comments themselves are kept across a refresh so the list does not
+  // flash, but the first load has nothing to show and must say so: without
+  // this the page reads "コメントはまだありません" while it is still fetching.
+  const [loading, setLoading] = useState<boolean>(true);
 
   const refreshAnimeComments = useCallback(() => {
     // Don't set to undefined before fetching to prevent flashing
@@ -28,6 +32,10 @@ const useAnimeComments = (props: {id: string}) => {
         ));
       })
       setAnimeComments(buffer);
+      setLoading(false);
+    }).catch((error: unknown) => {
+      console.error('コメントの取得に失敗しました', error);
+      setLoading(false);
     })
   }, [props.id, setAnimeComments])
 
@@ -35,7 +43,7 @@ const useAnimeComments = (props: {id: string}) => {
     refreshAnimeComments();
   }, [refreshAnimeComments]);
 
-  return {animeComments, refreshAnimeComments};
+  return {animeComments, loading, refreshAnimeComments};
 }
 
 export default useAnimeComments;

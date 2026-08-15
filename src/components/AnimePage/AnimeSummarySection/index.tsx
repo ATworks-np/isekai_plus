@@ -1,7 +1,7 @@
 import React from 'react'
 import Grid from "@mui/material/Grid";
 import useAnime from "@/hooks/useAnime";
-import {Box, Container, Stack, Tab, Tabs, Typography} from "@mui/material";
+import {Box, Container, Skeleton, Stack, Tab, Tabs, Typography} from "@mui/material";
 import { Season } from "@/hooks/useSeasons";
 import StarRating from "@/components/StarRating";
 import HelpIcon from '@mui/icons-material/Help';
@@ -28,6 +28,7 @@ const ratingLabels = {
 type AnimeSummarySectionProps = IAnimeStatic & {
   seasons: Season[]
   activeSeason: Season | undefined
+  loadingSeasons: boolean
   onSelectSeason: (seasonId: string) => void
   onRatingSaved: () => void
 }
@@ -164,7 +165,19 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
                         }}
                         onClick={()=> user.isAuthenticated() && setOpenRatingModal(true)}
                         >
-                          <StarRating rating={ratings[key as keyof IRatings]}/>
+                          {/* Zero is a score, so it cannot stand in for one that
+                              has not arrived: the stars would fill in front of
+                              the reader as though the work had just been rated. */}
+                          {props.loadingSeasons ? (
+                            <Skeleton
+                              variant="text"
+                              width={110}
+                              height={24}
+                              sx={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+                            />
+                          ) : (
+                            <StarRating rating={ratings[key as keyof IRatings]}/>
+                          )}
                         </Container>
                       </Grid>
                     </Grid>

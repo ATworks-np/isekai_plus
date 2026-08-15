@@ -5,6 +5,7 @@ import { Box, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import CircularProgress from '@mui/material/CircularProgress'
 import { useAtom } from 'jotai'
 import ContentListItem from './AnimeListItem'
+import AnimeListItemSkeleton from './AnimeListItemSkeleton'
 import { searchSelectedTagAtom } from '@/stores/searchSelectedTagAtom'
 import { courAtom } from '@/stores/coursState'
 import { seasonForDisplay } from '@/hooks/useAllSeasons'
@@ -72,7 +73,17 @@ const AnimeList: React.FC = props => {
           />
         ))}
 
-        {loading && (
+        {/* First load draws the rows that are coming; a later page is a scroll
+            past rows already on screen, where a spinner at the end is enough. */}
+        {loading && items.length === 0 && (
+          <>
+            {Array.from({ length: 8 }, (_, index) => (
+              <AnimeListItemSkeleton key={index} />
+            ))}
+          </>
+        )}
+
+        {loading && items.length > 0 && (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
             <CircularProgress color="secondary" />
           </Box>
