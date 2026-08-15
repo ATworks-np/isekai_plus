@@ -54,12 +54,15 @@ const AnimeDetailsSection: React.FC<{ id: string }> = ({ id }) => {
 
   const hasStaff = credits.studios.length > 0 || credits.staff.length > 0
 
-  // Closed, this is one line high, so the skeleton is one line high. Returning
-  // nothing while it loads would let the comments below jump when it arrives.
+  // Closed, the panel is 35.9px tall — a caption line under the summary's 8px
+  // margins. The skeleton is given that height outright rather than inheriting
+  // whatever a text skeleton works out to, so the comments below do not move.
   if (loading) {
     return (
       <Box sx={{ width: '100%', maxWidth: '800px', px: 2 }}>
-        <Skeleton variant="text" width={96} sx={{ my: 1 }} />
+        <Box sx={{ height: '35.92px', display: 'flex', alignItems: 'center' }}>
+          <Skeleton variant="text" width={96} sx={{ fontSize: '0.75rem' }} />
+        </Box>
       </Box>
     )
   }

@@ -92,11 +92,27 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
           <Grid size={11} >
             <AnimeTitle name={props.name.ja}/>
             {/* Which quarter the season on screen aired in. The tabs say which
-                season it is; without this the page never says when. */}
-            {courLabel && (
-              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.75)' }}>
-                {courLabel}
-              </Typography>
+                season it is; without this the page never says when.
+
+                It has its own skeleton rather than sharing the tabs': it is a
+                17px inline line above them, and leaving it out while loading
+                lifted the whole strip by that much. */}
+            {props.loadingSeasons ? (
+              <Skeleton
+                variant="text"
+                width={110}
+                sx={{
+                  display: 'inline-block',
+                  fontSize: '0.75rem',
+                  backgroundColor: 'rgba(255,255,255,0.2)',
+                }}
+              />
+            ) : (
+              courLabel && (
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.75)' }}>
+                  {courLabel}
+                </Typography>
+              )
             )}
           </Grid>
           <Grid size={0.5} />
@@ -105,11 +121,13 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
             a choice, and the strip being unconditional is what keeps the header
             a fixed height. */}
         {props.loadingSeasons ? (
-          <Box sx={{ height: 40, display: 'flex', alignItems: 'center', px: 2 }}>
+          // 40px to the tab strip's 40, and the label indented by the strip's
+          // padding plus the tab's own, so it lands where 第1期 will.
+          <Box sx={{ height: 40, display: 'flex', alignItems: 'center', pl: '32px' }}>
             <Skeleton
               variant="text"
-              width={48}
-              sx={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+              width={58}
+              sx={{ fontSize: '0.875rem', backgroundColor: 'rgba(255,255,255,0.2)' }}
             />
           </Box>
         ) : (
