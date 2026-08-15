@@ -1,7 +1,15 @@
 'use client'
 
 import React from 'react'
-import { Accordion, AccordionDetails, AccordionSummary, Box, Stack, Typography } from '@mui/material'
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Box,
+  Skeleton,
+  Stack,
+  Typography,
+} from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import useCredits from '@/hooks/useCredits'
 
@@ -45,7 +53,18 @@ const AnimeDetailsSection: React.FC<{ id: string }> = ({ id }) => {
   const { credits, loading } = useCredits(id)
 
   const hasStaff = credits.studios.length > 0 || credits.staff.length > 0
-  if (loading || (!hasStaff && !credits.cast.length && !credits.themeSongs.length)) return null
+
+  // Closed, this is one line high, so the skeleton is one line high. Returning
+  // nothing while it loads would let the comments below jump when it arrives.
+  if (loading) {
+    return (
+      <Box sx={{ width: '100%', maxWidth: '800px', px: 2 }}>
+        <Skeleton variant="text" width={96} sx={{ my: 1 }} />
+      </Box>
+    )
+  }
+
+  if (!hasStaff && !credits.cast.length && !credits.themeSongs.length) return null
 
   return (
     <Box sx={{ width: '100%', maxWidth: '800px', px: 2 }}>
