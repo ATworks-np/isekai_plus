@@ -42,6 +42,12 @@ const CONCURRENCY = 3
 const TIMEOUT_MS = 15 * 60 * 1000
 const FETCH_TIMEOUT_MS = 20 * 1000
 
+// Pinned rather than left to the CLI default, so an answer cached today and one
+// asked for next month came from the same model. `grok models` lists what is
+// available; 4.6 is the current default.
+const MODEL = 'grok-4.6'
+const EFFORT = 'high'
+
 const SCHEMA = JSON.stringify({
   type: 'object',
   properties: {
@@ -145,7 +151,18 @@ const firstJsonObject = text => {
 const ask = async (title, insist = false) => {
   const { stdout } = await run(
     'grok',
-    ['-p', promptFor(title, insist), '--json-schema', SCHEMA, '--output-format', 'json'],
+    [
+      '-p',
+      promptFor(title, insist),
+      '--model',
+      MODEL,
+      '--effort',
+      EFFORT,
+      '--json-schema',
+      SCHEMA,
+      '--output-format',
+      'json',
+    ],
     { timeout: TIMEOUT_MS, maxBuffer: 32 * 1024 * 1024, windowsHide: true }
   )
   const envelope = firstJsonObject(stdout)
