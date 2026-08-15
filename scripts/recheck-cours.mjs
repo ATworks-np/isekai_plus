@@ -450,9 +450,15 @@ const report = works => {
     // database. Everything is printed, but only the verified is counted.
     const verification = cached.verification ?? {}
     const trusted = cached.answer.seasons.filter(
-      (_, index) => (verification[index]?.verdict ?? '出典なし') !== '出典なし'
+      (season, index) =>
+        (verification[index]?.verdict ?? '出典なし') !== '出典なし'
         && verification[index]?.verdict !== '到達不可'
         && verification[index]?.verdict !== '未検証（ページに記述なし）'
+        // A run whose length and episode count disagree cannot be resolved by
+        // the rules here. 魔王学院の不適合者Ⅱ ran January to September 2023 with
+        // twelve episodes because it was suspended in between, and picking the
+        // quarter it covered most picks the months it was off the air.
+        && inconsistencies(season).length === 0
     )
 
     const broadcast = trusted.filter(s => !s.isRerun && !s.isSpinoff)
@@ -463,7 +469,9 @@ const report = works => {
       const parts = (season.parts ?? [])
         .map(part => `${part.start}〜${part.end || '放送中'} 全${part.episodes}話`)
         .join(' / ')
-      const verdict = verification[index]?.verdict ?? '未実行'
+      const verdict = inconsistencies(season).length
+        ? '要確認（話数と期間が不一致）'
+        : (verification[index]?.verdict ?? '未実行')
       console.log(`        ${season.label}${mark ? `(${mark})` : ''} ${JSON.stringify(coursOfSeason(season))}  ${parts}  [${verdict}]`)
       console.log(`          内訳 ${spansOf(season)}`)
       for (const check of verification[index]?.checks ?? []) {
