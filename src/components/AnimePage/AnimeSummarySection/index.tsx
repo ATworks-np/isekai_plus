@@ -39,7 +39,6 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
   const thumbnailPrefix = 'https://storage.googleapis.com/jp-contents-matome.appspot.com/thumbnail/'
   const [openRatingModal, setOpenRatingModal] = React.useState(false);
   const { seasons, activeSeason } = props;
-  const showTabs = seasons.length > 1;
   // A season carries its own key visual once one has been stored; the series
   // image stays the fallback so nothing goes blank mid-migration.
   const thumbnail = activeSeason?.thumbnailUrl ?? thumbnailPrefix + props.id + '.jpg';
@@ -54,7 +53,9 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
         position: "relative",
         width: "100%",
         maxWidth: "800px",
-        height: showTabs ? "378px" : "330px",
+        // Fixed: the tab strip is always there, so the header does not grow
+        // by its height the moment the seasons arrive.
+        height: "378px",
       }}
     >
       <RatingModal
@@ -62,13 +63,13 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
         setOpen={setOpenRatingModal}
         animeId={props.id}
         seasonId={activeSeason?.id}
-        seasonLabel={showTabs ? activeSeason?.label : undefined}
+        seasonLabel={activeSeason?.label}
         onSaved={props.onRatingSaved}
       />
       <Box
         sx={{
           width: "100%",
-          height: showTabs ? "348px" : "300px",
+          height: "348px",
           backgroundImage: `url(${thumbnail})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -100,7 +101,18 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
           </Grid>
           <Grid size={0.5} />
         </Grid>
-        {showTabs && (
+        {/* Shown even for a single season. One tab reads as a label rather than
+            a choice, and the strip being unconditional is what keeps the header
+            a fixed height. */}
+        {props.loadingSeasons ? (
+          <Box sx={{ height: 40, display: 'flex', alignItems: 'center', px: 2 }}>
+            <Skeleton
+              variant="text"
+              width={48}
+              sx={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+            />
+          </Box>
+        ) : (
           <Tabs
             value={activeSeason?.id ?? false}
             onChange={(_, value) => props.onSelectSeason(value)}
