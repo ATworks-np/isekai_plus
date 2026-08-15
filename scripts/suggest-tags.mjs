@@ -245,6 +245,80 @@ const synopsisByTag = () => {
   return byTag
 }
 
+const THUMB_DIR = '.cache/thumbs'
+const THUMB_PREFIX = 'https://storage.googleapis.com/jp-contents-matome.appspot.com/thumbnail'
+
+/** The key visual, on disk, because grok reads an image from a path. */
+const fetchThumbnail = async id => {
+  const path = `${THUMB_DIR}/${id}.jpg`
+  if (existsSync(path)) return path
+  const response = await fetch(`${THUMB_PREFIX}/${id}.jpg`)
+  if (!response.ok) return null
+  writeFileSync(path, Buffer.from(await response.arrayBuffer()))
+  return path
+}
+
+const IMAGE_SCHEMA = JSON.stringify({
+  type: 'object',
+  properties: {
+    tags: { type: 'array', items: { type: 'string' } },
+    observed: { type: 'string' },
+  },
+  required: ['tags', 'observed'],
+})
+
+const imagePromptFor = (work, path, vocabulary) => `画像ファイル ${path} を開いて、写っているキャラクターの外見を見てください。
+
+この画像は「${work.title}」のキービジュアルです。
+
+## 選べるタグ
+
+${vocabulary.join('、')}
+
+## 指示
+
+- **画像に実際に写っているものだけ**を選ぶ。作品名や設定から推測しない
+- 当てはまるものが無ければ空で返す。無理に選ばない
+- observed に、そう判断した見た目を短く書く（「中央の女性が長い銀髪」など）
+
+画像に写っていないことは書かないでください。`
+
+const askImage = async (work, path, vocabulary) => {
+  const { stdout } = await run(
+    'grok',
+    [
+      '-p',
+      imagePromptFor(work, path, vocabulary),
+      '--model',
+      MODEL,
+      '--json-schema',
+      IMAGE_SCHEMA,
+      '--output-format',
+      'json',
+    ],
+    { timeout: TIMEOUT_MS, maxBuffer: 32 * 1024 * 1024, windowsHide: true }
+  )
+  const envelope = firstJsonObject(stdout)
+  const answer = envelope?.structuredOutput ?? firstJsonObject(envelope?.text ?? '')
+  return { answer: answer ?? { tags: [], observed: '' }, costUsd: envelope?.total_cost_usd ?? 0 }
+}
+
+/**
+ * A picture cannot be quoted, so it is asked about twice and only what both
+ * passes saw is kept. One pass of 魔都精兵のスレイブ's key visual is how 巨乳
+ * arrived attached to a sentence that was not on the page it cited.
+ */
+const askImageTwice = async (work, path, vocabulary) => {
+  const first = await askImage(work, path, vocabulary)
+  const second = await askImage(work, path, vocabulary)
+  const agreed = (first.answer.tags ?? []).filter(tag => (second.answer.tags ?? []).includes(tag))
+  return {
+    tags: [...new Set(agreed)],
+    observed: first.answer.observed ?? '',
+    costUsd: first.costUsd + second.costUsd,
+  }
+}
+
 const load = async () => {
   const tags = await db.collection(TAGS_PATH).get()
   const byName = new Map()
@@ -288,6 +362,15 @@ const report = (works, byName) => {
       console.log(`        「${(entry.quote ?? '').slice(0, 60)}」`)
     }
 
+    for (const tag of cached.image?.tags ?? []) {
+      // A tag the text already carried does not become two tags because the
+      // picture agrees with it.
+      const already = accepted.includes(tag)
+      if (byName.has(tag.trim()) && !already) accepted.push(tag)
+      console.log(`  ${!byName.has(tag.trim()) ? '除外' : already ? '重複' : '採用'}  ${tag}  [画像2回一致]`)
+      console.log(`        キービジュアル: ${cached.image.observed}`)
+    }
+
     console.log(`  → 採用 ${accepted.length}件: ${accepted.join('、') || 'なし'}`)
     if (cached.answer.newTags?.length) {
       console.log(`  新規提案: ${cached.answer.newTags.map(t => `${t.name}（${t.reason}）`).join(' / ')}`)
@@ -298,6 +381,7 @@ const report = (works, byName) => {
 
 const main = async () => {
   mkdirSync(CACHE_DIR, { recursive: true })
+  mkdirSync(THUMB_DIR, { recursive: true })
   const { byName, works } = await load()
 
   const noAppearance = process.argv.includes('--no-appearance')
@@ -332,16 +416,31 @@ const main = async () => {
           verification[entry.tag] = (await verifyTag(entry, work.synopsis)).verdict
         }
 
+        // What the key visual shows, for the tags no text describes.
+        let image = null
+        if (!noAppearance) {
+          const path = await fetchThumbnail(work.id)
+          if (path) {
+            const appearance = vocabulary.filter(name => APPEARANCE.test(name))
+            const seen = await askImageTwice(work, path, appearance)
+            spent += seen.costUsd
+            image = { tags: seen.tags, observed: seen.observed }
+            for (const tag of seen.tags) {
+              if (!verification[tag]) verification[tag] = '画像2回一致'
+            }
+          }
+        }
+
         writeFileSync(
           `${CACHE_DIR}/${work.id}.json`,
-          JSON.stringify({ title: work.title, answer, verification, costUsd }, null, 2)
+          JSON.stringify({ title: work.title, answer, image, verification, costUsd }, null, 2)
         )
 
-        const accepted = (answer.tags ?? []).filter(
-          entry => byName.has(entry.tag.trim()) && verification[entry.tag] === '検証済み'
+        const accepted = Object.entries(verification).filter(
+          ([tag, verdict]) => byName.has(tag.trim()) && (verdict === '検証済み' || verdict === '画像2回一致')
         )
         console.log(
-          `[${position}/${selected.length}] ${work.title.slice(0, 24)}  採用${accepted.length}/${(answer.tags ?? []).length}  ($${spent.toFixed(2)})`
+          `[${position}/${selected.length}] ${work.title.slice(0, 24)}  採用${accepted.length}  画像${image?.tags.length ?? 0}  ($${spent.toFixed(2)})`
         )
       } catch (error) {
         writeFileSync(

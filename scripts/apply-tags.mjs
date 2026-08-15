@@ -120,9 +120,11 @@ const main = async () => {
       continue
     }
 
-    const verified = (proposal.answer.tags ?? [])
-      .filter(entry => proposal.verification?.[entry.tag] === '検証済み')
-      .map(entry => entry.tag.trim())
+    // Both kinds of evidence count: a sentence found in the page it was quoted
+    // from, or a body-shape tag two passes over the key visual both saw.
+    const verified = Object.entries(proposal.verification ?? {})
+      .filter(([, verdict]) => verdict === '検証済み' || verdict === '画像2回一致')
+      .map(([tag]) => tag.trim())
     // Only the ones actually being minted. A name in newTags that the
     // vocabulary already has is a note, not a proposal — スローライフ arrived
     // that way, explained as "一覧にあるが公式文面にその語が無く推測になるため
