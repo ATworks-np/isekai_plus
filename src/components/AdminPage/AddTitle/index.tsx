@@ -1,6 +1,7 @@
 'use client';
 
 import {useEffect, useRef, useState} from 'react';
+import NextImage from 'next/image';
 import {
   TextField,
   Button,
@@ -377,7 +378,14 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
         </Button>
         {imageUrl && (
           <Box sx={{ marginTop: 2 }}>
-            <img src={imageUrl} alt="Thumbnail" style={{ width: '50%' }} />
+            <NextImage
+              src={imageUrl}
+              alt="選択したサムネイルのプレビュー"
+              width={400}
+              height={400}
+              unoptimized
+              style={{ width: '50%', height: 'auto' }}
+            />
           </Box>
         )}
         <TextField

@@ -3,7 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const db = admin.firestore();
 const {onRequest} = require("firebase-functions/v2/https");
-const {coursByAnime, coursOf} = require("./cours");
+const {statsByAnime, statsOf} = require("./cours");
 
 const caches = {};
 
@@ -21,7 +21,7 @@ app.get("/", async (req, res) => {
   try {
     if(!('titles' in caches)){
       const animesCollectionRef = db.collection('versions/1/animes');
-      const cours = await coursByAnime();
+      const stats = await statsByAnime();
       const titles = [];
       animesCollectionRef.get().then((querySnapshot) => {
         querySnapshot.docs.forEach((doc) => {
@@ -29,7 +29,8 @@ app.get("/", async (req, res) => {
           const data = {
             id: doc.id,
             name: docDate.name,
-            cours: cours.get(doc.id) || [],
+            cours: (stats.get(doc.id) || {}).cours || [],
+            ratingCount: (stats.get(doc.id) || {}).ratingCount || 0,
             commentCount: docDate.commentCount,
             tags: docDate.tags.map(tag => tag.path),
             ratings: {
@@ -112,11 +113,20 @@ app.get("/:id/statics", async (req, res) => {
     }
 
     const docData = docSnap.data();
+    const seasonStats = await statsOf(docSnap.id);
 
     const data = {
       id: docSnap.id,
       name: docData.name,
-      cours: await coursOf(docSnap.id),
+      cours: seasonStats.cours,
+      ratingCount: seasonStats.ratingCount,
+      rating: docData.ratingAverage ?? (
+        (docData.storyRating || 0) +
+        (docData.characterRating || 0) +
+        (docData.animationRating || 0) +
+        (docData.messageRating || 0) +
+        (docData.worldviewRating || 0)
+      ) / 5,
       tags: (docData.tags || []).map(tag => tag.path), // tagsが未定義でも安全に処理
     };
 
@@ -132,14 +142,15 @@ app.get("/statics", async (req, res) => {
   try {
     const animesCollectionRef = db.collection('versions/1/animes');
     const snapshot = await animesCollectionRef.get();
-    const cours = await coursByAnime();
+    const stats = await statsByAnime();
 
     const data = snapshot.docs.map(doc => {
       const docData = doc.data();
       return {
         id: doc.id,
         name: docData.name,
-        cours: cours.get(doc.id) || [],
+        cours: (stats.get(doc.id) || {}).cours || [],
+        ratingCount: (stats.get(doc.id) || {}).ratingCount || 0,
         tags: (docData.tags || []).map(tag => tag.path), // tags安全処理
       };
     });

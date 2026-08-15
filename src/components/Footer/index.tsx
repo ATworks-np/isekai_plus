@@ -1,4 +1,5 @@
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography } from '@mui/material'
+import Link from 'next/link'
 
 const Fotter: React.FC = () => {
   return (
@@ -11,6 +12,13 @@ const Fotter: React.FC = () => {
       }}
     >
       <Stack direction="column" justifyContent="center" alignItems="center">
+        {/* The only link to the work pages that exists in the HTML, since the
+            list on the top page is built in the browser. */}
+        <Link href="/animes/" style={{ textDecoration: 'none' }}>
+          <Typography variant="caption" color="secondary">
+            作品一覧
+          </Typography>
+        </Link>
         <Typography variant="caption" color="secondary">
           Isekai Plus
         </Typography>
@@ -19,7 +27,7 @@ const Fotter: React.FC = () => {
         </Typography>
       </Stack>
     </Box>
-  );
-};
+  )
+}
 
-export default Fotter;
+export default Fotter

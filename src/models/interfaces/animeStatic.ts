@@ -4,6 +4,8 @@ export interface IAnimeStatic {
     ja: string,
     en: string,
   },
-  cours: string,
+  cours: string[],
+  ratingCount?: number,
+  rating?: number,
   tags: string[],
 }

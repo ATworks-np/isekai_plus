@@ -4,14 +4,16 @@ const db = admin.firestore();
 const ANIMES_PATH = 'versions/1/animes';
 
 /**
- * Which cours each work aired in, keyed by anime id.
+ * What the seasons say about each work, keyed by anime id: the cours it aired
+ * in and how many ratings it has received.
  *
- * A work no longer stores its own cours: they belong to the seasons beneath it,
- * and the copy on the parent drifted from them. One collection group query
- * covers every work, so a list endpoint pays for it once rather than reading a
- * subcollection per row.
+ * A work no longer stores its own cours — they belong to the seasons beneath
+ * it, and the copy on the parent drifted from them. The rating count lives
+ * there too, one per season, and the structured data on a work page needs the
+ * total. One collection group query covers every work, so a list endpoint pays
+ * for it once rather than reading a subcollection per row.
  */
-const coursByAnime = async () => {
+const statsByAnime = async () => {
   const snapshot = await db.collectionGroup('seasons').get();
   const byAnime = new Map();
 
@@ -20,20 +22,30 @@ const coursByAnime = async () => {
     // The query matches any subcollection called seasons; only the ones under
     // the animes collection belong to a work.
     if (!anime || anime.parent.path !== ANIMES_PATH) return;
-    const cours = byAnime.get(anime.id) || new Set();
-    (doc.get('cours') || []).forEach((cour) => cours.add(cour));
-    byAnime.set(anime.id, cours);
+    const stats = byAnime.get(anime.id) || {cours: new Set(), ratingCount: 0};
+    (doc.get('cours') || []).forEach((cour) => stats.cours.add(cour));
+    stats.ratingCount += doc.get('ratingCount') || 0;
+    byAnime.set(anime.id, stats);
   });
 
-  return new Map([...byAnime].map(([id, cours]) => [id, [...cours].sort()]));
+  return new Map(
+      [...byAnime].map(([id, stats]) => [
+        id,
+        {cours: [...stats.cours].sort(), ratingCount: stats.ratingCount},
+      ])
+  );
 };
 
 /** The same for a single work, when the caller only wants one. */
-const coursOf = async (animeId) => {
+const statsOf = async (animeId) => {
   const snapshot = await db.collection(`${ANIMES_PATH}/${animeId}/seasons`).get();
   const cours = new Set();
-  snapshot.docs.forEach((doc) => (doc.get('cours') || []).forEach((cour) => cours.add(cour)));
-  return [...cours].sort();
+  let ratingCount = 0;
+  snapshot.docs.forEach((doc) => {
+    (doc.get('cours') || []).forEach((cour) => cours.add(cour));
+    ratingCount += doc.get('ratingCount') || 0;
+  });
+  return {cours: [...cours].sort(), ratingCount};
 };
 
-module.exports = { coursByAnime, coursOf };
+module.exports = {statsByAnime, statsOf};

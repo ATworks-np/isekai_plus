@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Box, Stack, Typography, useTheme, IconButton, Skeleton } from '@mui/material'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
@@ -30,6 +30,20 @@ type SeasonCarouselProps = {
   skeleton?: boolean
 }
 
+const subscribeToReducedMotion = (onStoreChange: () => void) => {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return () => {}
+  const query = window.matchMedia('(prefers-reduced-motion: reduce)')
+  query.addEventListener('change', onStoreChange)
+  return () => query.removeEventListener('change', onStoreChange)
+}
+
+const getReducedMotionSnapshot = () =>
+  typeof window !== 'undefined' &&
+  typeof window.matchMedia === 'function' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+const getServerReducedMotionSnapshot = () => false
+
 const SeasonCarousel: React.FC<SeasonCarouselProps> = ({ skeleton = false }) => {
   const theme = useTheme()
   const [animes, setAnimes] = useState<AnimeItem[]>([])
@@ -39,10 +53,13 @@ const SeasonCarousel: React.FC<SeasonCarouselProps> = ({ skeleton = false }) => 
   const [isPointerDown, setIsPointerDown] = useState<boolean>(false)
   const [dragStartX, setDragStartX] = useState<number | null>(null)
   const intervalRef = useRef<number | null>(null)
-  const prefersReducedMotion =
-    typeof window !== 'undefined' &&
-    typeof window.matchMedia !== 'undefined' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  // The server snapshot is stable for hydration; React then reads and
+  // subscribes to the reader's actual browser preference.
+  const prefersReducedMotion = useSyncExternalStore(
+    subscribeToReducedMotion,
+    getReducedMotionSnapshot,
+    getServerReducedMotionSnapshot
+  )
 
   useEffect(() => {
     fetch(api.animes)

@@ -111,10 +111,15 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
         <Grid container spacing={2}>
           <Grid size={0.5} />
           <Grid size={4}>
-              <img
+              <Image
                 src={thumbnail}
-                alt=""
+                alt={`${props.name.ja}のキービジュアル`}
+                width={240}
+                height={360}
+                priority
+                sizes="(max-width: 800px) 33vw, 240px"
                 style={{
+                  width: '100%',
                   height: '180px',
                   objectFit: 'contain',
                 }}

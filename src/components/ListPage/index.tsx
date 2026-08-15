@@ -1,42 +1,38 @@
-import logo from '../../logo.svg'
 import React from 'react'
-import styles from './tag.module.css'
-import { Box, Chip, Stack, Typography } from '@mui/material'
+import { Box, Stack, Typography } from '@mui/material'
 import AnimeList from '../AnimeList'
 import SearchModal from '@/components/SearchModal'
-import LoginModal from '@/components/LoginModal'
-import useUser from '@/hooks/useUser'
-import useTags from "@/hooks/useTags";
-import SelectCoursSection from "@/components/SelectCoursSection";
-import NewsSection from "@/components/NewsSection";
-import Image from "next/image";
-import type { CSSProperties } from 'react'
-import SeasonCarousel from "@/components/SeasonCarousel";
+import SelectCoursSection from '@/components/SelectCoursSection'
+import NewsSection from '@/components/NewsSection'
+import SeasonCarousel from '@/components/SeasonCarousel'
 
-const stylesHead = {
-  container:  {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    maxHeight: '300px',
-  },
-  image: {
-    maxWidth: '100%',
-    maxHeight: '300px',
-  },
-}
-
-const ListPage: React.FC = props => {
+const ListPage: React.FC = () => {
   return (
     <Stack>
+      {/* The page's own heading. Drawn off screen because the design opens with
+          the logo and the carousel, but a page with no h1 tells a crawler
+          nothing about what it lists. */}
+      <Typography
+        variant="h1"
+        sx={{
+          position: 'absolute',
+          width: '1px',
+          height: '1px',
+          overflow: 'hidden',
+          clip: 'rect(0 0 0 0)',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        異世界アニメまとめ - 作品一覧と評価
+      </Typography>
       <SeasonCarousel />
       <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <NewsSection />
       </Box>
-      <Stack spacing={2} sx={{width: '100%', maxWidth: '800px'}}>
-        <SearchModal/>
-        <SelectCoursSection/>
-        <AnimeList/>
+      <Stack spacing={2} sx={{ width: '100%', maxWidth: '800px' }}>
+        <SearchModal />
+        <SelectCoursSection />
+        <AnimeList />
       </Stack>
     </Stack>
   )

@@ -1,5 +1,5 @@
-import { Typography, Skeleton } from '@mui/material';
-import React from "react";
+import { Typography, Skeleton } from '@mui/material'
+import React from 'react'
 
 const AnimeTitle: React.FC<{ name: string | undefined }> = props => {
   return (
@@ -7,6 +7,9 @@ const AnimeTitle: React.FC<{ name: string | undefined }> = props => {
       {props.name ? (
         <Typography
           variant="subtitle1"
+          // The work's name is what the page is about, so it is the heading a
+          // crawler should find, whatever size it is drawn at.
+          component="h1"
           sx={{
             fontWeight: 'bold',
             display: '-webkit-box',
@@ -24,12 +27,12 @@ const AnimeTitle: React.FC<{ name: string | undefined }> = props => {
           height="31.5px"
           sx={{
             fontWeight: 'bold',
-            backgroundColor: 'rgba(255, 255, 255, 0.1)', // スケルトンの色を調整
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
           }}
         />
       )}
     </>
-  );
+  )
 }
 
-export default AnimeTitle;
+export default AnimeTitle

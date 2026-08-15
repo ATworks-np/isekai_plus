@@ -17,6 +17,7 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.0.2",
     "@mui/material": "^7.0.2",
+    "@mui/material-nextjs": "^7.3.10",
     "@mui/styled-engine-sc": "^7.0.2",
     "firebase": "^11.6.0",
     "firebase-admin": "^14.2.0",

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { animeCommentsAtom } from "@/stores/animeCommentsAtom";
 import { useAtom } from 'jotai'
 import {collection, getDocs} from "firebase/firestore";
@@ -8,7 +8,7 @@ import {date2YYYYMMDD} from "@/utils/date";
 const useAnimeComments = (props: {id: string}) => {
   const [animeComments, setAnimeComments] = useAtom(animeCommentsAtom);
 
-  const refreshAnimeComments = () => {
+  const refreshAnimeComments = useCallback(() => {
     // Don't set to undefined before fetching to prevent flashing
     const collectionRef = collection(db, `versions/1/animes/${props.id}/comments`)
     getDocs(collectionRef).then((querySnapshot: any) => {
@@ -29,11 +29,11 @@ const useAnimeComments = (props: {id: string}) => {
       })
       setAnimeComments(buffer);
     })
-  }
+  }, [props.id, setAnimeComments])
 
   useEffect(() => {
     refreshAnimeComments();
-  }, [props.id]);
+  }, [refreshAnimeComments]);
 
   return {animeComments, refreshAnimeComments};
 }

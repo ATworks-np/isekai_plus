@@ -1,7 +1,7 @@
 const admin = require("firebase-admin");
 const db = admin.firestore();
 const {onRequest} = require("firebase-functions/v2/https");
-const {coursByAnime} = require("./cours");
+const {statsByAnime} = require("./cours");
 const caches = {};
 
 exports.titles = onRequest(async  (request, response) => {
@@ -13,7 +13,7 @@ exports.titles = onRequest(async  (request, response) => {
   try {
     if(!('titles' in caches)){
       const animesCollectionRef = db.collection('versions/1/animes');
-      const cours = await coursByAnime();
+      const stats = await statsByAnime();
       const titles = [];
       animesCollectionRef.get().then((querySnapshot) => {
         querySnapshot.docs.forEach((doc) => {
@@ -21,7 +21,8 @@ exports.titles = onRequest(async  (request, response) => {
           const data = {
             id: doc.id,
             name: docDate.name,
-            cours: cours.get(doc.id) || [],
+            cours: (stats.get(doc.id) || {}).cours || [],
+            ratingCount: (stats.get(doc.id) || {}).ratingCount || 0,
             commentCount: docDate.commentCount,
             tags: docDate.tags.map(tag => tag.path),
             ratings: {
