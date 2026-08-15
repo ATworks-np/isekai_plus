@@ -1,21 +1,28 @@
 #!/usr/bin/env node
 /**
- * Rechecks the works where Wikipedia had cours the database lacks.
+ * Checks a work's cours against what the web says, and checks the answer
+ * against the pages it cites.
  *
  *   node scripts/recheck-cours.mjs                # ask (resumable)
+ *   node scripts/recheck-cours.mjs --verify       # recheck cached answers' sources
  *   node scripts/recheck-cours.mjs --report       # compare what came back
  *   node scripts/recheck-cours.mjs --only <id>
  *
- * The first pass asked for cours and got cours back, so a wrong answer was
- * indistinguishable from a right one: 悪役令嬢転生おじさん came back as 2025-Q4
- * when the database's 2025-Q1 was correct, with nothing in the answer to catch
- * it. This pass asks for broadcast dates and episode counts instead and derives
- * the cours here, so an answer carries the evidence for itself — a claim of two
- * cours has to name a start, an end and a count that agree with each other.
+ * Three things had to be got right, in this order.
  *
- * The episode count is what settles it. Twelve to fourteen episodes is one
- * cour even when the dates cross a quarter boundary, and 陰の実力者になりたくて！
- * at 全20話 from October cannot be one however the dates are written.
+ * Asking for cours got cours back, and a wrong one looked exactly like a right
+ * one: 悪役令嬢転生おじさん came back as 2025-Q4 when the database's 2025-Q1 was
+ * correct. So this asks for dates and episode counts and derives the cours
+ * here, where a claim of two cours has to name a start, an end and a count that
+ * agree with each other. Twelve to fourteen episodes is one cour whatever the
+ * dates touch; 陰の実力者になりたくて！ at 全20話 from October cannot be.
+ *
+ * Restricting it to Wikipedia narrowed the sources without making them true —
+ * ハズレ枠の【状態異常スキル】 came back with a second season that does not
+ * exist, cited to a URL whose title had a character wrong. So the search is
+ * open now, and every season has to carry a URL and a sentence quoted from it,
+ * which this script fetches and looks for. An answer whose sources do not
+ * check out is printed but not counted.
  *
  * Requires: gcloud auth application-default login, and grok on PATH.
  */
@@ -30,9 +37,10 @@ const run = promisify(execFile)
 
 const ANIMES_PATH = 'versions/1/animes'
 const FIRST_PASS_DIR = '.cache/grok'
-const CACHE_DIR = '.cache/grok-dates'
+const CACHE_DIR = '.cache/grok-web'
 const CONCURRENCY = 3
 const TIMEOUT_MS = 15 * 60 * 1000
+const FETCH_TIMEOUT_MS = 20 * 1000
 
 const SCHEMA = JSON.stringify({
   type: 'object',
@@ -58,24 +66,35 @@ const SCHEMA = JSON.stringify({
           },
           isRerun: { type: 'boolean' },
           isSpinoff: { type: 'boolean' },
-          notes: { type: 'string' },
+          evidence: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                url: { type: 'string' },
+                quote: { type: 'string' },
+              },
+              required: ['url', 'quote'],
+            },
+          },
         },
-        required: ['label', 'parts', 'isRerun', 'isSpinoff', 'notes'],
+        required: ['label', 'parts', 'isRerun', 'isSpinoff', 'evidence'],
       },
     },
-    source: { type: 'string' },
+    sources: { type: 'array', items: { type: 'string' } },
   },
-  required: ['found', 'seasons', 'source'],
+  required: ['found', 'seasons', 'sources'],
 })
 
-const promptFor = (title, insist) => `日本語版Wikipediaで「${title}」のテレビアニメを調べ、シリーズ（期）ごとの放送期間を答えてください。
+const promptFor = (title, insist) => `「${title}」というテレビアニメの放送期間を、ウェブを検索して調べてください。
 
-**必ず ja.wikipedia.org の記事を実際に開き、放送期間と話数の記述を読んでから答えること。**
-検索結果だけで判断しない。記事を開かずに found=false としない。
-DBのタイトルは略称のことがあるので、副題付きの正式タイトルや原作記事も探すこと。
-${insist ? '前回この作品を found=false と答えたが、記事は存在する可能性が高い。もう一度必ず記事を開いて確認すること。\n' : ''}
+**必ず実際にページを開き、そこに書かれている文字を読んでから答えること。**
+記憶で答えない。開いたページに無いことは書かない。
+参照先は問わない（公式サイト、放送局、アニメ情報サイト、ニュース、Wikipedia など）。
+複数のページで突き合わせ、食い違う場合は公式サイトを優先する。
+${insist ? '前回この作品を「見つからない」と答えたが、実在する可能性が高い。検索語を変えて探し直すこと。\n' : ''}
 - 期ごとに、放送の区切り（parts）を列挙する
-  - start / end は YYYY-MM-DD。記事にある放送開始日・最終回放送日をそのまま書く
+  - start / end は YYYY-MM-DD。ページに書かれている放送開始日・最終回放送日をそのまま
   - episodes はその区切りの話数
 - 連続2クール（例: 2023年10月6日〜2024年3月29日 全24話）は parts 1つ。start と end が離れる
 - 分割放送（第1クールと第2クールの間が空く）は parts を2つに分ける
@@ -84,9 +103,13 @@ ${insist ? '前回この作品を found=false と答えたが、記事は存在�
 - スピンオフ・外伝（転生したらスライムだった件 に対する 転スラ日記 など）は
   本編の期に含めず isSpinoff=true の別項目にする
 - 劇場版・OVA・配信限定は含めない
-- notes には根拠になった記事の記述を短く書く（「全20話」「2クール連続」など）
 
-出典URLも返してください。`
+**evidence には、期ごとに「開いたページのURL」と「そのページに実際に書かれていた
+一文」を入れること。** 引用はページ上の文字をそのまま写す。要約しない。
+この引用はあとで機械的にページと照合するので、実在しない文を書くと検出される。
+
+未放送・未発表の期を推測で足さないこと。根拠となる記述が見つからない期は
+列挙しない。1期しか確認できなければ1期だけ返す。`
 
 /** The model sometimes repeats its answer; take the first complete object. */
 const firstJsonObject = text => {
@@ -130,6 +153,102 @@ const ask = async (title, insist = false) => {
   const answer = envelope.structuredOutput ?? firstJsonObject(envelope.text ?? '')
   if (!answer) throw new Error(envelope.structuredOutputError ?? '構造化出力が空でした')
   return { answer, costUsd: envelope.total_cost_usd ?? 0 }
+}
+
+/**
+ * Checks an answer against the pages it says it read.
+ *
+ * A model asked for a source produces one whether or not it opened anything:
+ * ハズレ枠の【状態異常スキル】 came back with a second season that does not
+ * exist, cited to a wikipedia URL whose title had a character wrong. Fetching
+ * the page and looking for the quoted sentence and the claimed dates catches
+ * both halves of that — the URL that resolves to nothing, and the page that
+ * resolves but says nothing of the sort.
+ */
+const stripHtml = html =>
+  html
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;|&#\d+;|&[a-z]+;/gi, ' ')
+
+/** Full width digits and every kind of space, so a quote matches its page. */
+const normalize = text =>
+  text
+    .replace(/[０-９]/g, char => String.fromCharCode(char.charCodeAt(0) - 0xfee0))
+    .replace(/\s+/g, '')
+
+const dateForms = iso => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso ?? '')
+  if (!match) return []
+  const [, year, month, day] = match
+  const m = String(Number(month))
+  const d = String(Number(day))
+  return [`${year}年${m}月${d}日`, `${year}/${m}/${d}`, `${year}.${m}.${d}`, `${year}-${month}-${day}`]
+}
+
+const fetchPage = async url => {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; isekai-plus-verifier/1.0)' },
+    })
+    const text = response.ok ? await response.text() : ''
+    return { status: response.status, text }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+const verifySeason = async season => {
+  const dates = (season.parts ?? [])
+    .flatMap(part => [part.start, part.end])
+    .filter(Boolean)
+    .flatMap(dateForms)
+    .map(normalize)
+
+  const checks = []
+  for (const evidence of season.evidence ?? []) {
+    let status = 0
+    let body = ''
+    try {
+      const page = await fetchPage(evidence.url)
+      status = page.status
+      body = normalize(stripHtml(page.text))
+    } catch (error) {
+      status = error.name === 'AbortError' ? 'timeout' : error.message.slice(0, 40)
+    }
+    // Twenty characters is enough to be specific and short enough to survive
+    // the entities and markup a page puts through the middle of a sentence.
+    const quote = normalize(evidence.quote ?? '').slice(0, 20)
+    checks.push({
+      url: evidence.url,
+      status,
+      quoteFound: Boolean(body && quote && body.includes(quote)),
+      datesFound: dates.filter(date => body.includes(date)).length,
+      datesTotal: dates.length,
+    })
+  }
+  return checks
+}
+
+const verdictOf = checks => {
+  if (!checks.length) return '出典なし'
+  if (checks.some(check => check.quoteFound)) return '検証済み'
+  if (checks.some(check => check.datesFound > 0)) return '日付のみ一致'
+  if (checks.some(check => check.status === 200)) return '未検証（ページに記述なし）'
+  return '到達不可'
+}
+
+const verifyAnswer = async answer => {
+  const result = {}
+  for (const [index, season] of (answer.seasons ?? []).entries()) {
+    const checks = await verifySeason(season)
+    result[index] = { checks, verdict: verdictOf(checks) }
+  }
+  return result
 }
 
 const courOf = date => {
@@ -306,27 +425,41 @@ const report = works => {
       continue
     }
     if (!cached.answer.found) {
-      console.log('  Wikipedia に該当なし\n')
+      console.log('  該当なし\n')
       continue
     }
 
-    const broadcast = cached.answer.seasons.filter(s => !s.isRerun && !s.isSpinoff)
-    const wiki = [...new Set(broadcast.flatMap(coursOfSeason))].sort()
-    console.log(`  Wiki: ${JSON.stringify(wiki)}`)
-    for (const season of cached.answer.seasons) {
+    // A season whose sources could not be checked does not get to move the
+    // database. Everything is printed, but only the verified is counted.
+    const verification = cached.verification ?? {}
+    const trusted = cached.answer.seasons.filter(
+      (_, index) => (verification[index]?.verdict ?? '出典なし') !== '出典なし'
+        && verification[index]?.verdict !== '到達不可'
+        && verification[index]?.verdict !== '未検証（ページに記述なし）'
+    )
+
+    const broadcast = trusted.filter(s => !s.isRerun && !s.isSpinoff)
+    const found = [...new Set(broadcast.flatMap(coursOfSeason))].sort()
+    console.log(`  Web : ${JSON.stringify(found)}`)
+    for (const [index, season] of cached.answer.seasons.entries()) {
       const mark = season.isRerun ? '再放送' : season.isSpinoff ? '外伝' : ''
       const parts = (season.parts ?? [])
         .map(part => `${part.start}〜${part.end || '放送中'} 全${part.episodes}話`)
         .join(' / ')
-      console.log(`        ${season.label}${mark ? `(${mark})` : ''} ${JSON.stringify(coursOfSeason(season))}  ${parts}`)
+      const verdict = verification[index]?.verdict ?? '未実行'
+      console.log(`        ${season.label}${mark ? `(${mark})` : ''} ${JSON.stringify(coursOfSeason(season))}  ${parts}  [${verdict}]`)
       console.log(`          内訳 ${spansOf(season)}`)
+      for (const check of verification[index]?.checks ?? []) {
+        console.log(
+          `          出典 ${check.status} 引用${check.quoteFound ? '一致' : '不一致'} 日付${check.datesFound}/${check.datesTotal}  ${check.url.slice(0, 70)}`
+        )
+      }
       inconsistencies(season).forEach(warning => console.log(`          ⚠ ${warning}`))
     }
 
-    const missing = wiki.filter(cour => !work.cours.includes(cour))
-    const extra = work.cours.filter(cour => !wiki.includes(cour))
-    console.log(`  差分: 不足 ${JSON.stringify(missing)}  余分 ${JSON.stringify(extra)}`)
-    console.log(`  出典: ${cached.answer.source}\n`)
+    const missing = found.filter(cour => !work.cours.includes(cour))
+    const extra = work.cours.filter(cour => !found.includes(cour))
+    console.log(`  差分: 不足 ${JSON.stringify(missing)}  余分 ${JSON.stringify(extra)}\n`)
   }
 }
 
@@ -338,6 +471,21 @@ const main = async () => {
   const selected = only ? works.filter(work => work.id === only) : targets(works)
 
   if (process.argv.includes('--report')) return report(selected)
+
+  // Re-checks the sources of answers already cached, without asking again.
+  if (process.argv.includes('--verify')) {
+    for (const work of selected) {
+      const path = `${CACHE_DIR}/${work.id}.json`
+      if (!existsSync(path)) continue
+      const cached = JSON.parse(readFileSync(path, 'utf8'))
+      if (cached.error || !cached.answer?.found) continue
+      cached.verification = await verifyAnswer(cached.answer)
+      writeFileSync(path, JSON.stringify(cached, null, 2))
+      const verdicts = Object.values(cached.verification).map(entry => entry.verdict)
+      console.log(`${work.title.slice(0, 30)}  ${verdicts.join(' / ')}`)
+    }
+    return
+  }
 
   const pending = selected.filter(work => only || !existsSync(`${CACHE_DIR}/${work.id}.json`))
   console.log(`対象 ${selected.length}件 / これから ${pending.length}件\n`)
@@ -358,17 +506,21 @@ const main = async () => {
           if (retry.answer.found && retry.answer.seasons.length) answer = retry.answer
         }
         spent += costUsd
+        // Checked here rather than at report time: the answer and the state of
+        // the pages it cites belong to the same moment.
+        const verification = await verifyAnswer(answer)
         writeFileSync(
           `${CACHE_DIR}/${work.id}.json`,
-          JSON.stringify({ title: work.title, answer, costUsd }, null, 2)
+          JSON.stringify({ title: work.title, answer, verification, costUsd }, null, 2)
         )
         const cours = [
           ...new Set(
             answer.seasons.filter(s => !s.isRerun && !s.isSpinoff).flatMap(coursOfSeason)
           ),
         ].sort()
+        const verdicts = Object.values(verification).map(entry => entry.verdict)
         console.log(
-          `[${position}/${pending.length}] ${work.title.slice(0, 26)}  -> ${JSON.stringify(cours)}  ($${spent.toFixed(2)})`
+          `[${position}/${pending.length}] ${work.title.slice(0, 26)}  -> ${JSON.stringify(cours)}  [${verdicts.join(' / ')}]  ($${spent.toFixed(2)})`
         )
       } catch (error) {
         failed++
