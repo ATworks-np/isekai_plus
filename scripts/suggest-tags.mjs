@@ -78,8 +78,9 @@ const SCHEMA = JSON.stringify({
         required: ['name', 'reason'],
       },
     },
+    characterPageUrl: { type: 'string' },
   },
-  required: ['tags', 'newTags'],
+  required: ['tags', 'newTags', 'characterPageUrl'],
 })
 
 const promptFor = (work, vocabulary) => `異世界アニメのまとめサイトで、作品「${work.title}」に付けるタグを選んでください。
@@ -104,6 +105,8 @@ ${work.synopsis || '（あらすじの記録なし。ウェブで調べること
 - **quote はあとで機械的に照合する。** 実在しない文を書くと検出される
 - 根拠を示せないタグは選ばない。推測で付けない
 - 一覧に無いが必要だと思うタグは newTags に理由付きで挙げる（作成はしない）
+- 公式サイトのキャラクター紹介ページのURLが分かれば characterPageUrl に入れる
+  （キャラの立ち絵が載っているページ。無ければ ""）
 
 作品の内容に照らして、読み手が探すときに使う言葉を選んでください。`
 
@@ -258,6 +261,66 @@ const fetchThumbnail = async id => {
   return path
 }
 
+const BROWSER_UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36'
+
+/** Navigation furniture, not a character. */
+const NOT_A_PORTRAIT = /logo|icon|banner|btn|button|nav|header|footer|bg_|sns|twitter|\.svg($|\?)|youtube/i
+
+/**
+ * The character portraits from the official site.
+ *
+ * A key visual shows two or three of a cast; the character page shows all of
+ * them, drawn full length, which is where a tag like 巨乳メイド is decided.
+ * Some official sites cannot be fetched at all — mato-slave.com refuses — and
+ * then the key visual is what there is.
+ */
+const characterImages = async (id, pageUrl) => {
+  if (!pageUrl) return []
+  let html = ''
+  try {
+    const response = await fetch(pageUrl, {
+      headers: { 'User-Agent': BROWSER_UA, Accept: 'text/html' },
+    })
+    if (!response.ok) return []
+    html = await response.text()
+  } catch {
+    return []
+  }
+
+  const urls = [...html.matchAll(/<img[^>]+(?:data-src|src)=["']([^"']+)/gi)]
+    .map(match => match[1])
+    .filter(url => !NOT_A_PORTRAIT.test(url))
+    .map(url => {
+      try {
+        return new URL(url, pageUrl).href
+      } catch {
+        return null
+      }
+    })
+    .filter(Boolean)
+
+  const dir = `${THUMB_DIR}/${id}`
+  mkdirSync(dir, { recursive: true })
+  const saved = []
+  for (const url of [...new Set(urls)]) {
+    if (saved.length >= 6) break
+    try {
+      const response = await fetch(url, { headers: { 'User-Agent': BROWSER_UA } })
+      if (!response.ok) continue
+      const bytes = Buffer.from(await response.arrayBuffer())
+      // Under 15KB is a sprite or a spacer, not a character standing there.
+      if (bytes.length < 15 * 1024) continue
+      const path = `${dir}/${saved.length}.${url.split('.').pop()?.split('?')[0] ?? 'jpg'}`
+      writeFileSync(path, bytes)
+      saved.push(path)
+    } catch {
+      continue
+    }
+  }
+  return saved
+}
+
 const IMAGE_SCHEMA = JSON.stringify({
   type: 'object',
   properties: {
@@ -267,9 +330,11 @@ const IMAGE_SCHEMA = JSON.stringify({
   required: ['tags', 'observed'],
 })
 
-const imagePromptFor = (work, path, vocabulary) => `画像ファイル ${path} を開いて、写っているキャラクターの外見を見てください。
+const imagePromptFor = (work, paths, vocabulary) => `次の画像ファイルをすべて開いて、写っているキャラクターの外見を見てください。
 
-この画像は「${work.title}」のキービジュアルです。
+${paths.map(path => `- ${path}`).join('\n')}
+
+「${work.title}」のキービジュアルとキャラクター紹介画像です。
 
 ## 選べるタグ
 
@@ -283,12 +348,12 @@ ${vocabulary.join('、')}
 
 画像に写っていないことは書かないでください。`
 
-const askImage = async (work, path, vocabulary) => {
+const askImage = async (work, paths, vocabulary) => {
   const { stdout } = await run(
     'grok',
     [
       '-p',
-      imagePromptFor(work, path, vocabulary),
+      imagePromptFor(work, paths, vocabulary),
       '--model',
       MODEL,
       '--json-schema',
@@ -308,9 +373,9 @@ const askImage = async (work, path, vocabulary) => {
  * passes saw is kept. One pass of 魔都精兵のスレイブ's key visual is how 巨乳
  * arrived attached to a sentence that was not on the page it cited.
  */
-const askImageTwice = async (work, path, vocabulary) => {
-  const first = await askImage(work, path, vocabulary)
-  const second = await askImage(work, path, vocabulary)
+const askImageTwice = async (work, paths, vocabulary) => {
+  const first = await askImage(work, paths, vocabulary)
+  const second = await askImage(work, paths, vocabulary)
   const agreed = (first.answer.tags ?? []).filter(tag => (second.answer.tags ?? []).includes(tag))
   return {
     tags: [...new Set(agreed)],
@@ -419,12 +484,14 @@ const main = async () => {
         // What the key visual shows, for the tags no text describes.
         let image = null
         if (!noAppearance) {
-          const path = await fetchThumbnail(work.id)
-          if (path) {
+          const keyVisual = await fetchThumbnail(work.id)
+          const portraits = await characterImages(work.id, answer.characterPageUrl)
+          const paths = [keyVisual, ...portraits].filter(Boolean)
+          if (paths.length) {
             const appearance = vocabulary.filter(name => APPEARANCE.test(name))
-            const seen = await askImageTwice(work, path, appearance)
+            const seen = await askImageTwice(work, paths, appearance)
             spent += seen.costUsd
-            image = { tags: seen.tags, observed: seen.observed }
+            image = { tags: seen.tags, observed: seen.observed, paths }
             for (const tag of seen.tags) {
               if (!verification[tag]) verification[tag] = '画像2回一致'
             }
@@ -440,7 +507,7 @@ const main = async () => {
           ([tag, verdict]) => byName.has(tag.trim()) && (verdict === '検証済み' || verdict === '画像2回一致')
         )
         console.log(
-          `[${position}/${selected.length}] ${work.title.slice(0, 24)}  採用${accepted.length}  画像${image?.tags.length ?? 0}  ($${spent.toFixed(2)})`
+          `[${position}/${selected.length}] ${work.title.slice(0, 24)}  採用${accepted.length}  画像${image?.paths.length ?? 0}枚→${image?.tags.length ?? 0}件  ($${spent.toFixed(2)})`
         )
       } catch (error) {
         writeFileSync(
