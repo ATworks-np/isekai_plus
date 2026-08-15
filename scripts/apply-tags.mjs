@@ -84,6 +84,9 @@ const main = async () => {
     for (const tag of proposal.answer.newTags ?? []) {
       const name = tag.name.trim()
       if (byName.has(name)) continue
+      // 魔都精兵のスレイブ came back proposing its own title, reason
+      // "placeholder". A tag naming one work tags nothing.
+      if (!name || name === proposal.title || /placeholder/i.test(tag.reason ?? '')) continue
       wanted.set(name, [...(wanted.get(name) ?? []), proposal.id])
     }
   }

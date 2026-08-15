@@ -19,9 +19,13 @@
  * it claims to come from, the same way the cour answers are, because a model
  * asked for a justification will write one whether or not it has one.
  *
- * Body-shape tags (巨乳剣士, むちむち太もも) are excluded. They describe how a
- * character is drawn, which no synopsis and no article says, so an answer about
- * them could never be checked.
+ * Body-shape tags (巨乳剣士, むちむち太もも) are offered like any other. They were
+ * held back at first on the grounds that no text describes how a character is
+ * drawn, which turned out to be half true: ケモ耳 came back quoted from a
+ * Wikipedia character section, while 巨乳 came back attributed to a natalie
+ * article that does not contain the sentence. The evidence check already tells
+ * those two apart, so the category does not need a rule of its own. Pass
+ * --no-appearance to leave them out.
  *
  * Requires: gcloud auth application-default login, and grok on PATH.
  */
@@ -45,7 +49,6 @@ const FETCH_TIMEOUT_MS = 20 * 1000
 const MODEL = 'grok-4.6'
 const EFFORT = 'high'
 
-/** How a character is drawn is not in any text, so it cannot be checked. */
 const APPEARANCE = /巨乳|貧乳|むちむち|見た目幼女/
 
 const SCHEMA = JSON.stringify({
@@ -297,8 +300,8 @@ const main = async () => {
   mkdirSync(CACHE_DIR, { recursive: true })
   const { byName, works } = await load()
 
-  // Body-shape tags are listed nowhere the model can check, so they are not offered.
-  const vocabulary = [...byName.keys()].filter(name => !APPEARANCE.test(name))
+  const noAppearance = process.argv.includes('--no-appearance')
+  const vocabulary = [...byName.keys()].filter(name => !noAppearance || !APPEARANCE.test(name))
 
   const onlyAt = process.argv.indexOf('--only')
   const only = onlyAt === -1 ? null : process.argv[onlyAt + 1]
