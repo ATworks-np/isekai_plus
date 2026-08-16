@@ -5,11 +5,13 @@ import { Container, Tab, Tabs } from '@mui/material'
 import ApiKeys from '@/components/AdminPage/ApiKeys'
 import CacheControl from '@/components/AdminPage/CacheControl'
 import Tags from '@/components/AdminPage/Tags'
+import TagReview from '@/components/AdminPage/TagReview'
 
 // Registering works now goes through the write API and the season-anime skill,
 // which sets the source ids and the season a record needs. The form set neither,
 // so anything added through it arrived unlinked and unratable.
 const PANELS = [
+  { key: 'review', label: 'タグ承認', render: () => <TagReview /> },
   { key: 'tags', label: 'タグ', render: () => <Tags /> },
   {
     key: 'system',
