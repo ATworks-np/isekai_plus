@@ -19,6 +19,7 @@ import {api} from "@/Routes/routs";
 import Link from "next/link";
 import User from "@/models/entities/user";
 import { useRouter } from 'next/navigation'
+import LocaleSwitch from '@/components/LocaleSwitch'
 
 const StyledMenu = styled((props: MenuProps) => (
   <Menu
@@ -113,6 +114,9 @@ const UpperAppBar: React.FC = props => {
               />
             </Box>
           </Link>
+          {/* Beside the logo, where a reader looks first for what language a
+              site is in. */}
+          <LocaleSwitch />
           <Box sx={{ flexGrow: 1 }}>
             <IconButton aria-label="search" onClick={() => setOpenSerchModal(true)}>
               <SearchIcon />

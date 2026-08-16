@@ -10,13 +10,14 @@ import FavoriteIcon from '@mui/icons-material/Favorite'
 import ForumIcon from '@mui/icons-material/Forum';
 import { useAtom } from "jotai";
 import StarRating from "@/components/StarRating";
-import Link from "next/link";
+import { Link } from '@/i18n/navigation';
 import {tagsAtom} from "@/stores/tagStore";
 import EditIcon from "@mui/icons-material/Edit";
 import {userAtom} from "@/stores/userStore";
 import { getAuth } from 'firebase/auth';
 import { getThumbnailURL } from "@/utils/url"
 import { Season } from "@/hooks/useSeasons"
+import { useLocale, useTranslations } from 'next-intl'
 
 const MyBox = styled(Box)(({ theme }) => ({
   borderRadius: '20px',
@@ -52,6 +53,8 @@ interface AnimeListItemProps {
 }
 
 const AnimeListItem: React.FC<AnimeListItemProps> = props => {
+  const locale = useLocale()
+  const season = useTranslations('season')
   const [tags, setTags] = useAtom(tagsAtom)
   const [user, setUser] = useAtom(userAtom)
   // The count arrives with the row; only this user's own state has to be asked
@@ -136,7 +139,7 @@ const AnimeListItem: React.FC<AnimeListItemProps> = props => {
       <Box sx={{ position: 'relative', flexShrink: 0, width: 80, height: 80 }}>
         <Thumbnail
           src={props.season?.thumbnailUrl ?? getThumbnailURL(props.id)}
-          alt={props.name.ja}
+          alt={(locale === 'ja' ? props.name.ja : props.name.en?.trim() || props.name.ja) ?? ''}
           imgProps={{
             loading: 'lazy',
             decoding: 'async',
@@ -159,7 +162,9 @@ const AnimeListItem: React.FC<AnimeListItemProps> = props => {
               whiteSpace: 'nowrap',
             }}
           >
-            {props.season.label}
+            {props.season.seasonNumber
+              ? season('numbered', { n: props.season.seasonNumber })
+              : props.season.label}
           </Box>
         )}
       </Box>
@@ -175,12 +180,13 @@ const AnimeListItem: React.FC<AnimeListItemProps> = props => {
               WebkitLineClamp: 1,
             }}
           >
-            {props.name['ja']}
+            {locale === 'ja' ? props.name.ja : props.name.en?.trim() || props.name.ja}
           </Typography>
           <Box display="flex" flexWrap="wrap" gap={0}>
             {Object.keys(props.tags).length > 0 && props.tags.map((tag, index) => (
               <Typography sx={{lineHeight: 1.2, fontSize: 10}} key={index} variant="caption" color="primary">
-                {tags[tag]?.name.ja}&nbsp;
+                {/* The tag's own language when it has one; 66 of 100 do. */}
+                {(locale === 'ja' ? tags[tag]?.name.ja : tags[tag]?.name.en?.trim() || tags[tag]?.name.ja)}&nbsp;
               </Typography>
             ))}
           </Box>

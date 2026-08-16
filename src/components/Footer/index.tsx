@@ -1,7 +1,9 @@
 import { Box, Stack, Typography } from '@mui/material'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 
 const Fotter: React.FC = () => {
+  const t = useTranslations('footer')
   return (
     <Box
       sx={{
@@ -16,7 +18,7 @@ const Fotter: React.FC = () => {
             list on the top page is built in the browser. */}
         <Link href="/animes/" style={{ textDecoration: 'none' }}>
           <Typography variant="caption" color="secondary">
-            作品一覧
+            {t('allWorks')}
           </Typography>
         </Link>
         <Typography variant="caption" color="secondary">

@@ -2,6 +2,8 @@ import React from "react";
 import { Chip, Grid, Box, styled } from "@mui/material";
 import { courAtom } from '@/stores/coursState'
 import { useAtom } from 'jotai'
+import { useLocale, useTranslations } from 'next-intl'
+import { courLabel } from '@/utils/cour'
 
 const MyChip = styled(Chip)(({ theme }) => ({
   borderRadius: '10px',
@@ -17,20 +19,22 @@ const MyGrid = styled(Grid)(({ theme }) => ({
 }));
 
 const SelectCoursSection: React.FC = () => {
+  const t = useTranslations('list')
+  const locale = useLocale()
   const [coursState, setCoursState] = useAtom<string[]>(courAtom);
 
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
-  const quarters = ["冬", "春", "夏", "秋"];
   const currentQuarterIndex = Math.floor((currentMonth - 1) / 3);
 
   const buttons = Array.from({ length: 12 }, (_, i) => {
     const quarterIndex = (currentQuarterIndex - i + 4 * 10) % 4;
     const yearAdjustment = Math.floor((currentQuarterIndex - i) / 4);
     const quarterYear = currentYear + yearAdjustment;
-    const label = i === 0 ? "今期" : `${quarterYear}${quarters[quarterIndex]}`;
     const key = `${quarterYear}-Q${quarterIndex + 1}`;
-    return { label, key, year: quarterYear, quarter: quarters[quarterIndex] };
+    // The chip names the quarter in the reader's language: 2026春 / Spring 2026.
+    const label = i === 0 ? t('currentCour') : courLabel(key, locale) ?? key;
+    return { label, key };
   });
 
   // One cour at a time. The list is filtered by cour on the server, which takes

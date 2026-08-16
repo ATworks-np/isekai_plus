@@ -5,8 +5,10 @@ import SearchModal from '@/components/SearchModal'
 import SelectCoursSection from '@/components/SelectCoursSection'
 import NewsSection from '@/components/NewsSection'
 import SeasonCarousel from '@/components/SeasonCarousel'
+import { useTranslations } from 'next-intl'
 
 const ListPage: React.FC = () => {
+  const t = useTranslations('list')
   return (
     <Stack>
       {/* The page's own heading. Drawn off screen because the design opens with
@@ -23,7 +25,7 @@ const ListPage: React.FC = () => {
           whiteSpace: 'nowrap',
         }}
       >
-        異世界アニメまとめ - 作品一覧と評価
+        {t('heading')}
       </Typography>
       <SeasonCarousel />
       <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>

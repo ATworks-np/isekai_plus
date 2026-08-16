@@ -7,7 +7,9 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import { api } from '@/Routes/routs'
 import { getThumbnailURL, getAnimeURL } from '@/utils/url'
 import StarRating from '@/components/StarRating'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
+import { useLocale, useTranslations } from 'next-intl'
+import { courLabel } from '@/utils/cour'
 
 type AnimeItem = {
   id: string
@@ -45,6 +47,8 @@ const getReducedMotionSnapshot = () =>
 const getServerReducedMotionSnapshot = () => false
 
 const SeasonCarousel: React.FC<SeasonCarouselProps> = ({ skeleton = false }) => {
+  const t = useTranslations('list')
+  const locale = useLocale()
   const theme = useTheme()
   const [animes, setAnimes] = useState<AnimeItem[]>([])
   const [loading, setLoading] = useState<boolean>(true)
@@ -166,7 +170,7 @@ const SeasonCarousel: React.FC<SeasonCarouselProps> = ({ skeleton = false }) => 
       <Box
         role="region"
         aria-roledescription="carousel"
-        aria-label="今季アニメリスト"
+        aria-label={t('carousel')}
         aria-busy={true}
         sx={{
           //padding: '100px',
@@ -223,7 +227,7 @@ const SeasonCarousel: React.FC<SeasonCarouselProps> = ({ skeleton = false }) => 
     <Box
       role="region"
       aria-roledescription="carousel"
-      aria-label="今季アニメリスト"
+      aria-label={t('carousel')}
       sx={{
         padding: '100px',
         width: '100%',
@@ -333,7 +337,7 @@ const SeasonCarousel: React.FC<SeasonCarouselProps> = ({ skeleton = false }) => 
                     <StarRating rating={anime.rating ?? 0} sx={{ fontSize: 18}} />
                   </Box>
                   <Typography variant="caption" sx={{ opacity: 0.8 }}>
-                    {currentCours} 今季アニメ
+                    {t('thisSeason', { cour: courLabel(currentCours, locale) ?? currentCours })}
                   </Typography>
                 </Box>
               </Stack>
