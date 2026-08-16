@@ -237,6 +237,46 @@ const fetchThumbnail = async id => {
 }
 
 /**
+ * Full-length art that the HTML does not mention.
+ *
+ * These pages are single-page apps: clicking a character fetches their standing
+ * portrait, so the source carries sixteen 7KB icons and exactly one main.webp.
+ * The other fifteen are sitting on the server at the same path with the file
+ * name changed, at 70-95KB — a whole character rather than a cropped face, and
+ * the difference between guessing at a costume and seeing it.
+ *
+ * So each icon is asked for its siblings. A miss costs one request that 404s.
+ */
+const FULL_SIZE_NAMES = ['main', 'full', 'stand']
+
+const withFullSizeSiblings = async urls => {
+  const candidates = new Set()
+  for (const url of urls) {
+    const match = url.match(/^(.*\/)(icon|thumb|small)(\.[a-z0-9]+)(\?.*)?$/i)
+    if (!match) continue
+    for (const name of FULL_SIZE_NAMES) {
+      const sibling = `${match[1]}${name}${match[3]}`
+      if (!urls.includes(sibling)) candidates.add(sibling)
+    }
+  }
+  if (!candidates.size) return urls
+
+  const found = []
+  await Promise.all(
+    [...candidates].map(async url => {
+      try {
+        const response = await fetch(url, { method: 'HEAD', headers: { 'User-Agent': BROWSER_UA } })
+        if (response.ok) found.push(url)
+      } catch {
+        // A name this site does not use. Nothing to do.
+      }
+    })
+  )
+  // Ahead of the icons they were derived from: same character, more of them.
+  return [...found, ...urls]
+}
+
+/**
  * The portraits from the official site. A key visual shows two or three of a
  * cast; the character page shows all of them, full length, which is where a tag
  * like 巨乳メイド is actually decided.
@@ -263,10 +303,12 @@ const characterImages = async (id, pageUrl) => {
     .sort((a, b) => b.score - a.score)
     .map(entry => entry.url)
 
+  const withFull = await withFullSizeSiblings(urls)
+
   const dir = `${THUMB_DIR}/${id}`
   mkdirSync(dir, { recursive: true })
   const saved = []
-  for (const url of urls) {
+  for (const url of withFull) {
     if (saved.length >= 8) break
     try {
       const response = await fetch(url, { headers: { 'User-Agent': BROWSER_UA } })
