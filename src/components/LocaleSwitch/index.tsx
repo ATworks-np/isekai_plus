@@ -1,20 +1,14 @@
 'use client'
 
 import React from 'react'
-import { Box, IconButton, ListItemText, Menu, MenuItem, Typography } from '@mui/material'
+import { ButtonBase, Menu, MenuItem, Typography } from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { useLocale } from 'next-intl'
 import { usePathname, useRouter } from '@/i18n/navigation'
 import { routing } from '@/i18n/routing'
-import { JapanFlag, UnitedStatesFlag } from '@/components/LocaleSwitch/flags'
-
-/** Flag and endonym: a reader looking for their language looks for its own name. */
-const LANGUAGES: Record<string, { Flag: React.FC; name: string }> = {
-  ja: { Flag: JapanFlag, name: '日本語' },
-  en: { Flag: UnitedStatesFlag, name: 'English' },
-}
 
 /**
- * The current language as a flag, the rest behind it.
+ * The current language as its code, the rest behind it.
  *
  * usePathname here is next-intl's, which returns the path with the locale
  * prefix already stripped — so /en/animes/xxx comes back as /animes/xxx and
@@ -27,8 +21,6 @@ const LocaleSwitch: React.FC = () => {
   const router = useRouter()
   const [anchor, setAnchor] = React.useState<HTMLElement | null>(null)
 
-  const current = LANGUAGES[locale]
-
   const switchTo = (next: string) => {
     setAnchor(null)
     if (next === locale) return
@@ -37,37 +29,28 @@ const LocaleSwitch: React.FC = () => {
 
   return (
     <>
-      <IconButton
+      <ButtonBase
         onClick={event => setAnchor(event.currentTarget)}
-        aria-label={current?.name ?? locale}
         aria-haspopup="menu"
-        size="small"
-        sx={{ ml: 0.5 }}
+        sx={{ ml: 0.5, px: 0.75, py: 0.25, borderRadius: 1, gap: 0.25 }}
       >
-        <Box component="span" sx={{ display: 'flex', lineHeight: 0 }}>
-          <current.Flag />
-        </Box>
-      </IconButton>
+        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+          {locale}
+        </Typography>
+        <ExpandMoreIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+      </ButtonBase>
 
       <Menu anchorEl={anchor} open={Boolean(anchor)} onClose={() => setAnchor(null)}>
-        {routing.locales.map(entry => {
-          const language = LANGUAGES[entry]
-          if (!language) return null
-          return (
-            <MenuItem key={entry} selected={entry === locale} onClick={() => switchTo(entry)}>
-              <Box component="span" sx={{ display: 'flex', lineHeight: 0, mr: 1.5 }}>
-                <language.Flag />
-              </Box>
-              <ListItemText
-                primary={
-                  <Typography variant="body2" sx={{ fontWeight: entry === locale ? 'bold' : 'normal' }}>
-                    {language.name}
-                  </Typography>
-                }
-              />
-            </MenuItem>
-          )
-        })}
+        {routing.locales.map(entry => (
+          <MenuItem key={entry} selected={entry === locale} onClick={() => switchTo(entry)} dense>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: entry === locale ? 'bold' : 'normal' }}
+            >
+              {entry}
+            </Typography>
+          </MenuItem>
+        ))}
       </Menu>
     </>
   )
