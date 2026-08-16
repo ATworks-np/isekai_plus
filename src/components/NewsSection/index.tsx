@@ -18,7 +18,15 @@ const NewsSection: React.FC = () => {
     );
   }
 
-  if (!latestNews) return null;
+  if (!latestNews) {
+    return (
+      <Box sx={{ my: 1, width: '100%', maxWidth: '800px', textAlign: 'center' }}>
+        <Typography variant={'body2'}>
+          最新のお知らせはありません
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ my: 1, width: '100%', maxWidth: '800px', textAlign: 'center' }}>
