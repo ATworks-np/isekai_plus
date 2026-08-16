@@ -18,7 +18,15 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { collection, doc, getDocs, setDoc } from 'firebase/firestore'
+import {
+  arrayRemove,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  setDoc,
+  updateDoc,
+} from 'firebase/firestore'
 import { db } from '@/firebase'
 
 /** Kept in step with data/tags.yaml, which the tagger reads. */
@@ -59,6 +67,7 @@ const Tags: React.FC = () => {
   const [query, setQuery] = useState<string>('')
   const [group, setGroup] = useState<string>('all')
   const [editing, setEditing] = useState<Tag | null>(null)
+  const [deleting, setDeleting] = useState<Tag | null>(null)
   const [saving, setSaving] = useState<boolean>(false)
   const [message, setMessage] = useState<string>('')
 
@@ -140,6 +149,65 @@ const Tags: React.FC = () => {
     } catch (error) {
       console.error('タグの更新に失敗しました', error)
       setMessage('タグの更新に失敗しました')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  /**
+   * Deleting the document alone is what leaves a work pointing at nothing —
+   * twelve of them already do, from tags removed before this screen existed.
+   * So the references go first, and the tag itself last.
+   */
+  const remove = async () => {
+    if (!deleting) return
+    setSaving(true)
+    try {
+      const reference = doc(db, 'versions/1/tags', deleting.id)
+
+      const animes = await getDocs(collection(db, 'versions/1/animes'))
+      const carrying = animes.docs.filter(anime =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (anime.get('tags') ?? []).some((ref: any) => ref.id === deleting.id)
+      )
+      await Promise.all(carrying.map(anime => updateDoc(anime.ref, { tags: arrayRemove(reference) })))
+
+      // Other tags name this one in their supersede rules; those go too.
+      const mentioning = tags.filter(
+        tag => tag.narrower.includes(deleting.ja) || tag.excludedBy.includes(deleting.ja)
+      )
+      await Promise.all(
+        mentioning.map(tag =>
+          setDoc(
+            doc(db, 'versions/1/tags', tag.id),
+            {
+              narrower: tag.narrower.filter(name => name !== deleting.ja),
+              excludedBy: tag.excludedBy.filter(name => name !== deleting.ja),
+            },
+            { merge: true }
+          )
+        )
+      )
+
+      await deleteDoc(reference)
+
+      setTags(previous =>
+        previous
+          .filter(tag => tag.id !== deleting.id)
+          .map(tag => ({
+            ...tag,
+            narrower: tag.narrower.filter(name => name !== deleting.ja),
+            excludedBy: tag.excludedBy.filter(name => name !== deleting.ja),
+          }))
+      )
+      setMessage(
+        `${deleting.ja} を削除しました（${carrying.length}作品から外し、${mentioning.length}件のタグの参照を整理）`
+      )
+      setDeleting(null)
+      setEditing(null)
+    } catch (error) {
+      console.error('タグの削除に失敗しました', error)
+      setMessage('タグの削除に失敗しました')
     } finally {
       setSaving(false)
     }
@@ -313,9 +381,38 @@ const Tags: React.FC = () => {
           )}
         </DialogContent>
         <DialogActions>
+          <Button color="error" onClick={() => setDeleting(editing)} sx={{ mr: 'auto' }}>
+            削除
+          </Button>
           <Button onClick={() => setEditing(null)}>やめる</Button>
           <Button variant="contained" onClick={save} disabled={saving}>
             {saving ? <CircularProgress size={22} /> : '保存'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={Boolean(deleting)} onClose={() => setDeleting(null)} fullWidth maxWidth="xs">
+        <DialogTitle>タグを削除</DialogTitle>
+        <DialogContent>
+          {deleting && (
+            <Stack spacing={1}>
+              <Typography variant="body2">
+                「{deleting.ja}」を削除します。
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {deleting.used}作品からこのタグを外し、他のタグの「より具体的なタグ」の
+                指定からも取り除きます。作品そのものは消えません。
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                元に戻せません。
+              </Typography>
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleting(null)}>やめる</Button>
+          <Button color="error" variant="contained" onClick={remove} disabled={saving}>
+            {saving ? <CircularProgress size={22} /> : '削除する'}
           </Button>
         </DialogActions>
       </Dialog>
