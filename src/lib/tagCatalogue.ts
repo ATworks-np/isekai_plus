@@ -2,14 +2,9 @@ import 'server-only'
 
 import { TAGS_PATH, adminDb } from '@/lib/firebaseAdmin'
 import { WEEK_MS, ttlCache } from '@/lib/ttlCache'
+import type { TagCatalogue } from '@/models/tagCatalogue'
 
-type TagEntry = {
-  id: string
-  name: { ja?: string; en?: string } | null
-  group: string | null
-}
-
-const cache = ttlCache<Record<string, TagEntry>>(WEEK_MS)
+const cache = ttlCache<TagCatalogue>(WEEK_MS)
 
 const build = async () => {
   const snapshot = await adminDb().collection(TAGS_PATH).get()

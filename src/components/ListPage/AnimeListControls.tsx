@@ -7,12 +7,22 @@ import AnimeList from '@/components/AnimeList'
 import SelectCoursSection from '@/components/SelectCoursSection'
 import type { AnimeListPage, SortKey } from '@/models/animeList'
 import { useTranslations } from 'next-intl'
+import { useHydrateAtoms } from 'jotai/utils'
+import { tagsAtom } from '@/stores/tagStore'
+import type { TagCatalogue } from '@/models/tagCatalogue'
 
 const SearchModal = dynamic(() => import('@/components/SearchModal'), { ssr: false })
 
-const AnimeListControls: React.FC<{ initialAnimePage?: AnimeListPage }> = ({
+type AnimeListControlsProps = {
+  initialAnimePage?: AnimeListPage
+  initialTags: TagCatalogue
+}
+
+const AnimeListControls: React.FC<AnimeListControlsProps> = ({
   initialAnimePage,
+  initialTags,
 }) => {
+  useHydrateAtoms([[tagsAtom, initialTags]])
   const t = useTranslations('list')
   const [sort, setSort] = useState<SortKey>('rating')
 
@@ -51,7 +61,7 @@ const AnimeListControls: React.FC<{ initialAnimePage?: AnimeListPage }> = ({
         spacing={2}
         sx={{ width: '100%', maxWidth: '800px', mx: 'auto', pt: { xs: 2, sm: 3 } }}
       >
-        <AnimeList sort={sort} initialPage={initialAnimePage} />
+        <AnimeList sort={sort} initialPage={initialAnimePage} tagCatalogue={initialTags} />
       </Stack>
     </>
   )

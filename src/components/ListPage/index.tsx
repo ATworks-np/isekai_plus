@@ -5,12 +5,14 @@ import AnimeListControls from '@/components/ListPage/AnimeListControls'
 import { getTranslations } from 'next-intl/server'
 import type { AnimeListEntry, AnimeListPage } from '@/models/animeList'
 import type { LatestNews } from '@/lib/news'
+import type { TagCatalogue } from '@/models/tagCatalogue'
 
 type ListPageProps = {
   initialAnimePage?: AnimeListPage
   carouselItems: AnimeListEntry[]
   currentCour: string
   latestNews: LatestNews | null
+  initialTags: TagCatalogue
 }
 
 const ListPage = async ({
@@ -18,6 +20,7 @@ const ListPage = async ({
   carouselItems,
   currentCour,
   latestNews,
+  initialTags,
 }: ListPageProps) => {
   const t = await getTranslations('list')
   return (
@@ -42,7 +45,7 @@ const ListPage = async ({
       <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <NewsSection latestNews={latestNews} />
       </Box>
-      <AnimeListControls initialAnimePage={initialAnimePage} />
+      <AnimeListControls initialAnimePage={initialAnimePage} initialTags={initialTags} />
     </Stack>
   )
 }

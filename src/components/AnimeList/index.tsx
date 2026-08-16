@@ -11,19 +11,19 @@ import { courAtom } from '@/stores/coursState'
 import { seasonForDisplay } from '@/hooks/useAllSeasons'
 import useAnimeList from '@/hooks/useAnimeList'
 import type { AnimeListPage, SortKey } from '@/models/animeList'
-import useTags from '@/hooks/useTags'
 import { useTranslations } from 'next-intl'
+import type { TagCatalogue } from '@/models/tagCatalogue'
 
 type AnimeListProps = {
   sort: SortKey
   initialPage?: AnimeListPage
+  tagCatalogue: TagCatalogue
 }
 
-const AnimeList: React.FC<AnimeListProps> = ({ sort, initialPage }) => {
+const AnimeList: React.FC<AnimeListProps> = ({ sort, initialPage, tagCatalogue }) => {
   const t = useTranslations('list')
   const [tagsState] = useAtom<string[]>(searchSelectedTagAtom)
   const [coursState] = useAtom<string[]>(courAtom)
-  useTags()
 
   // The picker selects one cour, which is what the server filters by, so
   // nothing is left to narrow here.
@@ -65,6 +65,7 @@ const AnimeList: React.FC<AnimeListProps> = ({ sort, initialPage }) => {
             {...anime}
             season={seasonForDisplay(anime.seasons, coursState)}
             seasonCount={anime.seasons?.length ?? 0}
+            tagCatalogue={tagCatalogue}
           />
         ))}
 

@@ -4,12 +4,7 @@ import { useCallback, useEffect } from 'react'
 import { useAtom } from 'jotai'
 import {tagsAtom} from "@/stores/tagStore";
 
-/**
- * Tags are global state in an atom, so the initial fetch belongs to the module
- * rather than to whichever component mounted first. Guarding on the atom's
- * contents instead would mean depending on the very value the fetch fills.
- */
-let started = false
+let initialRequestStarted = false
 
 const useTags = () => {
   const [tags, setTags] = useAtom(tagsAtom)
@@ -26,10 +21,12 @@ const useTags = () => {
   }, [setTags])
 
   useEffect(() => {
-    if (started) return
-    started = true
-    syncTags()
-  }, [syncTags])
+    // The top page hydrates this atom from its server-rendered tag catalogue.
+    // Other pages still fall back to the API when they have no initial data.
+    if (Object.keys(tags).length > 0 || initialRequestStarted) return
+    initialRequestStarted = true
+    void syncTags()
+  }, [syncTags, tags])
 
   return { tags, syncTags }
 }

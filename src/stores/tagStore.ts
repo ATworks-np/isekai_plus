@@ -1,4 +1,4 @@
 import { atom } from 'jotai'
-import { ITag } from '@/models/entities/tag'
+import type { TagCatalogue } from '@/models/tagCatalogue'
 
-export const tagsAtom = atom<Record<string, ITag>>({})
+export const tagsAtom = atom<TagCatalogue>({})

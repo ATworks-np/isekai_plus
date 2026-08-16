@@ -8,7 +8,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import { useLocale, useTranslations } from 'next-intl'
 
 import useTags from "@/hooks/useTags";
-import { ITag } from '@/models/entities/tag'
+import type { TagCatalogueEntry } from '@/models/tagCatalogue'
 
 const MyChip = styled(Chip)(({ theme }) => ({
   borderRadius: '10px',
@@ -42,7 +42,10 @@ const TagsSection: React.FC<TagsSectionProps> = props => {
 
   // A tag carries an English name only once someone has written one, so the
   // Japanese one is the fallback — the same rule the work titles follow.
-  const nameOf = (tag: ITag) => (locale === 'ja' ? tag.name.ja : tag.name.en?.trim() || tag.name.ja);
+  const nameOf = (tag: TagCatalogueEntry) => {
+    const ja = tag.name?.ja?.trim() || ''
+    return locale === 'ja' ? ja : tag.name?.en?.trim() || ja
+  };
 
   // Derived, not stored: this is a pure function of tags, the query and the
   // toggles, so keeping it in state meant rendering once with the old list.

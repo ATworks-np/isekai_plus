@@ -9,13 +9,13 @@ import ForumIcon from '@mui/icons-material/Forum';
 import { useAtom } from "jotai";
 import StarRating from "@/components/StarRating";
 import { Link } from '@/i18n/navigation';
-import {tagsAtom} from "@/stores/tagStore";
 import EditIcon from "@mui/icons-material/Edit";
 import {userAtom} from "@/stores/userStore";
 import { getThumbnailURL } from "@/utils/url"
 import { Season } from "@/hooks/useSeasons"
 import { useLocale, useTranslations } from 'next-intl'
 import LikeButton from '@/components/AnimeList/AnimeListItem/LikeButton'
+import type { TagCatalogue } from '@/models/tagCatalogue'
 
 const MyBox = styled(Box)(({ theme }) => ({
   borderRadius: '20px',
@@ -44,13 +44,13 @@ interface AnimeListItemProps {
   rating: number;
   season?: Season;
   seasonCount?: number;
+  tagCatalogue: TagCatalogue;
 }
 
 const AnimeListItem: React.FC<AnimeListItemProps> = props => {
   const locale = useLocale()
   const season = useTranslations('season')
   const list = useTranslations('list')
-  const [tags, setTags] = useAtom(tagsAtom)
   const [user, setUser] = useAtom(userAtom)
   return (
     <MyBox display="flex">
@@ -104,7 +104,9 @@ const AnimeListItem: React.FC<AnimeListItemProps> = props => {
             {Object.keys(props.tags).length > 0 && props.tags.map((tag, index) => (
               <Typography sx={{lineHeight: 1.2, fontSize: 10}} key={index} variant="caption" color="primary.dark">
                 {/* The tag's own language when it has one; 66 of 100 do. */}
-                {(locale === 'ja' ? tags[tag]?.name.ja : tags[tag]?.name.en?.trim() || tags[tag]?.name.ja)}&nbsp;
+                {(locale === 'ja'
+                  ? props.tagCatalogue[tag]?.name?.ja
+                  : props.tagCatalogue[tag]?.name?.en?.trim() || props.tagCatalogue[tag]?.name?.ja)}&nbsp;
               </Typography>
             ))}
           </Box>
