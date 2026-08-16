@@ -11,4 +11,5 @@ export interface IAnimeStatic {
   rating?: number,
   ratings?: IRatings,
   tags: string[],
+  thumbnailUrl?: string,
 }

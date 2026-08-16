@@ -50,7 +50,8 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
   const { seasons, activeSeason } = props;
   // A season carries its own key visual once one has been stored; the series
   // image stays the fallback so nothing goes blank mid-migration.
-  const thumbnail = activeSeason?.thumbnailUrl ?? thumbnailPrefix + props.id + '.jpg';
+  const thumbnail =
+    activeSeason?.thumbnailUrl ?? props.thumbnailUrl ?? thumbnailPrefix + props.id + '.webp';
   const ratings = activeSeason?.ratings ?? props.ratings ?? baseRatings;
   // The season's own cours, not the work's: with the tabs open the reader is
   // looking at one season, and the work's span covers all of them.

@@ -12,7 +12,7 @@
  * a season without one still renders.
  *
  * Goes through the API rather than writing Storage directly, so the fetch,
- * SSRF check, jpg/webp conversion and hasThumbnail flag all follow the same
+ * SSRF check, WebP conversion and hasThumbnail flag all follow the same
  * path a normal season update takes.
  *
  * Requires ISEKAI_API_KEY / ISEKAI_API_BASE in .env.local, plus

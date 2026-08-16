@@ -18,6 +18,6 @@ export const serializeAnime = (doc: DocumentSnapshot, cours: string[]) => {
     name: data.name ?? null,
     cours,
     tags: (data.tags ?? []).map((tag: DocumentReference) => tag.path),
-    thumbnailUrl: `${THUMBNAIL_PREFIX}${doc.id}.jpg`,
+    thumbnailUrl: `${THUMBNAIL_PREFIX}${doc.id}.webp`,
   }
 }

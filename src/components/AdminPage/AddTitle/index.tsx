@@ -18,7 +18,7 @@ import {
 
 import TagsSection from "@/components/TagsSection";
 import {doc, setDoc} from "firebase/firestore";
-import {ref, uploadBytes, getDownloadURL, getBlob} from 'firebase/storage'
+import {ref, uploadBytes} from 'firebase/storage'
 import { db, storage } from '@/firebase'
 import IconButton from "@mui/material/IconButton";
 import AddCircleIcon from '@mui/icons-material/AddCircle';
@@ -83,21 +83,9 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
       await setDoc(docRef, data, { merge: true });
 
       if(thumbnail){
-        const ext = thumbnail.type === 'image/webp' ? 'webp' : 'jpg';
-        const altExt = ext === 'jpg' ? 'webp' : 'jpg';
-
-        // 元ファイルをそのまま保存
-        const storageRef = ref(storage, `thumbnail/${docRef.id}.${ext}`);
-        await uploadBytes(storageRef, thumbnail);
-
-        // 別フォーマットに変換して保存
-        const altBlob = await convertImageFormat(
-          thumbnail,
-          altExt === 'jpg' ? 'image/jpeg' : 'image/webp'
-        );
-
-        const altStorageRef = ref(storage, `thumbnail/${docRef.id}.${altExt}`);
-        await uploadBytes(altStorageRef, altBlob);
+        const webp = await convertToWebp(thumbnail);
+        const storageRef = ref(storage, `thumbnail/${docRef.id}.webp`);
+        await uploadBytes(storageRef, webp, { contentType: 'image/webp' });
       }
 
       setOpen(false);
@@ -117,7 +105,7 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
     }
   };
 
-  const convertImageFormat = (file: File, format: 'image/jpeg' | 'image/webp'): Promise<Blob> => {
+  const convertToWebp = (file: File): Promise<Blob> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
@@ -130,7 +118,7 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
         canvas.toBlob((blob) => {
           if (blob) resolve(blob);
           else reject('Blob conversion failed');
-        }, format);
+        }, 'image/webp', 0.85);
       };
       img.onerror = (err) => reject(err);
       img.src = URL.createObjectURL(file);

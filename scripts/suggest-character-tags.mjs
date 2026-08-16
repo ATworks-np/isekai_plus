@@ -195,7 +195,7 @@ const ask = async (work, paths, vocabulary) => {
   return { answer: answer ?? { tags: [], characterPageUrl: '' }, costUsd: envelope?.total_cost_usd ?? 0 }
 }
 
-const thumbnailUrl = id => `${THUMB_PREFIX}/${id}.jpg`
+const thumbnailUrl = id => `${THUMB_PREFIX}/${id}.webp`
 
 /**
  * Whether the character page the model named is a page.
@@ -224,7 +224,7 @@ const reachable = async url => {
 
 const fetchThumbnail = async id => {
   mkdirSync(THUMB_DIR, { recursive: true })
-  const path = `${THUMB_DIR}/${id}.jpg`
+  const path = `${THUMB_DIR}/${id}.webp`
   if (existsSync(path)) return path
   try {
     const response = await fetch(thumbnailUrl(id))

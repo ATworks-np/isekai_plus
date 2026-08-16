@@ -40,7 +40,11 @@ const fetchAnime = async (id: string): Promise<IAnimeStatic> => {
   })
   if (res.status === 404) notFound()
   if (!res.ok) throw new Error(`Failed to fetch anime: ${res.status}`)
-  return res.json()
+  const anime = (await res.json()) as IAnimeStatic
+  // The previous deployed API can remain cached with its legacy .jpg URL
+  // while this release rolls out. Normalize it at the page boundary so the
+  // rendered HTML and client payload use WebP immediately.
+  return { ...anime, thumbnailUrl: thumbnailUrl(id) }
 }
 
 /** The title as the reader's language writes it, falling back to Japanese. */

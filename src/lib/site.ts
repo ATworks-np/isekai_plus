@@ -24,4 +24,4 @@ export const alternatesFor = (path = '/') =>
   Object.fromEntries(routing.locales.map(locale => [locale, `${localePath(locale)}${path}`]))
 
 export const thumbnailUrl = (id: string) =>
-  `https://storage.googleapis.com/jp-contents-matome.appspot.com/thumbnail/${id}.jpg`
+  `https://storage.googleapis.com/jp-contents-matome.appspot.com/thumbnail/${id}.webp`

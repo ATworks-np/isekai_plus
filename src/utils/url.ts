@@ -6,5 +6,5 @@ export const getAnimeURL = (anime_id: string): string => {
 }
 
 export const getThumbnailURL = (anime_id: string): string => {
-  return `${thumbnailPrefix}${anime_id}.jpg`
+  return `${thumbnailPrefix}${anime_id}.webp`
 }

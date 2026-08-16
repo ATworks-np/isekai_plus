@@ -136,8 +136,8 @@ const isPrivateAddress = (address: string): boolean => {
 }
 
 /**
- * Mirrors what the admin UI does on the client: store the thumbnail as both jpg
- * and webp under thumbnail/<key>, so getThumbnailURL keeps resolving.
+ * Stores thumbnails as WebP under thumbnail/<key>. Older JPEG files remain in
+ * Storage as a rollback path, but readers and new writes use the smaller file.
  *
  * `key` is the anime id for a series and <animeId>/<seasonId> for a season, so
  * a season's key visual sits beside its series' rather than overwriting it.
@@ -160,25 +160,26 @@ export const storeThumbnailFromUrl = async (key: string, rawUrl: unknown) => {
     throw new InvalidInput(`Image exceeds the ${MAX_IMAGE_BYTES / 1024 / 1024}MB limit.`)
   }
 
-  let jpeg: Buffer
   let webp: Buffer
   try {
-    jpeg = await sharp(source).jpeg({ quality: 85 }).toBuffer()
-    webp = await sharp(source).webp({ quality: 85 }).toBuffer()
+    webp = await sharp(source).webp({ quality: 85, effort: 6 }).toBuffer()
   } catch {
     throw new InvalidInput('imageUrl could not be decoded as an image.')
   }
 
   const bucket = adminBucket()
-  const names = [`thumbnail/${key}.jpg`, `thumbnail/${key}.webp`]
-  await Promise.all([
-    bucket.file(names[0]).save(jpeg, { contentType: 'image/jpeg', resumable: false }),
-    bucket.file(names[1]).save(webp, { contentType: 'image/webp', resumable: false }),
-  ])
+  const name = `thumbnail/${key}.webp`
+  await bucket.file(name).save(webp, {
+    metadata: {
+      contentType: 'image/webp',
+      cacheControl: 'public, max-age=31536000, immutable',
+    },
+    resumable: false,
+  })
 
   // The bucket already grants allUsers object read, so this is belt and braces
   // for buckets without it. Uniform bucket-level access rejects it; ignore that.
-  await Promise.all(names.map(name => bucket.file(name).makePublic().catch(() => {})))
+  await bucket.file(name).makePublic().catch(() => {})
 }
 
 export const deleteThumbnails = async (key: string) => {
@@ -191,7 +192,7 @@ export const deleteThumbnails = async (key: string) => {
 }
 
 export const thumbnailUrlFor = (key: string) =>
-  `https://storage.googleapis.com/${process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}/thumbnail/${key}.jpg`
+  `https://storage.googleapis.com/${process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}/thumbnail/${key}.webp`
 
 export const animeDoc = (id: string) => adminDb().doc(`${ANIMES_PATH}/${id}`)
 

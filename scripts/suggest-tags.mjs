@@ -347,9 +347,9 @@ const THUMB_PREFIX = 'https://storage.googleapis.com/jp-contents-matome.appspot.
 
 /** The key visual, on disk, because grok reads an image from a path. */
 const fetchThumbnail = async id => {
-  const path = `${THUMB_DIR}/${id}.jpg`
+  const path = `${THUMB_DIR}/${id}.webp`
   if (existsSync(path)) return path
-  const response = await fetch(`${THUMB_PREFIX}/${id}.jpg`)
+  const response = await fetch(`${THUMB_PREFIX}/${id}.webp`)
   if (!response.ok) return null
   writeFileSync(path, Buffer.from(await response.arrayBuffer()))
   return path
