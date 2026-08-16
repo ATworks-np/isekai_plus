@@ -68,7 +68,7 @@ const UpperAppBar: React.FC = props => {
   const site = useTranslations('site')
   const [openSerchModal, setOpenSerchModal] = useAtom<boolean>(searchModalAtom)
   const [loginOpen, setLoginOpen] = useAtom<boolean>(loginModalAtom)
-  const { user, initialize } = useUser({ defer: true })
+  const { user, initialize } = useUser()
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const router = useRouter()

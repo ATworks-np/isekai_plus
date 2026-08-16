@@ -9,7 +9,7 @@ import User from '@/models/entities/user'
 const guest = () =>
   new User({ uid: undefined, token: 'guest', displayName: null, photoURL: null, type: 'guest' })
 
-const useUser = ({ defer = false }: { defer?: boolean } = {}) => {
+const useUser = () => {
   const [user, setUser] = useAtom(userAtom)
   const initialization = useRef<Promise<User> | null>(null)
   const unsubscribe = useRef<(() => void) | null>(null)
@@ -18,9 +18,9 @@ const useUser = ({ defer = false }: { defer?: boolean } = {}) => {
     if (initialization.current) return initialization.current
 
     initialization.current = (async () => {
-      // These modules account for most of the auth chunk. They are loaded only
-      // when a reader interacts with the header (or immediately on account
-      // pages), never on an untouched public PageSpeed run.
+      // Keep Firebase out of the initial bundle, but load it immediately after
+      // hydration so persisted authentication is restored without requiring a
+      // click on the account icon.
       const [{ getAuth }, { doc, getDoc }, { db }] = await Promise.all([
         import('firebase/auth'),
         import('firebase/firestore'),
@@ -64,20 +64,9 @@ const useUser = ({ defer = false }: { defer?: boolean } = {}) => {
   }, [setUser])
 
   useEffect(() => {
-    if (!defer) {
-      void initialize()
-      return () => unsubscribe.current?.()
-    }
-
-    const start = () => void initialize()
-    window.addEventListener('pointerdown', start, { once: true, passive: true })
-    window.addEventListener('keydown', start, { once: true })
-    return () => {
-      window.removeEventListener('pointerdown', start)
-      window.removeEventListener('keydown', start)
-      unsubscribe.current?.()
-    }
-  }, [defer, initialize])
+    void initialize()
+    return () => unsubscribe.current?.()
+  }, [initialize])
 
   const refreshUserData = async () => {
     initialization.current = null

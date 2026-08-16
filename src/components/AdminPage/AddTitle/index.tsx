@@ -83,9 +83,20 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
       await setDoc(docRef, data, { merge: true });
 
       if(thumbnail){
-        const webp = await convertToWebp(thumbnail);
-        const storageRef = ref(storage, `thumbnail/${docRef.id}.webp`);
-        await uploadBytes(storageRef, webp, { contentType: 'image/webp' });
+        const [webp, smallWebp] = await Promise.all([
+          convertToWebp(thumbnail),
+          convertToWebp(thumbnail, 160, 0.7),
+        ]);
+        await Promise.all([
+          uploadBytes(ref(storage, `thumbnail/${docRef.id}.webp`), webp, {
+            contentType: 'image/webp',
+            cacheControl: 'public, max-age=31536000, immutable',
+          }),
+          uploadBytes(ref(storage, `thumbnail/${docRef.id}-small.webp`), smallWebp, {
+            contentType: 'image/webp',
+            cacheControl: 'public, max-age=31536000, immutable',
+          }),
+        ]);
       }
 
       setOpen(false);
@@ -105,20 +116,24 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
     }
   };
 
-  const convertToWebp = (file: File): Promise<Blob> => {
+  const convertToWebp = (
+    file: File,
+    maxWidth?: number,
+    quality = 0.85
+  ): Promise<Blob> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
+        canvas.width = maxWidth ? Math.min(maxWidth, img.width) : img.width;
+        canvas.height = Math.round(img.height * (canvas.width / img.width));
         const ctx = canvas.getContext('2d');
         if (!ctx) return reject('Canvas context is null');
-        ctx.drawImage(img, 0, 0);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         canvas.toBlob((blob) => {
           if (blob) resolve(blob);
           else reject('Blob conversion failed');
-        }, 'image/webp', 0.85);
+        }, 'image/webp', quality);
       };
       img.onerror = (err) => reject(err);
       img.src = URL.createObjectURL(file);

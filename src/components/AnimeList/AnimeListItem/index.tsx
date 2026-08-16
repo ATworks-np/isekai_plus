@@ -11,7 +11,7 @@ import StarRating from "@/components/StarRating";
 import { Link } from '@/i18n/navigation';
 import EditIcon from "@mui/icons-material/Edit";
 import {userAtom} from "@/stores/userStore";
-import { getThumbnailURL } from "@/utils/url"
+import { getSmallThumbnailURL, getThumbnailURL } from "@/utils/url"
 import { Season } from "@/hooks/useSeasons"
 import { useLocale, useTranslations } from 'next-intl'
 import LikeButton from '@/components/AnimeList/AnimeListItem/LikeButton'
@@ -52,11 +52,14 @@ const AnimeListItem: React.FC<AnimeListItemProps> = props => {
   const season = useTranslations('season')
   const list = useTranslations('list')
   const [user, setUser] = useAtom(userAtom)
+  const thumbnailUrl = getSmallThumbnailURL(
+    props.season?.thumbnailUrl ?? getThumbnailURL(props.id)
+  )
   return (
     <MyBox display="flex">
       <Box sx={{ position: 'relative', flexShrink: 0, width: 80, height: 80 }}>
         <Image
-          src={props.season?.thumbnailUrl ?? getThumbnailURL(props.id)}
+          src={thumbnailUrl}
           alt={(locale === 'ja' ? props.name.ja : props.name.en?.trim() || props.name.ja) ?? ''}
           fill
           sizes="80px"

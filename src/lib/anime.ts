@@ -161,31 +161,44 @@ export const storeThumbnailFromUrl = async (key: string, rawUrl: unknown) => {
   }
 
   let webp: Buffer
+  let smallWebp: Buffer
   try {
-    webp = await sharp(source).webp({ quality: 85, effort: 6 }).toBuffer()
+    ;[webp, smallWebp] = await Promise.all([
+      sharp(source).webp({ quality: 85, effort: 6 }).toBuffer(),
+      sharp(source)
+        .rotate()
+        .resize({ width: 160, withoutEnlargement: true })
+        .webp({ quality: 70, effort: 5 })
+        .toBuffer(),
+    ])
   } catch {
     throw new InvalidInput('imageUrl could not be decoded as an image.')
   }
 
   const bucket = adminBucket()
   const name = `thumbnail/${key}.webp`
-  await bucket.file(name).save(webp, {
-    metadata: {
-      contentType: 'image/webp',
-      cacheControl: 'public, max-age=31536000, immutable',
-    },
-    resumable: false,
-  })
+  const smallName = `thumbnail/${key}-small.webp`
+  const metadata = {
+    contentType: 'image/webp',
+    cacheControl: 'public, max-age=31536000, immutable',
+  }
+  await Promise.all([
+    bucket.file(name).save(webp, { metadata, resumable: false }),
+    bucket.file(smallName).save(smallWebp, { metadata, resumable: false }),
+  ])
 
   // The bucket already grants allUsers object read, so this is belt and braces
   // for buckets without it. Uniform bucket-level access rejects it; ignore that.
-  await bucket.file(name).makePublic().catch(() => {})
+  await Promise.all([
+    bucket.file(name).makePublic().catch(() => {}),
+    bucket.file(smallName).makePublic().catch(() => {}),
+  ])
 }
 
 export const deleteThumbnails = async (key: string) => {
   const bucket = adminBucket()
   await Promise.all(
-    [`thumbnail/${key}.jpg`, `thumbnail/${key}.webp`].map(name =>
+    [`thumbnail/${key}.jpg`, `thumbnail/${key}.webp`, `thumbnail/${key}-small.webp`].map(name =>
       bucket.file(name).delete({ ignoreNotFound: true })
     )
   )

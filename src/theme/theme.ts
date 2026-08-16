@@ -4,6 +4,8 @@ const theme = createTheme({
   palette: {
     primary: {
       main: '#00B6DF',
+      // Small tag text needs at least 4.5:1 against the page background.
+      dark: '#007A96',
       contrastText: '#fff',
     },
     secondary: {
