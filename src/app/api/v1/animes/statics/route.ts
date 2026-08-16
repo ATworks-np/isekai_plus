@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { ANIMES_PATH, adminDb } from '@/lib/firebaseAdmin'
+import { animeCatalogue } from '@/lib/animeCatalogue'
 import { RATING_KEYS } from '@/lib/season'
 import { seasonIndex, workSeasons } from '@/lib/seasonIndex'
 
@@ -19,12 +19,9 @@ export const dynamic = 'force-dynamic'
  */
 export async function GET() {
   try {
-    const [index, snapshot] = await Promise.all([
-      seasonIndex(),
-      adminDb().collection(ANIMES_PATH).get(),
-    ])
+    const [index, catalogue] = await Promise.all([seasonIndex(), animeCatalogue()])
 
-    const items = snapshot.docs.map(doc => {
+    const items = catalogue.docs.map(doc => {
       const entry = workSeasons(index, doc.id)
       return {
         id: doc.id,

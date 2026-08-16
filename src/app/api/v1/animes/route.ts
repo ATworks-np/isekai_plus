@@ -1,15 +1,14 @@
 import { NextResponse } from 'next/server'
-import { DocumentSnapshot } from 'firebase-admin/firestore'
 import { authenticateApiKey } from '@/lib/apiKey'
 import {
   InvalidInput,
-  animeDoc,
   buildAnimeWrite,
   parseCours,
   storeThumbnailFromUrl,
 } from '@/lib/anime'
 import { ANIMES_PATH, adminDb } from '@/lib/firebaseAdmin'
 import { RATING_KEYS, serializeSeasons } from '@/lib/season'
+import { animeCatalogue, invalidateAnimeCatalogue } from '@/lib/animeCatalogue'
 import { invalidateSeasonIndex, seasonIndex, workSeasons } from '@/lib/seasonIndex'
 import { serializeAnime } from '@/app/api/v1/animes/serialize'
 
@@ -55,13 +54,10 @@ type Ranked = { id: string; value: string | number | null }
 /**
  * The list, a page at a time.
  *
- * The page used to pull all 155 works and filter in the browser, then read
- * every like document of every row to show a count. Filtering and ordering
- * happen here now — likeCount, commentCount and ratingAverage as Firestore
- * queries, since it cannot count a subcollection or average five fields, and
- * broadcast date from the season index, since cours live on the seasons and
- * Firestore can neither filter a collection by a subcollection's field nor
- * order by the largest element of an array.
+ * Ranked from the in-process catalogue so a page view does not scan Firestore.
+ * The counts and the series average live on the work; the cours live on the
+ * seasons, which is why both caches are needed to filter or to order by
+ * broadcast date.
  */
 export async function GET(request: Request) {
   const url = new URL(request.url)
@@ -88,65 +84,29 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Loaded whatever the sort is: the response carries each work's seasons,
-    // and reading them from here costs one query rather than one per row.
-    const index = await seasonIndex()
+    // Ranked in memory off the cached catalogue: the home page used to fire a
+    // collection scan, a collection-group scan and a paged query for one paint.
+    const [index, catalogue] = await Promise.all([seasonIndex(), animeCatalogue()])
 
-    const docs = new Map<string, DocumentSnapshot>()
-    let page: DocumentSnapshot[]
-    let hasMore: boolean
+    const candidates = cour
+      ? catalogue.docs.filter(doc => workSeasons(index, doc.id).cours.includes(cour))
+      : catalogue.docs
 
-    if (sort === 'recent' || cour) {
-      // Ordering or filtering by cour means starting from the seasons, so the
-      // page is cut here and only its works are read.
-      let candidates = [...index.values()]
-      if (cour) candidates = candidates.filter(entry => entry.cours.includes(cour))
+    const ranked: Ranked[] = candidates.map(doc => ({
+      id: doc.id,
+      value: sort === 'recent' ? workSeasons(index, doc.id).latestCour : (doc.get(field) ?? 0),
+    }))
+    ranked.sort(compareDesc)
 
-      let ranked: Ranked[] = candidates.map(entry => ({
-        id: entry.animeId,
-        value: entry.latestCour,
-      }))
+    // Positional rather than by index, so a work added or removed between
+    // pages cannot make the cursor skip or repeat the rest of the list.
+    const after = cursor
+      ? ranked.filter(entry => compareDesc(entry, { id: cursor.id, value: cursor.v as never }) > 0)
+      : ranked
 
-      if (sort !== 'recent') {
-        // The counts live on the work, so a cour-filtered list ordered by one
-        // has to read its candidates. A cour holds a couple of dozen works.
-        const snapshots = await adminDb().getAll(
-          ...candidates.map(entry => animeDoc(entry.animeId))
-        )
-        snapshots.forEach(doc => docs.set(doc.id, doc))
-        ranked = snapshots.map(doc => ({ id: doc.id, value: doc.get(field) ?? 0 }))
-      }
-
-      ranked.sort(compareDesc)
-
-      // Positional rather than by index, so a work added or removed between
-      // pages cannot make the cursor skip or repeat the rest of the list.
-      const after = cursor
-        ? ranked.filter(entry => compareDesc(entry, { id: cursor.id, value: cursor.v as never }) > 0)
-        : ranked
-
-      const wanted = after.slice(0, limit)
-      hasMore = after.length > wanted.length
-
-      const missing = wanted.filter(entry => !docs.has(entry.id))
-      if (missing.length) {
-        const snapshots = await adminDb().getAll(...missing.map(entry => animeDoc(entry.id)))
-        snapshots.forEach(doc => docs.set(doc.id, doc))
-      }
-      page = wanted.map(entry => docs.get(entry.id)!).filter(doc => doc.exists)
-    } else {
-      let query = adminDb()
-        .collection(ANIMES_PATH)
-        .orderBy(field, 'desc')
-        // Ties are broken by id so a cursor always lands somewhere definite.
-        .orderBy('__name__', 'desc')
-
-      if (cursor) query = query.startAfter(cursor.v, cursor.id)
-
-      const snapshot = await query.limit(limit).get()
-      page = snapshot.docs
-      hasMore = snapshot.size === limit
-    }
+    const wanted = after.slice(0, limit)
+    const hasMore = after.length > wanted.length
+    const page = wanted.map(entry => catalogue.byId.get(entry.id)!).filter(doc => doc.exists)
 
     const items = page.map(doc => {
       const entry = workSeasons(index, doc.id)
@@ -165,10 +125,13 @@ export async function GET(request: Request) {
     const lastValue =
       sort === 'recent' ? workSeasons(index, last?.id ?? '').latestCour : last?.get(field)
 
-    return NextResponse.json({
-      items,
-      nextCursor: hasMore && last ? encodeCursor(lastValue, last.id) : null,
-    })
+    return NextResponse.json(
+      {
+        items,
+        nextCursor: hasMore && last ? encodeCursor(lastValue, last.id) : null,
+      },
+      { headers: { 'Cache-Control': 'public, max-age=30, s-maxage=60' } }
+    )
   } catch (error) {
     console.error('GET /api/v1/animes failed', error)
     return NextResponse.json({ error: 'Internal server error.' }, { status: 500 })
@@ -219,6 +182,7 @@ export async function POST(request: Request) {
       ratingTotals: Object.fromEntries(RATING_KEYS.map(key => [key, 0])),
     })
     invalidateSeasonIndex()
+    invalidateAnimeCatalogue()
 
     if (input.imageUrl !== undefined) {
       try {

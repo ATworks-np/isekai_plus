@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } fro
 import { Box, Stack, Typography, useTheme, IconButton, Skeleton } from '@mui/material'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import { api } from '@/Routes/routs'
 import { getThumbnailURL, getAnimeURL } from '@/utils/url'
 import StarRating from '@/components/StarRating'
 import { Link } from '@/i18n/navigation'
@@ -67,36 +66,24 @@ const SeasonCarousel: React.FC<SeasonCarouselProps> = ({ skeleton = false }) => 
     getServerReducedMotionSnapshot
   )
 
+  const currentCours = useMemo(() => getCurrentCoursKey(), [])
+
   useEffect(() => {
-    fetch(`${api.animes}/statics`)
+    const params = new URLSearchParams({ sort: 'rating', cour: currentCours, limit: '10' })
+    fetch(`/api/v1/animes/?${params}`)
       .then((response) => {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
         return response.json()
       })
-      .then((data) => {
-        setAnimes(data)
+      .then((data: { items?: AnimeItem[] }) => {
+        setAnimes(data.items ?? [])
       })
       .catch((e) => console.error(e))
       .finally(() => setLoading(false))
-  }, [])
+  }, [currentCours])
 
-  const currentCours = useMemo(() => getCurrentCoursKey(), [])
-
-  // This season, highest rated first, ten slides. Ties follow the list API
-  // (id descending) so the carousel and the rating-sorted list agree.
-  const currentSeasonAnimes = useMemo(
-    () =>
-      animes
-        .filter((a) => Array.isArray(a.cours) && a.cours.includes(currentCours))
-        .sort((a, b) => {
-          const left = a.rating ?? 0
-          const right = b.rating ?? 0
-          if (left !== right) return right - left
-          return a.id < b.id ? 1 : a.id > b.id ? -1 : 0
-        })
-        .slice(0, 10),
-    [animes, currentCours]
-  )
+  // Already this season's top ten from the list API.
+  const currentSeasonAnimes = animes
 
   // Clamped while rendering rather than corrected afterwards: an effect would
   // paint one frame with an index past the end of a shortened list.

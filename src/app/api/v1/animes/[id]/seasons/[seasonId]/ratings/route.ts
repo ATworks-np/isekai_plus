@@ -12,6 +12,8 @@ import {
   userRatingDoc,
   withSeasonReplaced,
 } from '@/lib/season'
+import { invalidateAnimeCatalogue } from '@/lib/animeCatalogue'
+import { invalidateSeasonIndex } from '@/lib/seasonIndex'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -109,6 +111,8 @@ export async function PUT(request: Request, context: Context) {
       return { season: { ratingCount, ratings }, series }
     })
 
+    invalidateSeasonIndex()
+    invalidateAnimeCatalogue()
     return NextResponse.json({ ratings: next, ...result })
   } catch (error) {
     if (error instanceof NotFound) {

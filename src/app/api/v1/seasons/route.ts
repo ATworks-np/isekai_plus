@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { adminDb } from '@/lib/firebaseAdmin'
 import { serializeSeasons } from '@/lib/season'
+import { seasonIndex } from '@/lib/seasonIndex'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -15,21 +15,14 @@ export const dynamic = 'force-dynamic'
  */
 export async function GET() {
   try {
-    const snapshot = await adminDb().collectionGroup('seasons').get()
-
-    // Grouped before serializing: a season is numbered by its position among
-    // its own work's, so the set has to be together first.
-    const docsByAnime = new Map<string, typeof snapshot.docs>()
-    for (const doc of snapshot.docs) {
-      const animeId = doc.ref.parent.parent?.id
-      if (!animeId) continue
-      docsByAnime.set(animeId, [...(docsByAnime.get(animeId) ?? []), doc])
-    }
-
+    const index = await seasonIndex()
     const byAnime: Record<string, ReturnType<typeof serializeSeasons>> = {}
-    for (const [animeId, docs] of docsByAnime) byAnime[animeId] = serializeSeasons(docs)
+    for (const entry of index.values()) byAnime[entry.animeId] = serializeSeasons(entry.seasons)
 
-    return NextResponse.json({ seasons: byAnime })
+    return NextResponse.json(
+      { seasons: byAnime },
+      { headers: { 'Cache-Control': 'public, max-age=60, s-maxage=300' } }
+    )
   } catch (error) {
     console.error('GET /api/v1/seasons failed', error)
     return NextResponse.json({ error: 'Internal server error.' }, { status: 500 })

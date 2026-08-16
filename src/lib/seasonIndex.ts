@@ -3,6 +3,7 @@ import 'server-only'
 import { QueryDocumentSnapshot } from 'firebase-admin/firestore'
 import { latestCourOf } from '@/lib/anime'
 import { ANIMES_PATH, adminDb } from '@/lib/firebaseAdmin'
+import { WEEK_MS, ttlCache } from '@/lib/ttlCache'
 
 export type WorkSeasons = {
   animeId: string
@@ -29,9 +30,7 @@ export type WorkSeasons = {
  * serve a stale index for up to the TTL after a write; the API invalidates its
  * own copy so the instance that took the write is immediately correct.
  */
-const TTL_MS = 60_000
-
-let cached: { at: number; index: Map<string, WorkSeasons> } | null = null
+const cache = ttlCache<Map<string, WorkSeasons>>(WEEK_MS)
 
 const build = async () => {
   const snapshot = await adminDb().collectionGroup('seasons').get()
@@ -64,17 +63,10 @@ const build = async () => {
   return index
 }
 
-export const seasonIndex = async () => {
-  if (cached && Date.now() - cached.at < TTL_MS) return cached.index
-  const index = await build()
-  cached = { at: Date.now(), index }
-  return index
-}
+export const seasonIndex = () => cache.get(build)
 
 /** Called by every write that adds, changes or removes a season. */
-export const invalidateSeasonIndex = () => {
-  cached = null
-}
+export const invalidateSeasonIndex = () => cache.invalidate()
 
 /** A work written since the index was built has no entry yet, not no seasons. */
 export const workSeasons = (index: Map<string, WorkSeasons>, animeId: string): WorkSeasons =>

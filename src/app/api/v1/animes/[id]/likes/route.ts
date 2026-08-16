@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { FieldValue } from 'firebase-admin/firestore'
 import { authenticateUser } from '@/lib/apiKey'
 import { animeDoc } from '@/lib/anime'
+import { invalidateAnimeCatalogue } from '@/lib/animeCatalogue'
 import { adminDb } from '@/lib/firebaseAdmin'
 
 export const runtime = 'nodejs'
@@ -45,6 +46,7 @@ const toggle = async (request: Request, context: Context, liked: boolean) => {
       return next
     })
 
+    invalidateAnimeCatalogue()
     return NextResponse.json({ id, liked, likeCount })
   } catch (error) {
     if (error instanceof NotFound) {

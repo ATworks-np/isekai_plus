@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import { authenticateApiKey } from '@/lib/apiKey'
 import { InvalidInput, animeDoc, storeThumbnailFromUrl } from '@/lib/anime'
 import { RATING_KEYS, buildSeasonWrite, seasonsCollection, serializeSeasons } from '@/lib/season'
-import { invalidateSeasonIndex } from '@/lib/seasonIndex'
+import { animeCatalogue, invalidateAnimeCatalogue } from '@/lib/animeCatalogue'
+import { invalidateSeasonIndex, seasonIndex, workSeasons } from '@/lib/seasonIndex'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -17,11 +18,14 @@ export async function GET(request: Request, context: Context) {
   const { id } = await context.params
 
   try {
-    if (!(await animeDoc(id).get()).exists) {
+    const [catalogue, index] = await Promise.all([animeCatalogue(), seasonIndex()])
+    if (!catalogue.byId.has(id)) {
       return NextResponse.json({ error: `No anime with id ${id}.` }, { status: 404 })
     }
-    const snapshot = await seasonsCollection(id).orderBy('order').get()
-    return NextResponse.json({ seasons: serializeSeasons(snapshot.docs) })
+    return NextResponse.json(
+      { seasons: serializeSeasons(workSeasons(index, id).seasons) },
+      { headers: { 'Cache-Control': 'public, max-age=60, s-maxage=300' } }
+    )
   } catch (error) {
     console.error(`GET /api/v1/animes/${id}/seasons failed`, error)
     return NextResponse.json({ error: 'Internal server error.' }, { status: 500 })
@@ -78,6 +82,7 @@ export async function POST(request: Request, context: Context) {
     }
 
     invalidateSeasonIndex()
+    invalidateAnimeCatalogue()
     // Re-read the set: the new season's number depends on its siblings.
     const siblings = await seasonsCollection(id).get()
     const created = serializeSeasons(siblings.docs).find(season => season.id === ref.id)

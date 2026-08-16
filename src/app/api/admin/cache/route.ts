@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { authenticateAdmin } from '@/lib/apiKey'
+import { invalidateReadCaches } from '@/lib/readCaches'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -18,6 +19,8 @@ const TARGETS = [
 export async function POST(request: Request) {
   const auth = await authenticateAdmin(request)
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
+
+  invalidateReadCaches()
 
   const token = process.env.FUNCTIONS_CACHE_CLEAR_TOKEN
   if (!token) {
@@ -45,6 +48,7 @@ export async function POST(request: Request) {
     })
   )
 
-  const failed = results.filter(result => !result.ok)
-  return NextResponse.json({ results }, { status: failed.length ? 502 : 200 })
+  const all = [{ name: 'Next 読み取り', ok: true, status: 200 }, ...results]
+  const failed = all.filter(result => !result.ok)
+  return NextResponse.json({ results: all }, { status: failed.length ? 502 : 200 })
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { ANIMES_PATH, adminDb } from '@/lib/firebaseAdmin'
+import { animeCatalogue } from '@/lib/animeCatalogue'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -12,10 +12,9 @@ export const dynamic = 'force-dynamic'
  */
 export async function GET() {
   try {
-    // select() with no fields returns documents carrying only their id.
-    const snapshot = await adminDb().collection(ANIMES_PATH).select().get()
+    const catalogue = await animeCatalogue()
     return NextResponse.json(
-      { ids: snapshot.docs.map(doc => doc.id) },
+      { ids: catalogue.docs.map(doc => doc.id) },
       { headers: { 'Cache-Control': 'public, max-age=60, s-maxage=300' } }
     )
   } catch (error) {

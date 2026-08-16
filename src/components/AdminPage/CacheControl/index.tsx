@@ -45,7 +45,7 @@ const CacheControl: React.FC = () => {
         キャッシュ
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        作品一覧とタグ一覧は読み取り関数がメモリに保持しています。追加や修正が
+        作品一覧とタグ一覧はサーバーがメモリに保持しています。追加や修正が
         一覧に反映されないときに削除してください。
       </Typography>
 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { TAGS_PATH, adminDb } from '@/lib/firebaseAdmin'
+import { tagCatalogue } from '@/lib/tagCatalogue'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -15,18 +15,7 @@ export const dynamic = 'force-dynamic'
  */
 export async function GET() {
   try {
-    const snapshot = await adminDb().collection(TAGS_PATH).get()
-
-    const tags = Object.fromEntries(
-      snapshot.docs.map(doc => [
-        doc.ref.path,
-        {
-          id: doc.id,
-          name: doc.get('name') ?? null,
-          group: doc.get('group') ?? null,
-        },
-      ])
-    )
+    const tags = await tagCatalogue()
 
     return NextResponse.json(tags, {
       headers: { 'Cache-Control': 'public, max-age=300, s-maxage=600' },

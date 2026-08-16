@@ -11,6 +11,7 @@ import {
   serializeSeasons,
   seriesRatingFields,
 } from '@/lib/season'
+import { invalidateAnimeCatalogue } from '@/lib/animeCatalogue'
 import { invalidateSeasonIndex } from '@/lib/seasonIndex'
 
 export const runtime = 'nodejs'
@@ -49,6 +50,7 @@ export async function PATCH(request: Request, context: Context) {
       await ref.update({ hasThumbnail: true })
     }
     invalidateSeasonIndex()
+    invalidateAnimeCatalogue()
     const siblings = await seasonsCollection(id).get()
     return NextResponse.json(serializeSeasons(siblings.docs).find(season => season.id === seasonId))
   } catch (error) {
@@ -93,6 +95,7 @@ export async function DELETE(request: Request, context: Context) {
     await adminDb().recursiveDelete(ref)
     await deleteThumbnails(`${id}/${seasonId}`)
     invalidateSeasonIndex()
+    invalidateAnimeCatalogue()
 
     return NextResponse.json({ id: seasonId, deleted: true })
   } catch (error) {

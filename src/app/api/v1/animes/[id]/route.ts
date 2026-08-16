@@ -8,8 +8,9 @@ import {
   storeThumbnailFromUrl,
 } from '@/lib/anime'
 import { adminDb } from '@/lib/firebaseAdmin'
+import { animeCatalogue, invalidateAnimeCatalogue } from '@/lib/animeCatalogue'
 import { seasonsCollection } from '@/lib/season'
-import { invalidateSeasonIndex } from '@/lib/seasonIndex'
+import { invalidateSeasonIndex, seasonIndex, workSeasons } from '@/lib/seasonIndex'
 import { serializeAnime } from '@/app/api/v1/animes/serialize'
 
 export const runtime = 'nodejs'
@@ -29,20 +30,17 @@ export async function GET(request: Request, context: Context) {
   const { id } = await context.params
 
   try {
-    const doc = await animeDoc(id).get()
-    if (!doc.exists) return NextResponse.json({ error: `No anime with id ${id}.` }, { status: 404 })
+    const [catalogue, index] = await Promise.all([animeCatalogue(), seasonIndex()])
+    const doc = catalogue.byId.get(id)
+    if (!doc) return NextResponse.json({ error: `No anime with id ${id}.` }, { status: 404 })
 
-    const seasons = await seasonsCollection(id).get()
-    const cours = [
-      ...new Set(seasons.docs.flatMap(season => (season.get('cours') ?? []) as string[])),
-    ].sort()
-
+    const entry = workSeasons(index, id)
     return NextResponse.json(
       {
-        ...serializeAnime(doc, cours),
+        ...serializeAnime(doc, entry.cours),
         rating: doc.get('ratingAverage') ?? 0,
         // Summed over the seasons: the work itself does not count votes.
-        ratingCount: seasons.docs.reduce((sum, season) => sum + (season.get('ratingCount') ?? 0), 0),
+        ratingCount: entry.seasons.reduce((sum, season) => sum + (season.get('ratingCount') ?? 0), 0),
         commentCount: doc.get('commentCount') ?? 0,
         likeCount: doc.get('likeCount') ?? 0,
       },
@@ -94,6 +92,7 @@ export async function PATCH(request: Request, context: Context) {
     // Firestore triggers survive a partial update.
     if (Object.keys(write).length > 0) await ref.set(write, { merge: true })
     if (input.imageUrl !== undefined) await storeThumbnailFromUrl(id, input.imageUrl)
+    invalidateAnimeCatalogue()
 
     const seasons = await seasonsCollection(id).get()
     const cours = [
@@ -127,6 +126,7 @@ export async function DELETE(request: Request, context: Context) {
     await adminDb().recursiveDelete(ref)
     await deleteThumbnails(id)
     invalidateSeasonIndex()
+    invalidateAnimeCatalogue()
 
     return NextResponse.json({ id, deleted: true })
   } catch (error) {
