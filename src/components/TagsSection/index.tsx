@@ -1,13 +1,11 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { Box, Chip, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, InputAdornment, Typography } from '@mui/material'
+import { Box, Chip, IconButton, Button, TextField, InputAdornment, Typography } from '@mui/material'
 import { styled } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
-import { deleteDoc, doc } from 'firebase/firestore'
-import { db } from '@/firebase'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 
 import useTags from "@/hooks/useTags";
 import { ITag } from '@/models/entities/tag'
@@ -18,6 +16,15 @@ const MyChip = styled(Chip)(({ theme }) => ({
   fontWeight: '600',
 }))
 
+/**
+ * A picker, and only a picker. It used to carry a delete button on every chip
+ * that called deleteDoc straight from the reader's browser: a signed-out
+ * visitor saw an offer to delete a tag from the database, the rules refused it,
+ * and nothing was said. An admin pressing the same button did delete it —
+ * without the reference cleanup the admin screen does — which is how eleven
+ * works came to point at a tag that no longer exists. Deleting a tag belongs to
+ * the tag admin screen, where the works that use it are unpicked first.
+ */
 interface TagsSectionProps {
   tagsState: string[];
   // Takes the next list rather than a state setter, so a caller is free to
@@ -27,12 +34,11 @@ interface TagsSectionProps {
 
 const TagsSection: React.FC<TagsSectionProps> = props => {
   const locale = useLocale();
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [tagToDelete, setTagToDelete] = useState<{ key: string, name: string } | null>(null);
+  const t = useTranslations('tags');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showAllTags, setShowAllTags] = useState<boolean>(false);
 
-  const {tags, syncTags} = useTags();
+  const {tags} = useTags();
 
   // A tag carries an English name only once someone has written one, so the
   // Japanese one is the fallback — the same rule the work titles follow.
@@ -72,45 +78,6 @@ const TagsSection: React.FC<TagsSectionProps> = props => {
     });
   }, [tags, searchQuery, props.tagsState, showAllTags]);
 
-  const handleDeleteClick = (event: React.MouseEvent, key: string, name: string) => {
-    event.stopPropagation(); // Prevent the chip click event from firing
-    setTagToDelete({ key, name });
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!tagToDelete) return;
-
-    try {
-      // Extract the document ID from the path (e.g., "versions/1/tags/abc123" -> "abc123")
-      const pathParts = tagToDelete.key.split('/');
-      const docId = pathParts[pathParts.length - 1];
-
-      // Delete the tag from Firestore
-      await deleteDoc(doc(db, 'versions/1/tags', docId));
-
-      // Remove the tag from tagsState if it's selected
-      if (props.tagsState?.includes(tagToDelete.key)) {
-        props.setTagsState(props.tagsState.filter(tag => tag !== tagToDelete.key));
-      }
-
-      // Sync tags to update the UI
-      syncTags();
-
-      // Close the dialog
-      setDeleteDialogOpen(false);
-      setTagToDelete(null);
-    } catch (error) {
-      console.error('Error deleting tag:', error);
-      // Handle error (could add a snackbar or other notification here)
-    }
-  };
-
-  const handleDeleteCancel = () => {
-    setDeleteDialogOpen(false);
-    setTagToDelete(null);
-  };
-
   return (
       <>
         <div className="section">
@@ -119,7 +86,7 @@ const TagsSection: React.FC<TagsSectionProps> = props => {
             <TextField
               sx={{ flex: 1 }}
               variant="outlined"
-              placeholder="タグを検索..."
+              placeholder={t('search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               InputProps={{
@@ -149,7 +116,7 @@ const TagsSection: React.FC<TagsSectionProps> = props => {
               size="small"
               sx={{ minWidth: '120px' }}
             >
-              {showAllTags ? "通常表示" : "すべてを表示"}
+              {showAllTags ? t('showSelected') : t('showAll')}
             </Button>
           </Box>
 
@@ -167,7 +134,7 @@ const TagsSection: React.FC<TagsSectionProps> = props => {
           >
             {filteredTags.length === 0 && searchQuery ? (
               <Typography variant="body2" color="text.secondary" sx={{ p: 1 }}>
-                検索結果がありません
+                {t('noResults')}
               </Typography>
             ) : (
               filteredTags.map(([key, tag], index: number) => (
@@ -185,38 +152,11 @@ const TagsSection: React.FC<TagsSectionProps> = props => {
                       props.setTagsState([...props.tagsState, key])
                     }
                   }}
-                  deleteIcon={<CloseIcon />}
-                  onDelete={(event) => handleDeleteClick(event, key, nameOf(tag))}
                 />
               ))
             )}
           </Box>
         </div>
-
-        {/* Confirmation Dialog */}
-        <Dialog
-          open={deleteDialogOpen}
-          onClose={handleDeleteCancel}
-          aria-labelledby="alert-dialog-title"
-          aria-describedby="alert-dialog-description"
-        >
-          <DialogTitle id="alert-dialog-title">
-            タグを削除しますか？
-          </DialogTitle>
-          <DialogContent>
-            {tagToDelete && (
-              <p>タグ「{tagToDelete.name}」をデータベースから削除します。この操作は元に戻せません。</p>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleDeleteCancel} color="primary">
-              キャンセル
-            </Button>
-            <Button onClick={handleDeleteConfirm} color="error" autoFocus>
-              削除
-            </Button>
-          </DialogActions>
-        </Dialog>
       </>
   )
 }

@@ -31,6 +31,12 @@
     "carousel": "This season's anime",
     "heading": "Isekai anime, listed and rated"
   },
+  "tags": {
+    "search": "Search tags…",
+    "showAll": "Show all",
+    "showSelected": "Show selected",
+    "noResults": "No tags match"
+  },
   "comments": {
     "heading": "Comments",
     "empty": "No comments yet",

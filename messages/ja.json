@@ -31,6 +31,12 @@
     "carousel": "今季アニメリスト",
     "heading": "異世界アニメまとめ - 作品一覧と評価"
   },
+  "tags": {
+    "search": "タグを検索...",
+    "showAll": "すべてを表示",
+    "showSelected": "通常表示",
+    "noResults": "検索結果がありません"
+  },
   "comments": {
     "heading": "コメント",
     "empty": "コメントはまだありません",
