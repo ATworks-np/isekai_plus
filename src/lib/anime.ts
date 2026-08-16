@@ -18,7 +18,7 @@ export type AnimeInput = {
 }
 
 export type AnimeWrite = {
-  name?: { ja: string; en: string }
+  name?: { ja: string; en?: string }
   tags?: DocumentReference[]
 }
 
@@ -79,9 +79,13 @@ export const buildAnimeWrite = async (body: AnimeInput, { partial }: { partial: 
     if (typeof body.name !== 'object' || body.name === null) {
       throw new InvalidInput('name must be an object with ja and en.')
     }
+    // A work has a Japanese title. English is a translation, and a work that
+    // has not been translated carries no en key at all — an empty string or a
+    // copy of the Japanese cannot be told apart from a real translation later.
+    const en = body.name.en === undefined || body.name.en === null ? '' : String(body.name.en).trim()
     write.name = {
       ja: asString(body.name.ja, 'name.ja'),
-      en: asString(body.name.en, 'name.en'),
+      ...(en && en !== asString(body.name.ja, 'name.ja') ? { en } : {}),
     }
   }
 

@@ -101,18 +101,20 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
   const tagsState = tagsDraft ?? loaded?.tagIds ?? []
 
   const handleSubmit = async (e: React.FormEvent) => {
-    if (!titleJP || !titleEN) {
-      setMessage('すべてのフィールドを入力してください');
+    if (!titleJP) {
+      setMessage('作品名を入力してください');
       return;
     }
 
     try {
       setOpen(true);
+      // en is omitted rather than blanked when there is no translation: the
+      // difference between "not translated" and "translated to nothing" is
+      // what tells the site which titles still need work.
       const data = {
-        name: {
-          ja: titleJP,
-          en: titleEN,
-        },
+        name: titleEN.trim() && titleEN.trim() !== titleJP.trim()
+          ? { ja: titleJP, en: titleEN.trim() }
+          : { ja: titleJP },
         tags: tagsState.map((key: string) => doc(db, key)),
       };
 
@@ -397,7 +399,7 @@ const AddTitle: React.FC<AddTitleProps> = ({ id }) => {
           onChange={(e) => setTitleJP(e.target.value)}
         />
         <TextField
-          label="作品名 (EN)"
+          label="作品名 (EN・任意)"
           variant="outlined"
           fullWidth
           margin="normal"
