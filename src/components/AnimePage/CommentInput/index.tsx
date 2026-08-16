@@ -27,6 +27,10 @@ const CommentInput: React.FC<{ id: string; seasonId?: string }> = (props) => {
         user: doc(db, `versions/1/users/${user.props.uid}`),
         userDisplayName: user.props.displayName,
         userPhotoURL: user.props.photoURL,
+        // What the reader wrote in. A comment is never translated — it is
+        // someone's own words — so this is here to label it, and to let an
+        // English page decide whether to show it or offer a translation.
+        lang: 'ja',
         createdAt: new Date(),
       });
       refreshAnimeComments();
