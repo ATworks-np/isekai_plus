@@ -22,13 +22,14 @@
   },
   "list": {
     "empty": "No works match",
-    "sortRecent": "Newest broadcast",
-    "sortLikes": "Most liked",
-    "sortComments": "Most discussed",
-    "sortRating": "Highest rated",
+    "sortLabel": "Sort order",
+    "sortRecent": "New",
+    "sortLikes": "Likes",
+    "sortComments": "Comments",
+    "sortRating": "Rating",
     "currentCour": "This season",
-    "thisSeason": "{cour} season",
-    "carousel": "This season's anime",
+    "thisSeason": "{cour} · rating #{rank}",
+    "carousel": "This season's top 10 by rating",
     "heading": "Isekai anime, listed and rated"
   },
   "tags": {

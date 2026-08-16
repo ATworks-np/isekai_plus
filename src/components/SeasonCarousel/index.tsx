@@ -80,8 +80,19 @@ const SeasonCarousel: React.FC<SeasonCarouselProps> = ({ skeleton = false }) => 
 
   const currentCours = useMemo(() => getCurrentCoursKey(), [])
 
+  // This season, highest rated first, ten slides. Ties follow the list API
+  // (id descending) so the carousel and the rating-sorted list agree.
   const currentSeasonAnimes = useMemo(
-    () => animes.filter((a) => Array.isArray(a.cours) && a.cours.includes(currentCours)),
+    () =>
+      animes
+        .filter((a) => Array.isArray(a.cours) && a.cours.includes(currentCours))
+        .sort((a, b) => {
+          const left = a.rating ?? 0
+          const right = b.rating ?? 0
+          if (left !== right) return right - left
+          return a.id < b.id ? 1 : a.id > b.id ? -1 : 0
+        })
+        .slice(0, 10),
     [animes, currentCours]
   )
 
@@ -337,7 +348,10 @@ const SeasonCarousel: React.FC<SeasonCarouselProps> = ({ skeleton = false }) => 
                     <StarRating rating={anime.rating ?? 0} sx={{ fontSize: 18}} />
                   </Box>
                   <Typography variant="caption" sx={{ opacity: 0.8 }}>
-                    {t('thisSeason', { cour: courLabel(currentCours, locale) ?? currentCours })}
+                    {t('thisSeason', {
+                      cour: courLabel(currentCours, locale) ?? currentCours,
+                      rank: i + 1,
+                    })}
                   </Typography>
                 </Box>
               </Stack>

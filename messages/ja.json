@@ -22,13 +22,14 @@
   },
   "list": {
     "empty": "該当する作品がありません",
-    "sortRecent": "放送が新しい順",
-    "sortLikes": "いいね順",
-    "sortComments": "コメントが多い順",
-    "sortRating": "評価順",
+    "sortLabel": "並び順",
+    "sortRecent": "新着",
+    "sortLikes": "いいね",
+    "sortComments": "コメント",
+    "sortRating": "評価",
     "currentCour": "今期",
-    "thisSeason": "{cour} 今季アニメ",
-    "carousel": "今季アニメリスト",
+    "thisSeason": "{cour} 評価 TOP {rank}",
+    "carousel": "今季評価トップ10",
     "heading": "異世界アニメまとめ - 作品一覧と評価"
   },
   "tags": {

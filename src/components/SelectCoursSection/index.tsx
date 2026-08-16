@@ -1,9 +1,11 @@
 import React from "react";
-import { Chip, Grid, Box, styled } from "@mui/material";
+import { Chip, Grid, Box, MenuItem, Select, styled } from "@mui/material";
 import { courAtom } from '@/stores/coursState'
 import { useAtom } from 'jotai'
 import { useLocale, useTranslations } from 'next-intl'
 import { courLabel } from '@/utils/cour'
+import { SORT_OPTIONS } from '@/hooks/useAnimeList'
+import type { SortKey } from '@/hooks/useAnimeList'
 
 const MyChip = styled(Chip)(({ theme }) => ({
   borderRadius: '10px',
@@ -18,7 +20,12 @@ const MyGrid = styled(Grid)(({ theme }) => ({
   height: "100%",
 }));
 
-const SelectCoursSection: React.FC = () => {
+type SelectCoursSectionProps = {
+  sort: SortKey
+  onSortChange: (sort: SortKey) => void
+}
+
+const SelectCoursSection: React.FC<SelectCoursSectionProps> = ({ sort, onSortChange }) => {
   const t = useTranslations('list')
   const locale = useLocale()
   const [coursState, setCoursState] = useAtom<string[]>(courAtom);
@@ -46,7 +53,7 @@ const SelectCoursSection: React.FC = () => {
   };
 
   return (
-    <div style={{ display: "flex", height: "100%", justifyContent: "center", alignItems: "center" }}>
+    <Box sx={{ display: 'flex', width: '100%', flexDirection: 'column', gap: 1 }}>
       <Box
         sx={{
           width: '100%',
@@ -70,7 +77,29 @@ const SelectCoursSection: React.FC = () => {
           ))}
         </Grid>
       </Box>
-    </div>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 0.5 }}>
+        <Select
+          size="small"
+          value={sort}
+          onChange={event => onSortChange(event.target.value as SortKey)}
+          inputProps={{ 'aria-label': t('sortLabel') }}
+          sx={{
+            width: 92,
+            backgroundColor: '#FFF',
+            borderRadius: '10px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            '& .MuiSelect-select': { py: 1, pl: 1.25, pr: '28px !important' },
+          }}
+        >
+          {SORT_OPTIONS.map(option => (
+            <MenuItem key={option} value={option}>
+              {t(`sort${option[0].toUpperCase()}${option.slice(1)}`)}
+            </MenuItem>
+          ))}
+        </Select>
+      </Box>
+    </Box>
   );
 };
 
