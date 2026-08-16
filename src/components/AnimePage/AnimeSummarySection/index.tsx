@@ -6,7 +6,7 @@ import { Season } from "@/hooks/useSeasons";
 import StarRating from "@/components/StarRating";
 import HelpIcon from '@mui/icons-material/Help';
 import RatingModal from "@/components/AnimePage/AnimeSummarySection/RatingModal";
-import {IRatings} from "@/models/interfaces/ratings";
+import {IRatings, RATING_AXES} from "@/models/interfaces/ratings";
 import AnimeTitle from "@/components/AnimePage/AnimeSummarySection/AnimeTitle";
 import useUser from "@/hooks/useUser";
 import Image from "next/image";
@@ -15,10 +15,10 @@ import StarIcon from '@mui/icons-material/Star';
 import {IAnimeStatic} from "@/models/interfaces/animeStatic";
 import {useAtom} from "jotai";
 import { userAtom } from '@/stores/userStore';
+import { customSnackbarAtom } from '@/stores/customSnackbarState';
+import { useRouter } from '@/i18n/navigation';
 import { courRangeLabel } from '@/utils/cour';
 import { useLocale, useTranslations } from 'next-intl'
-/** The five axes, in the order they are shown. Their names are translated. */
-const RATING_AXES = ['story', 'character', 'animation', 'worldview', 'message'] as const
 
 
 type AnimeSummarySectionProps = IAnimeStatic & {
@@ -32,7 +32,14 @@ type AnimeSummarySectionProps = IAnimeStatic & {
 const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
   const t = useTranslations('rating')
   const season = useTranslations('season')
+  const work = useTranslations('work')
   const locale = useLocale()
+  const router = useRouter()
+  const [, setMessage] = useAtom<string>(customSnackbarAtom)
+
+  // The work as the reader's language writes it. An English title is only
+  // recorded once someone has written one, so Japanese stays the fallback.
+  const title = (locale === 'ja' ? props.name.ja : props.name.en?.trim() || props.name.ja) ?? ''
 
   // The API numbers the seasons; the name is written in the reader's language.
   // A spinoff has no number and keeps the title it was stored with.
@@ -50,6 +57,17 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
   // The season's own cours, not the work's: with the tabs open the reader is
   // looking at one season, and the work's span covers all of them.
   const courLabel = courRangeLabel(activeSeason?.cours ?? [], locale);
+
+  // Pressing the stars while signed out did nothing at all, which reads as a
+  // broken button. Say what is missing and go where it can be fixed.
+  const openRating = () => {
+    if (!user.isAuthenticated()) {
+      setMessage(t('signIn'))
+      router.push('/login')
+      return
+    }
+    setOpenRatingModal(true)
+  }
 
   return (
     <Box
@@ -94,7 +112,7 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
         <Grid container spacing={2}>
           <Grid size={0.5} />
           <Grid size={11} >
-            <AnimeTitle name={props.name.ja}/>
+            <AnimeTitle name={title}/>
             {/* Which quarter the season on screen aired in. The tabs say which
                 season it is; without this the page never says when.
 
@@ -159,7 +177,7 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
           <Grid size={4}>
               <Image
                 src={thumbnail}
-                alt={`${props.name.ja}のキービジュアル`}
+                alt={work('keyVisual', { name: title })}
                 width={240}
                 height={360}
                 priority
@@ -197,7 +215,7 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
                           marginLeft: 0, // 親要素の左端に寄せる
                           paddingLeft: 0, // 必要ならパディングも調整
                         }}
-                        onClick={()=> user.isAuthenticated() && setOpenRatingModal(true)}
+                        onClick={openRating}
                         >
                           {/* Zero is a score, so it cannot stand in for one that
                               has not arrived: the stars would fill in front of
@@ -228,7 +246,7 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
               <Box style={{height: '10px'}}/>
               <Button
                 variant="contained"
-                onClick={() => user.isAuthenticated() && setOpenRatingModal(true)}
+                onClick={openRating}
               >
                 <StarIcon fontSize={'small'}/>
                 <Typography variant={"caption"}>{t('rate')}</Typography>

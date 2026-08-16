@@ -8,7 +8,8 @@
   "work": {
     "title": "{name} の評価・感想",
     "description": "『{name}』の評価と感想。ストーリー・キャラクター・作画・世界観・メッセージ性の5項目で期ごとに採点でき、視聴者のコメントも読めます。{cours}異世界アニメまとめサイト{site}。",
-    "aired": "放送: {cours}。"
+    "aired": "放送: {cours}。",
+    "keyVisual": "{name}のキービジュアル"
   },
   "nav": {
     "allWorks": "異世界アニメ作品一覧",
@@ -35,6 +36,7 @@
     "empty": "コメントはまだありません",
     "placeholder": "コメントを入力してください...",
     "signedOut": "コメントを投稿するにはログインしてください",
+    "signIn": "ログイン",
     "send": "送信",
     "failed": "コメント送信に失敗しました",
     "added": "コメントが追加されました"
@@ -53,7 +55,14 @@
     "animation": "作画",
     "worldview": "世界観",
     "message": "テーマ性",
-    "rate": "をつける"
+    "rate": "をつける",
+    "title": "星を付ける",
+    "forSeason": "{season} の評価",
+    "selectAll": "5項目すべてに星を付けてください",
+    "submit": "送信",
+    "saved": "送信しました",
+    "failed": "送信に失敗しました: {error}",
+    "signIn": "評価するにはログインしてください"
   },
   "footer": {
     "allWorks": "作品一覧"

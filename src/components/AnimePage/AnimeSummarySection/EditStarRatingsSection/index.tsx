@@ -1,5 +1,5 @@
 import React from "react";
-import {Box, Container, Typography} from "@mui/material";
+import {Box, Container, Skeleton, Typography} from "@mui/material";
 import StarIcon from "@mui/icons-material/Star";
 import StarHalfIcon from "@mui/icons-material/StarHalf";
 import StarOutlineIcon from "@mui/icons-material/StarOutline";
@@ -11,6 +11,13 @@ import {IRatings} from "@/models/interfaces/ratings";
 interface StarRatingSectionProps {
   ratings: IRatings,
   ratingLabels:{[key:string]: string},
+  // Axes still waiting for a star. Their labels are marked so the reader can
+  // see what the disabled submit button is waiting for.
+  missingKeys?: readonly string[],
+  // The reader's own scores are fetched, and an empty row means "not scored"
+  // here — so while they are on their way the stars are drawn as skeletons
+  // rather than as five unscored axes.
+  loading?: boolean,
   setRating: (key:string, value: number) => void;
 }
 
@@ -28,6 +35,7 @@ const EditStarRatingsSection: React.FC<StarRatingSectionProps> = (props) => {
                   display: '-webkit-box',
                   WebkitBoxOrient: 'vertical',
                   WebkitLineClamp: 2,
+                  color: props.missingKeys?.includes(key) ? 'error.main' : undefined,
                 }}
               >
                 {label}
@@ -40,7 +48,15 @@ const EditStarRatingsSection: React.FC<StarRatingSectionProps> = (props) => {
                 paddingLeft: 0, // 必要ならパディングも調整
               }}
               >
-                <EditStarRating rating={props.ratings[key as keyof IRatings]} setRating={(rate)=>props.setRating(key, rate)}/>
+                {props.loading ? (
+                  // The stars are 20px icons, so the row is 20px tall whether
+                  // it holds them or this.
+                  <Box sx={{ height: 20, display: 'flex', alignItems: 'center' }}>
+                    <Skeleton variant="rectangular" width={100} height={14} sx={{ borderRadius: '3px' }} />
+                  </Box>
+                ) : (
+                  <EditStarRating rating={props.ratings[key as keyof IRatings]} setRating={(rate)=>props.setRating(key, rate)}/>
+                )}
               </Container>
             </Grid>
             <Grid size={1}>

@@ -8,7 +8,8 @@
   "work": {
     "title": "{name} — ratings and reviews",
     "description": "Ratings and reviews for {name}. Each season is scored separately on story, characters, animation, worldbuilding and theme, with reader comments. {cours}From {site}, a catalogue of isekai anime.",
-    "aired": "Aired {cours}. "
+    "aired": "Aired {cours}. ",
+    "keyVisual": "{name} key visual"
   },
   "nav": {
     "allWorks": "All isekai anime",
@@ -35,6 +36,7 @@
     "empty": "No comments yet",
     "placeholder": "Write a comment…",
     "signedOut": "Sign in to comment",
+    "signIn": "Sign in",
     "send": "Send",
     "failed": "Could not post the comment",
     "added": "Comment posted"
@@ -53,7 +55,14 @@
     "animation": "Animation",
     "worldview": "Worldbuilding",
     "message": "Theme",
-    "rate": "Rate it"
+    "rate": "Rate it",
+    "title": "Rate this",
+    "forSeason": "Rating {season}",
+    "selectAll": "Give all five a star before submitting",
+    "submit": "Submit",
+    "saved": "Rating saved",
+    "failed": "Could not save the rating: {error}",
+    "signIn": "Sign in to rate"
   },
   "footer": {
     "allWorks": "All works"

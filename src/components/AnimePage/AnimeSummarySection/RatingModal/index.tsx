@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
 import { useAtom } from 'jotai'
-import { Box, Button, CircularProgress, Container, Modal, Stack, Typography } from '@mui/material'
+import { Button, CircularProgress, Container, Modal, Stack, Typography } from '@mui/material'
 import { getAuth } from 'firebase/auth'
+import { useTranslations } from 'next-intl'
 import theme from '@/theme/theme'
 import EditStarRatingsSection from '@/components/AnimePage/AnimeSummarySection/EditStarRatingsSection'
-import { IRatings, ratingLabels } from '@/models/interfaces/ratings'
+import { IRatings, RATING_AXES } from '@/models/interfaces/ratings'
 import useSeasonMyRatings from '@/hooks/useSeasonMyRatings'
 import { customSnackbarAtom } from '@/stores/customSnackbarState'
 import { userAtom } from '@/stores/userStore'
@@ -37,14 +38,26 @@ const RatingModal: React.FC<RatingModalProps> = ({
   seasonLabel,
   onSaved,
 }) => {
+  const t = useTranslations('rating')
   const [user] = useAtom(userAtom)
-  const { myRatings, reloadMyRatings } = useSeasonMyRatings(animeId, seasonId)
+  const { myRatings, loading, reloadMyRatings } = useSeasonMyRatings(animeId, seasonId)
   // null until the user touches a star, so ratings loading in are shown
   // without an effect copying them into state.
   const [draft, setDraft] = useState<IRatings | null>(null)
   const ratings = draft ?? myRatings
   const [submitting, setSubmitting] = useState<boolean>(false)
-  const [message, setMessage] = useAtom<string>(customSnackbarAtom)
+  const [, setMessage] = useAtom<string>(customSnackbarAtom)
+
+  const labels = Object.fromEntries(RATING_AXES.map(key => [key, t(key)]))
+
+  /**
+   * Zero is the score for a work someone thought nothing of, not the absence of
+   * an answer — but the form opens with all five axes at zero, so submitting
+   * after picking one axis wrote four bottom scores into the season average.
+   * An untouched axis is therefore not submittable, and is named so the reader
+   * can see which one is holding the button.
+   */
+  const missing = RATING_AXES.filter(key => !ratings[key])
 
   /**
    * Posting to the API instead of writing Firestore directly: the server folds
@@ -52,10 +65,10 @@ const RatingModal: React.FC<RatingModalProps> = ({
    * transaction, which the old trigger chain could not guarantee.
    */
   const handleSubmit = async () => {
-    if (!seasonId) return
+    if (!seasonId || missing.length) return
     const currentUser = getAuth().currentUser
     if (!currentUser) {
-      setMessage('ログインが必要です')
+      setMessage(t('signIn'))
       return
     }
 
@@ -76,10 +89,10 @@ const RatingModal: React.FC<RatingModalProps> = ({
       setDraft(null)
       await reloadMyRatings()
       onSaved?.()
-      setMessage('送信しました')
+      setMessage(t('saved'))
       setOpen(false)
     } catch (error) {
-      setMessage(`送信に失敗しました: ${error instanceof Error ? error.message : String(error)}`)
+      setMessage(t('failed', { error: error instanceof Error ? error.message : String(error) }))
     } finally {
       setSubmitting(false)
     }
@@ -89,26 +102,33 @@ const RatingModal: React.FC<RatingModalProps> = ({
     <Modal open={user.isAuthenticated() && open} onClose={() => setOpen(false)}>
       <Container sx={style}>
         <Stack alignItems="center" spacing={1}>
-          <Typography>星を付ける</Typography>
+          <Typography>{t('title')}</Typography>
           {seasonLabel && (
             <Typography variant="caption" color="text.secondary">
-              {seasonLabel} の評価
+              {t('forSeason', { season: seasonLabel })}
             </Typography>
           )}
           <EditStarRatingsSection
             ratings={ratings}
-            ratingLabels={ratingLabels}
+            ratingLabels={labels}
+            missingKeys={loading ? [] : missing}
+            loading={loading}
             setRating={(key, rate) => setDraft({ ...ratings, [key]: rate })}
           />
+          {!loading && missing.length > 0 && (
+            <Typography variant="caption" color="error">
+              {t('selectAll')}
+            </Typography>
+          )}
           <Button
             onClick={handleSubmit}
             variant="contained"
             color="primary"
             fullWidth
-            disabled={submitting || !seasonId}
+            disabled={submitting || loading || !seasonId || missing.length > 0}
             sx={{ mt: 2 }}
           >
-            {submitting ? <CircularProgress size={24} /> : '送信'}
+            {submitting ? <CircularProgress size={24} /> : t('submit')}
           </Button>
         </Stack>
       </Container>

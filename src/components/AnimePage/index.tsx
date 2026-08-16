@@ -22,7 +22,11 @@ const AnimePage: React.FC<IAnimeStatic> = (props) => {
   if (!props.id) return null;
 
   return (
-    <Stack id='stack' direction="column" alignItems="center">
+    // The comment box is fixed to the bottom of the viewport, so it sits over
+    // whatever the page ends with — the last comment was unreadable behind it.
+    // The padding is the box's own height at each breakpoint, which grows with
+    // its font size, plus a little air.
+    <Stack id='stack' direction="column" alignItems="center" sx={{ pb: { xs: '64px', sm: '72px', md: '76px' } }}>
       <AnimeSummarySection
         {...props}
         seasons={seasons}

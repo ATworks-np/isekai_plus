@@ -7,7 +7,6 @@ import {doc, DocumentReference, getDoc} from "firebase/firestore";
 import {db} from "@/firebase";
 import User from "@/models/entities/user";
 import Anime from "@/models/entities/anime";
-import {ratingLabels} from "@/models/interfaces/ratings"
 
 const useAnime = (props: {id: string | undefined}) => {
   const [anime, setAnime] = useAtom(animeAtom);

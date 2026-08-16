@@ -7,8 +7,10 @@ import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
 import { deleteDoc, doc } from 'firebase/firestore'
 import { db } from '@/firebase'
+import { useLocale } from 'next-intl'
 
 import useTags from "@/hooks/useTags";
+import { ITag } from '@/models/entities/tag'
 
 const MyChip = styled(Chip)(({ theme }) => ({
   borderRadius: '10px',
@@ -24,12 +26,17 @@ interface TagsSectionProps {
 }
 
 const TagsSection: React.FC<TagsSectionProps> = props => {
+  const locale = useLocale();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [tagToDelete, setTagToDelete] = useState<{ key: string, name: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showAllTags, setShowAllTags] = useState<boolean>(false);
 
   const {tags, syncTags} = useTags();
+
+  // A tag carries an English name only once someone has written one, so the
+  // Japanese one is the fallback — the same rule the work titles follow.
+  const nameOf = (tag: ITag) => (locale === 'ja' ? tag.name.ja : tag.name.en?.trim() || tag.name.ja);
 
   // Derived, not stored: this is a pure function of tags, the query and the
   // toggles, so keeping it in state meant rendering once with the old list.
@@ -167,7 +174,7 @@ const TagsSection: React.FC<TagsSectionProps> = props => {
                 <MyChip
                   key={index}
                   id={key}
-                  label={tag.name['ja']}
+                  label={nameOf(tag)}
                   color={props.tagsState?.includes(key) ? 'primary':'secondary'}
                   onClick={() => {
                     if (props.tagsState?.includes(key)) {
@@ -179,7 +186,7 @@ const TagsSection: React.FC<TagsSectionProps> = props => {
                     }
                   }}
                   deleteIcon={<CloseIcon />}
-                  onDelete={(event) => handleDeleteClick(event, key, tag.name['ja'])}
+                  onDelete={(event) => handleDeleteClick(event, key, nameOf(tag))}
                 />
               ))
             )}

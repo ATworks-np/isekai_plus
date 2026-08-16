@@ -10,6 +10,10 @@ import { IRatings, baseRatings } from '@/models/interfaces/ratings'
  */
 const useSeasonMyRatings = (animeId: string | undefined, seasonId: string | undefined) => {
   const [myRatings, setMyRatings] = useState<IRatings>(baseRatings)
+  // A zero axis means "not scored yet" to the editor, so the wait has to be
+  // told apart from the answer: without this a reader who has already rated
+  // the season sees five unscored axes until their own scores arrive.
+  const [loading, setLoading] = useState<boolean>(true)
 
   const load = useCallback(async () => {
     if (!animeId || !seasonId) return
@@ -17,6 +21,7 @@ const useSeasonMyRatings = (animeId: string | undefined, seasonId: string | unde
     const currentUser = getAuth().currentUser
     if (!currentUser) {
       setMyRatings(baseRatings)
+      setLoading(false)
       return
     }
 
@@ -31,6 +36,8 @@ const useSeasonMyRatings = (animeId: string | undefined, seasonId: string | unde
     } catch (error) {
       console.error('自分の評価の取得に失敗しました', error)
       setMyRatings(baseRatings)
+    } finally {
+      setLoading(false)
     }
   }, [animeId, seasonId])
 
@@ -43,7 +50,7 @@ const useSeasonMyRatings = (animeId: string | undefined, seasonId: string | unde
     return () => unsubscribe()
   }, [load])
 
-  return { myRatings, setMyRatings, reloadMyRatings: load }
+  return { myRatings, setMyRatings, loading, reloadMyRatings: load }
 }
 
 export default useSeasonMyRatings

@@ -30,6 +30,15 @@ export type SeasonRatings = Record<RatingKey, number>
 const zeroRatings = (): SeasonRatings =>
   Object.fromEntries(RATING_KEYS.map(key => [key, 0])) as SeasonRatings
 
+/**
+ * A user's rating, which must score all five axes from 1 to 5.
+ *
+ * Zero is refused because the editor cannot produce one — its lowest star is 1
+ * — so a zero arriving here is an axis the reader never answered, and folding
+ * it into the average would be recording a bottom score for a question nobody
+ * asked. This only constrains new writes; the ratings already stored are read
+ * back and aggregated as they are.
+ */
 export const parseRatings = (value: unknown): SeasonRatings => {
   if (typeof value !== 'object' || value === null) {
     throw new InvalidInput('ratings must be an object with all five axes.')
@@ -42,7 +51,7 @@ export const parseRatings = (value: unknown): SeasonRatings => {
     if (typeof raw !== 'number' || !Number.isFinite(raw)) {
       throw new InvalidInput(`ratings.${key} must be a number.`)
     }
-    if (raw < 0 || raw > 5) throw new InvalidInput(`ratings.${key} must be between 0 and 5.`)
+    if (raw < 1 || raw > 5) throw new InvalidInput(`ratings.${key} must be between 1 and 5.`)
     result[key] = raw
   }
   return result
