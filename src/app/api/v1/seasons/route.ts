@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebaseAdmin'
-import { serializeSeason } from '@/lib/season'
+import { serializeSeasons } from '@/lib/season'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -17,15 +17,17 @@ export async function GET() {
   try {
     const snapshot = await adminDb().collectionGroup('seasons').get()
 
-    const byAnime: Record<string, ReturnType<typeof serializeSeason>[]> = {}
+    // Grouped before serializing: a season is numbered by its position among
+    // its own work's, so the set has to be together first.
+    const docsByAnime = new Map<string, typeof snapshot.docs>()
     for (const doc of snapshot.docs) {
       const animeId = doc.ref.parent.parent?.id
       if (!animeId) continue
-      ;(byAnime[animeId] ??= []).push(serializeSeason(doc))
+      docsByAnime.set(animeId, [...(docsByAnime.get(animeId) ?? []), doc])
     }
-    for (const seasons of Object.values(byAnime)) {
-      seasons.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-    }
+
+    const byAnime: Record<string, ReturnType<typeof serializeSeasons>> = {}
+    for (const [animeId, docs] of docsByAnime) byAnime[animeId] = serializeSeasons(docs)
 
     return NextResponse.json({ seasons: byAnime })
   } catch (error) {

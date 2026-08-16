@@ -9,7 +9,7 @@ import {
   storeThumbnailFromUrl,
 } from '@/lib/anime'
 import { ANIMES_PATH, adminDb } from '@/lib/firebaseAdmin'
-import { RATING_KEYS, serializeSeason } from '@/lib/season'
+import { RATING_KEYS, serializeSeasons } from '@/lib/season'
 import { invalidateSeasonIndex, seasonIndex, workSeasons } from '@/lib/seasonIndex'
 import { serializeAnime } from '@/app/api/v1/animes/serialize'
 
@@ -157,7 +157,7 @@ export async function GET(request: Request) {
         latestCour: entry.latestCour,
         ratings: Object.fromEntries(RATING_KEYS.map(key => [key, doc.get(`${key}Rating`) ?? 0])),
         rating: doc.get('ratingAverage') ?? 0,
-        seasons: entry.seasons.map(serializeSeason),
+        seasons: serializeSeasons(entry.seasons),
       }
     })
 

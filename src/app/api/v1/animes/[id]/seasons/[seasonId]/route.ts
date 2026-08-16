@@ -8,7 +8,7 @@ import {
   removeSeason,
   seasonDoc,
   seasonsCollection,
-  serializeSeason,
+  serializeSeasons,
   seriesRatingFields,
 } from '@/lib/season'
 import { invalidateSeasonIndex } from '@/lib/seasonIndex'
@@ -49,7 +49,8 @@ export async function PATCH(request: Request, context: Context) {
       await ref.update({ hasThumbnail: true })
     }
     invalidateSeasonIndex()
-    return NextResponse.json(serializeSeason(await ref.get()))
+    const siblings = await seasonsCollection(id).get()
+    return NextResponse.json(serializeSeasons(siblings.docs).find(season => season.id === seasonId))
   } catch (error) {
     if (error instanceof InvalidInput) {
       return NextResponse.json({ error: error.message }, { status: 400 })

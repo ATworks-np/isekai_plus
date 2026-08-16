@@ -178,7 +178,7 @@ curl -X POST "$ISEKAI_API_BASE/api/v1/animes/" \
   -H "X-API-Key: $ISEKAI_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": { "ja": "タイトル", "en": "タイトル" },
+    "name": { "ja": "タイトル" },
     "cours": ["2026-Q3"],
     "tags": [],
     "imageUrl": "https://img2.animatetimes.com/...jpg",
@@ -193,7 +193,8 @@ curl -X POST "$ISEKAI_API_BASE/api/v1/animes/" \
 
 - `name.ja` — `seriesTitle` があればそれ、なければ `title`。レコードは
   シリーズを表すので、「〜 4th season」のような期固有の名前は付けない
-- `name.en` — 英題がないので `name.ja` と同じ値
+- `name.en` — **英題が分かる場合だけ**。日本語のコピーは入れない。
+  無ければキーごと省く（空文字も入れない）
 - `cours` — **手順7で確定させたもの**。YAML の値をそのまま渡さない
 - `tags` — **常に空配列**。タグ付けは別途
 - `imageUrl` — `thumbnail.url`
@@ -213,7 +214,6 @@ curl -X POST "$ISEKAI_API_BASE/api/v1/animes/<id>/seasons/" \
   -H "Content-Type: application/json" \
   -d '{
     "order": 2,
-    "label": "第2期",
     "cours": ["2026-Q3"],
     "imageUrl": "https://img2.animatetimes.com/...jpg"
   }'
@@ -221,6 +221,10 @@ curl -X POST "$ISEKAI_API_BASE/api/v1/animes/<id>/seasons/" \
 
 `order` はシリーズ内で一意。既存の期を `GET /api/v1/animes/<id>/seasons/` で
 確認してから決める。
+
+**`label` は送らない。** 第1期・第2期はサイト側が `order` の並び順から作ります
+（スピンオフは番号を飛ばすので、爆焔の次は第4期ではなく第3期になります）。
+送ると 400 になります。
 
 **`imageUrl` は必ず渡す。** 一覧のサムネイルは期ごとで、無い期は作品のものに
 フォールバックする。渡さないと2期以降が1期の絵で並ぶ。
@@ -239,7 +243,8 @@ curl -X PATCH "$ISEKAI_API_BASE/api/v1/animes/<id>/seasons/<seasonId>/" \
 ### スピンオフ
 
 本編の期ではない側の物語（転スラ日記、この素晴らしい世界に爆焔を！）は
-`第N期` の採番から外し、`"kind": "spinoff"` を付けて `label` に作品名を入れる。
+`"kind": "spinoff"` を付け、`label` に作品名を入れる。**label を持つのは
+スピンオフだけ**で、通常の期は採番から作られる。
 判断がつかないものはユーザーに確認する。副題だけの続編（マッシュル 神覚者候補
 選抜試験編）は**期として扱う**ので、混同しない。
 

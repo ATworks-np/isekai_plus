@@ -51,6 +51,7 @@ export const parseRatings = (value: unknown): SeasonRatings => {
 export type SeasonInput = {
   order?: unknown
   label?: unknown
+  kind?: unknown
   cours?: unknown
   programId?: unknown
 }
@@ -66,9 +67,18 @@ export const buildSeasonWrite = (input: SeasonInput, { partial }: { partial: boo
     write.order = order
   }
 
-  if (input.label !== undefined || !partial) {
+  // A season's label is 第1期, 第2期 and so on, which is its position among the
+  // seasons — derived on read rather than stored, so it does not have to be
+  // written correctly, kept correct when a season is inserted, or translated
+  // 212 times. A spinoff is the exception: 「この素晴らしい世界に爆焔を！」 cannot
+  // be worked out from a number, so it carries its own.
+  const spinoff = input.kind === 'spinoff'
+  if (input.label !== undefined || (!partial && spinoff)) {
     if (typeof input.label !== 'string' || !input.label.trim()) {
-      throw new InvalidInput('label must be a non-empty string, e.g. 第1期.')
+      throw new InvalidInput('label must be a non-empty string, e.g. この素晴らしい世界に爆焔を！.')
+    }
+    if (!spinoff) {
+      throw new InvalidInput('label is only for kind="spinoff"; ordinary seasons are numbered from order.')
     }
     write.label = input.label.trim()
   }
@@ -91,7 +101,7 @@ export const buildSeasonWrite = (input: SeasonInput, { partial }: { partial: boo
   return write
 }
 
-export const serializeSeason = (doc: DocumentSnapshot) => {
+const serializeOne = (doc: DocumentSnapshot, label: string) => {
   const data = doc.data() ?? {}
   // The parent id is the anime; a season's key visual is stored beneath it.
   const animeId = doc.ref.parent.parent?.id
@@ -99,13 +109,35 @@ export const serializeSeason = (doc: DocumentSnapshot) => {
     id: doc.id,
     thumbnailUrl: data.hasThumbnail && animeId ? thumbnailUrlFor(`${animeId}/${doc.id}`) : null,
     order: data.order ?? null,
-    label: data.label ?? '',
+    label,
     cours: data.cours ?? [],
     programId: data.programId ?? null,
     kind: data.kind ?? 'season',
     ratingCount: data.ratingCount ?? 0,
     ratings: (data.ratings ?? zeroRatings()) as SeasonRatings,
   }
+}
+
+/**
+ * Numbers the seasons of one work.
+ *
+ * 第1期 is a position, not a name, so it is worked out here rather than stored
+ * — and it is the position among the *seasons*: この素晴らしい世界に祝福を！ has
+ * 爆焔 sitting at order 3, and the season after it is 第3期, not 第4期. A
+ * spinoff keeps the label it was given, since no number describes it.
+ *
+ * Takes the whole set because a season cannot know its own number.
+ */
+export const serializeSeasons = (docs: DocumentSnapshot[]) => {
+  const ordered = [...docs].sort((a, b) => (a.get('order') ?? 0) - (b.get('order') ?? 0))
+  let numbered = 0
+  return ordered.map(doc => {
+    if ((doc.get('kind') ?? 'season') === 'spinoff') {
+      return serializeOne(doc, doc.get('label') ?? '')
+    }
+    numbered += 1
+    return serializeOne(doc, `第${numbered}期`)
+  })
 }
 
 type SeasonAggregate = { id: string; ratingCount: number; ratings: SeasonRatings }
