@@ -5,8 +5,15 @@ import {
   EMPTY_CREDITS,
   buildCreditsWrite,
   creditsDoc,
+  isLocale,
   serializeCredits,
 } from '@/lib/credits'
+
+/** ?lang=ja|en, defaulting to the language the site is written in. */
+const localeOf = (request: Request) => {
+  const raw = new URL(request.url).searchParams.get('lang') ?? 'ja'
+  return isLocale(raw) ? raw : null
+}
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -16,9 +23,11 @@ type Context = { params: Promise<{ id: string }> }
 /** Public: the work page shows all of this. */
 export async function GET(request: Request, context: Context) {
   const { id } = await context.params
+  const locale = localeOf(request)
+  if (!locale) return NextResponse.json({ error: 'lang must be ja or en.' }, { status: 400 })
 
   try {
-    const snapshot = await creditsDoc(id).get()
+    const snapshot = await creditsDoc(id, locale).get()
     // A work with no credits recorded yet is not an error; the page just has
     // nothing to open.
     return NextResponse.json(snapshot.exists ? serializeCredits(snapshot) : EMPTY_CREDITS)
@@ -37,6 +46,8 @@ export async function PUT(request: Request, context: Context) {
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const { id } = await context.params
+  const locale = localeOf(request)
+  if (!locale) return NextResponse.json({ error: 'lang must be ja or en.' }, { status: 400 })
 
   let body: unknown
   try {
@@ -51,7 +62,7 @@ export async function PUT(request: Request, context: Context) {
     }
 
     const write = buildCreditsWrite((body ?? {}) as Record<string, unknown>)
-    await creditsDoc(id).set(write)
+    await creditsDoc(id, locale).set(write)
 
     return NextResponse.json(write)
   } catch (error) {
@@ -68,10 +79,12 @@ export async function DELETE(request: Request, context: Context) {
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const { id } = await context.params
+  const locale = localeOf(request)
+  if (!locale) return NextResponse.json({ error: 'lang must be ja or en.' }, { status: 400 })
 
   try {
-    await creditsDoc(id).delete()
-    return NextResponse.json({ id, deleted: true })
+    await creditsDoc(id, locale).delete()
+    return NextResponse.json({ id, locale, deleted: true })
   } catch (error) {
     console.error(`DELETE /api/v1/animes/${id}/credits failed`, error)
     return NextResponse.json({ error: 'Internal server error.' }, { status: 500 })

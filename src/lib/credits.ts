@@ -29,8 +29,23 @@ export type Credits = {
   sourceWorkTagId: number | null
 }
 
-export const creditsDoc = (animeId: string) =>
-  adminDb().doc(`${ANIMES_PATH}/${animeId}/details/credits`)
+/** The languages the site stores long text in. */
+export const LOCALES = ['ja', 'en'] as const
+export type Locale = (typeof LOCALES)[number]
+
+export const isLocale = (value: unknown): value is Locale =>
+  typeof value === 'string' && (LOCALES as readonly string[]).includes(value)
+
+/**
+ * One document per language.
+ *
+ * Staff and cast run to fifty entries and are read only by the work page, so
+ * they sit in a subcollection keyed by language rather than as a map of
+ * languages inside one document: adding English should not enlarge what a
+ * Japanese reader downloads.
+ */
+export const creditsDoc = (animeId: string, locale: Locale = 'ja') =>
+  adminDb().doc(`${ANIMES_PATH}/${animeId}/details/${locale}`)
 
 const asTrimmed = (value: unknown, field: string): string => {
   if (typeof value !== 'string' || !value.trim()) {
