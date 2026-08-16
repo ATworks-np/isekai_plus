@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Box, Container, Stack, Typography } from '@mui/material'
-import { api } from '@/Routes/routs'
+import { fetchRead } from '@/Routes/routs'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { alternatesFor, localePath } from '@/lib/site'
 import { routing } from '@/i18n/routing'
@@ -44,7 +44,7 @@ export default async function AnimeIndex({ params }: Props) {
   setRequestLocale(locale)
   const t = await getTranslations({ locale, namespace: 'index' })
 
-  const response = await fetch(`${api.animes}/statics`)
+  const response = await fetchRead('/statics')
   if (!response.ok) throw new Error(`Failed to fetch animes: ${response.status}`)
   const animes: Anime[] = await response.json()
 

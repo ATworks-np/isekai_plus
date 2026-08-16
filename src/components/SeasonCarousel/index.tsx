@@ -66,7 +66,7 @@ const SeasonCarousel: React.FC<SeasonCarouselProps> = ({ skeleton = false }) => 
   )
 
   useEffect(() => {
-    fetch(api.animes)
+    fetch(`${api.animes}/statics`)
       .then((response) => {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
         return response.json()

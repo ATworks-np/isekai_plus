@@ -163,7 +163,7 @@ const UpperAppBar: React.FC = props => {
             </Link>
           }
           {user.props?.isAdmin &&
-            <Link href={api.animes +'?clear=38FEF305540D4A528BB053A5C1293C83'}>
+            <Link href={api.legacyAnimes + '?clear=38FEF305540D4A528BB053A5C1293C83'}>
               <MenuItem onClick={handleClose} disableRipple>
                 Clear Cache
               </MenuItem>

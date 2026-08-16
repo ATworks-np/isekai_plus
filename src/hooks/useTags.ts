@@ -20,14 +20,10 @@ const useTags = () => {
 
   const syncTags = useCallback(async () => {
     try {
-      const response = await fetch('https://tags-1083169622055.us-central1.run.app')
+      const response = await fetch('/api/v1/tags/')
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
-      const data = await response.json()
-      const result = data.reduce((acc: any, item: any) => {
-        acc[item.path] = item
-        return acc
-      }, {})
-      setTags({ ...result })
+      // Already keyed by document path, which is how a work stores its tags.
+      setTags(await response.json())
     } catch (error) {
       console.error("データ取得中にエラーが発生しました:", error)
     }

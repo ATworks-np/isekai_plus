@@ -1,7 +1,7 @@
 export const dynamic = 'force-static'
 
 import { MetadataRoute } from 'next'
-import { api } from '@/Routes/routs'
+import { fetchRead } from '@/Routes/routs'
 import { animeUrl, pageUrl } from '@/lib/site'
 import { routing } from '@/i18n/routing'
 
@@ -17,7 +17,7 @@ import { routing } from '@/i18n/routing'
  * sitemap contains only canonical URLs.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const response = await fetch(`${api.animes}/statics`)
+  const response = await fetchRead('/statics')
   if (!response.ok) throw new Error(`Failed to fetch animes for sitemap: ${response.status}`)
   const animes: { id: string }[] = await response.json()
 

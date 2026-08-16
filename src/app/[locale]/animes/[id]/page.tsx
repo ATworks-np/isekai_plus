@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import AnimePage from "@/components/AnimePage"
-import { api } from "@/Routes/routs"
+import { fetchRead } from "@/Routes/routs"
 import {IAnimeStatic} from "@/models/interfaces/animeStatic";
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { SITE_URL, alternatesFor, animeUrl, pageUrl, thumbnailUrl } from '@/lib/site'
@@ -15,7 +15,7 @@ type Props = {
 export const dynamicParams = false
 
 export async function generateStaticParams() {
-  const res = await fetch(api.animes+'/ids')
+  const res = await fetchRead('/ids')
 
   if (!res.ok) {
     throw new Error('Failed to fetch anime ids')
@@ -32,7 +32,7 @@ export async function generateStaticParams() {
 
 /** Fetched twice per page — for the metadata and for the page — but Next dedupes. */
 const fetchAnime = async (id: string): Promise<IAnimeStatic> => {
-  const res = await fetch(api.animes+'/'+id+'/statics?schema=2', {
+  const res = await fetchRead(`/${id}/`, `/${id}/statics?schema=2`, {
     next: { revalidate: 300 },
   })
   if (res.status === 404) notFound()

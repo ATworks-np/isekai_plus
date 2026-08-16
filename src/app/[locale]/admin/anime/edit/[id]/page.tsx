@@ -1,8 +1,8 @@
 import AddTitle from "@/components/AdminPage/AddTitle";
-import {api} from "@/Routes/routs";
+import {fetchRead} from "@/Routes/routs";
 
 export async function generateStaticParams() {
-  const res = await fetch(api.animes+'/ids')
+  const res = await fetchRead('/ids')
 
   if (!res.ok) {
     throw new Error('Failed to fetch anime ids')

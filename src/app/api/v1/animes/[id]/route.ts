@@ -17,6 +17,43 @@ export const dynamic = 'force-dynamic'
 
 type Context = { params: Promise<{ id: string }> }
 
+/**
+ * One work, for the page that is about it.
+ *
+ * Public: everything here is on the page already. Replaces the /:id/statics
+ * endpoint on Cloud Functions, which read the cours off the work document —
+ * they live on the seasons now, and keeping both readers meant fixing the same
+ * thing twice.
+ */
+export async function GET(request: Request, context: Context) {
+  const { id } = await context.params
+
+  try {
+    const doc = await animeDoc(id).get()
+    if (!doc.exists) return NextResponse.json({ error: `No anime with id ${id}.` }, { status: 404 })
+
+    const seasons = await seasonsCollection(id).get()
+    const cours = [
+      ...new Set(seasons.docs.flatMap(season => (season.get('cours') ?? []) as string[])),
+    ].sort()
+
+    return NextResponse.json(
+      {
+        ...serializeAnime(doc, cours),
+        rating: doc.get('ratingAverage') ?? 0,
+        // Summed over the seasons: the work itself does not count votes.
+        ratingCount: seasons.docs.reduce((sum, season) => sum + (season.get('ratingCount') ?? 0), 0),
+        commentCount: doc.get('commentCount') ?? 0,
+        likeCount: doc.get('likeCount') ?? 0,
+      },
+      { headers: { 'Cache-Control': 'public, max-age=60, s-maxage=300' } }
+    )
+  } catch (error) {
+    console.error(`GET /api/v1/animes/${id} failed`, error)
+    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 })
+  }
+}
+
 export async function PATCH(request: Request, context: Context) {
   const auth = await authenticateApiKey(request)
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status })
