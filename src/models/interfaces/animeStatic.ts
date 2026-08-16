@@ -2,7 +2,7 @@ export interface IAnimeStatic {
   id: string,
   name: {
     ja: string,
-    en: string,
+    en?: string,
   },
   cours: string[],
   ratingCount?: number,

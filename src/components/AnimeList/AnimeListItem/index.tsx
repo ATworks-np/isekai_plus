@@ -40,7 +40,7 @@ interface AnimeListItemProps {
   id: string;
   name: {
     ja: string
-    en: string
+    en?: string
   };
   tags: string[];
   cours: string[];

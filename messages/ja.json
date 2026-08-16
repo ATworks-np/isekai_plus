@@ -1,0 +1,63 @@
+{
+  "site": {
+    "name": "いせかいぷらす",
+    "title": "いせかいぷらす | 異世界アニメまとめサイト",
+    "tagline": "おすすめの異世界転生アニメ、異世界冒険作品をジャンル別にまとめサイト",
+    "description": "異世界アニメ好き必見！おすすめの異世界転生アニメ、異世界冒険作品をジャンル別にまとめています。異世界アニメの最新情報やランキングも掲載！"
+  },
+  "work": {
+    "title": "{name} の評価・感想",
+    "description": "『{name}』の評価と感想。ストーリー・キャラクター・作画・世界観・メッセージ性の5項目で期ごとに採点でき、視聴者のコメントも読めます。{cours}異世界アニメまとめサイト{site}。",
+    "aired": "放送: {cours}。"
+  },
+  "nav": {
+    "allWorks": "異世界アニメ作品一覧",
+    "home": "トップ"
+  },
+  "index": {
+    "title": "異世界アニメ作品一覧",
+    "description": "掲載している異世界アニメを放送クール順にすべて掲載。各作品ページで期ごとの評価と感想が読めます。",
+    "count": "（全{count}作品）"
+  },
+  "list": {
+    "empty": "該当する作品がありません",
+    "sortRecent": "放送が新しい順",
+    "sortLikes": "いいね順",
+    "sortComments": "コメントが多い順",
+    "sortRating": "評価順",
+    "currentCour": "今期",
+    "thisSeason": "{cour} 今季アニメ",
+    "carousel": "今季アニメリスト"
+  },
+  "comments": {
+    "heading": "コメント",
+    "empty": "コメントはまだありません",
+    "placeholder": "コメントを入力してください...",
+    "signedOut": "コメントを投稿するにはログインしてください",
+    "send": "送信",
+    "failed": "コメント送信に失敗しました",
+    "added": "コメントが追加されました"
+  },
+  "details": {
+    "heading": "作品情報",
+    "staff": "制作・スタッフ",
+    "cast": "キャスト",
+    "themeSongs": "主題歌",
+    "studio": "アニメーション制作",
+    "uncredited": "出演"
+  },
+  "rating": {
+    "story": "ストーリー",
+    "character": "キャラ",
+    "animation": "作画",
+    "worldview": "世界観",
+    "message": "テーマ性",
+    "rate": "をつける"
+  },
+  "footer": {
+    "allWorks": "作品一覧"
+  },
+  "season": {
+    "numbered": "第{n}期"
+  }
+}

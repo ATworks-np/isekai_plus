@@ -12,6 +12,7 @@ import {
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import useCredits from '@/hooks/useCredits'
+import { useTranslations } from 'next-intl'
 
 /** A label and its value, the shape every row here is made of. */
 const Row: React.FC<{ label: string; value: string }> = ({ label, value }) => (
@@ -50,6 +51,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
  * lists nobody has asked to see yet compete with both.
  */
 const AnimeDetailsSection: React.FC<{ id: string }> = ({ id }) => {
+  const t = useTranslations('details')
   const { credits, loading } = useCredits(id)
 
   const hasStaff = credits.studios.length > 0 || credits.staff.length > 0
@@ -82,14 +84,14 @@ const AnimeDetailsSection: React.FC<{ id: string }> = ({ id }) => {
           sx={{ minHeight: 0, px: 0, '& .MuiAccordionSummary-content': { my: 1 } }}
         >
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            作品情報
+            {t('heading')}
           </Typography>
         </AccordionSummary>
         <AccordionDetails sx={{ px: 0, pt: 0, pb: 2 }}>
           {hasStaff && (
-            <Section title="制作・スタッフ">
+            <Section title={t('staff')}>
               {credits.studios.length > 0 && (
-                <Row label="アニメーション制作" value={credits.studios.join('、')} />
+                <Row label={t('studio')} value={credits.studios.join('、')} />
               )}
               {credits.staff.map((entry, index) => (
                 <Row key={`${entry.role}-${index}`} label={entry.role} value={entry.name} />
@@ -98,11 +100,11 @@ const AnimeDetailsSection: React.FC<{ id: string }> = ({ id }) => {
           )}
 
           {credits.cast.length > 0 && (
-            <Section title="キャスト">
+            <Section title={t('cast')}>
               {credits.cast.map((entry, index) => (
                 <Row
                   key={`${entry.name}-${index}`}
-                  label={entry.character || '出演'}
+                  label={entry.character || t('uncredited')}
                   value={entry.name}
                 />
               ))}
@@ -110,7 +112,7 @@ const AnimeDetailsSection: React.FC<{ id: string }> = ({ id }) => {
           )}
 
           {credits.themeSongs.length > 0 && (
-            <Section title="主題歌">
+            <Section title={t('themeSongs')}>
               {credits.themeSongs.map((song, index) => (
                 <Row
                   key={`${song.type}-${index}`}

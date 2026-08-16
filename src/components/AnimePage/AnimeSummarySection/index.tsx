@@ -16,13 +16,9 @@ import {IAnimeStatic} from "@/models/interfaces/animeStatic";
 import {useAtom} from "jotai";
 import { userAtom } from '@/stores/userStore';
 import { courRangeLabel } from '@/utils/cour';
-const ratingLabels = {
-  story: 'ストーリー',
-  character: 'キャラ',
-  animation: '作画',
-  worldview: '世界観',
-  message: 'テーマ性'
-}
+import { useLocale, useTranslations } from 'next-intl'
+/** The five axes, in the order they are shown. Their names are translated. */
+const RATING_AXES = ['story', 'character', 'animation', 'worldview', 'message'] as const
 
 
 type AnimeSummarySectionProps = IAnimeStatic & {
@@ -34,6 +30,14 @@ type AnimeSummarySectionProps = IAnimeStatic & {
 }
 
 const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
+  const t = useTranslations('rating')
+  const season = useTranslations('season')
+  const locale = useLocale()
+
+  // The API numbers the seasons; the name is written in the reader's language.
+  // A spinoff has no number and keeps the title it was stored with.
+  const nameOf = (entry: Season) =>
+    entry.seasonNumber ? season('numbered', { n: entry.seasonNumber }) : entry.label
   const [anime] = useAnime({id: props.id});
   const [user, setUser] = useAtom(userAtom);
   const thumbnailPrefix = 'https://storage.googleapis.com/jp-contents-matome.appspot.com/thumbnail/'
@@ -45,7 +49,7 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
   const ratings = activeSeason?.ratings ?? anime.props.ratings;
   // The season's own cours, not the work's: with the tabs open the reader is
   // looking at one season, and the work's span covers all of them.
-  const courLabel = courRangeLabel(activeSeason?.cours ?? []);
+  const courLabel = courRangeLabel(activeSeason?.cours ?? [], locale);
 
   return (
     <Box
@@ -63,7 +67,7 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
         setOpen={setOpenRatingModal}
         animeId={props.id}
         seasonId={activeSeason?.id}
-        seasonLabel={activeSeason?.label}
+        seasonLabel={activeSeason && nameOf(activeSeason)}
         onSaved={props.onRatingSaved}
       />
       <Box
@@ -144,8 +148,8 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
               '& .MuiTabs-indicator': { backgroundColor: 'white' },
             }}
           >
-            {seasons.map(season => (
-              <Tab key={season.id} value={season.id} label={season.label} />
+            {seasons.map(entry => (
+              <Tab key={entry.id} value={entry.id} label={nameOf(entry)} />
             ))}
           </Tabs>
         )}
@@ -170,7 +174,7 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
           <Grid size={7}>
             <Stack spacing={0}>
               {
-                Object.entries(ratingLabels).map(([key, value]) => (
+                RATING_AXES.map(key => (
                   <Grid container spacing={0} key={key}>
                       <Grid size={4}>
                         <Typography
@@ -183,7 +187,7 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
                             color: 'white',
                           }}
                         >
-                          {value}
+                          {t(key)}
                         </Typography>
                       </Grid>
 
@@ -227,7 +231,7 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
                 onClick={() => user.isAuthenticated() && setOpenRatingModal(true)}
               >
                 <StarIcon fontSize={'small'}/>
-                <Typography variant={"caption"}>をつける</Typography>
+                <Typography variant={"caption"}>{t('rate')}</Typography>
 
               </Button>
             </Stack>

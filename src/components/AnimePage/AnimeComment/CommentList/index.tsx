@@ -2,6 +2,7 @@ import React from "react";
 import { Avatar, Box, Typography, Stack } from "@mui/material";
 import CommentItem from "@/components/AnimePage/AnimeComment/CommentList/CommentItem";
 import Comment from "@/models/entities/comment";
+import { useTranslations } from 'next-intl'
 
 interface CommentListProps {
   comments: Comment[];
@@ -10,6 +11,7 @@ interface CommentListProps {
 }
 
 const CommentList: React.FC<CommentListProps> = (props) => {
+  const t = useTranslations('comments')
   return (
     <Box sx={{ padding: 2 }}>
       {props.comments.map((comment, index) => (
@@ -29,7 +31,7 @@ const CommentList: React.FC<CommentListProps> = (props) => {
       ))}
       {props.comments.length === 0 && (
         <Typography variant='caption'>
-          コメントはまだありません
+          {t('empty')}
         </Typography>
       )
       }

@@ -1,0 +1,63 @@
+{
+  "site": {
+    "name": "Isekai Plus",
+    "title": "Isekai Plus | Every isekai anime, rated season by season",
+    "tagline": "Isekai anime, sorted by season and scored on five axes",
+    "description": "A catalogue of isekai anime: reincarnation, transported-to-another-world and game-world series, each season rated separately for story, characters, animation, worldbuilding and theme."
+  },
+  "work": {
+    "title": "{name} — ratings and reviews",
+    "description": "Ratings and reviews for {name}. Each season is scored separately on story, characters, animation, worldbuilding and theme, with reader comments. {cours}From {site}, a catalogue of isekai anime.",
+    "aired": "Aired {cours}. "
+  },
+  "nav": {
+    "allWorks": "All isekai anime",
+    "home": "Home"
+  },
+  "index": {
+    "title": "All isekai anime",
+    "description": "Every work on the site, newest broadcast first. Each work page carries per-season ratings and reader comments.",
+    "count": "({count} works)"
+  },
+  "list": {
+    "empty": "No works match",
+    "sortRecent": "Newest broadcast",
+    "sortLikes": "Most liked",
+    "sortComments": "Most discussed",
+    "sortRating": "Highest rated",
+    "currentCour": "This season",
+    "thisSeason": "{cour} season",
+    "carousel": "This season's anime"
+  },
+  "comments": {
+    "heading": "Comments",
+    "empty": "No comments yet",
+    "placeholder": "Write a comment…",
+    "signedOut": "Sign in to comment",
+    "send": "Send",
+    "failed": "Could not post the comment",
+    "added": "Comment posted"
+  },
+  "details": {
+    "heading": "Details",
+    "staff": "Studio and staff",
+    "cast": "Cast",
+    "themeSongs": "Theme songs",
+    "studio": "Animation",
+    "uncredited": "Cast member"
+  },
+  "rating": {
+    "story": "Story",
+    "character": "Characters",
+    "animation": "Animation",
+    "worldview": "Worldbuilding",
+    "message": "Theme",
+    "rate": "Rate it"
+  },
+  "footer": {
+    "allWorks": "All works"
+  },
+  "season": {
+    "numbered": "Season {n}"
+  }
+}

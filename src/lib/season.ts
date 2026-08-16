@@ -101,7 +101,7 @@ export const buildSeasonWrite = (input: SeasonInput, { partial }: { partial: boo
   return write
 }
 
-const serializeOne = (doc: DocumentSnapshot, label: string) => {
+const serializeOne = (doc: DocumentSnapshot, label: string, seasonNumber: number | null) => {
   const data = doc.data() ?? {}
   // The parent id is the anime; a season's key visual is stored beneath it.
   const animeId = doc.ref.parent.parent?.id
@@ -110,6 +110,9 @@ const serializeOne = (doc: DocumentSnapshot, label: string) => {
     thumbnailUrl: data.hasThumbnail && animeId ? thumbnailUrlFor(`${animeId}/${doc.id}`) : null,
     order: data.order ?? null,
     label,
+    // The position the label was made from, so a client rendering in another
+    // language can write "Season 2" instead of translating 第2期.
+    seasonNumber,
     cours: data.cours ?? [],
     programId: data.programId ?? null,
     kind: data.kind ?? 'season',
@@ -133,10 +136,10 @@ export const serializeSeasons = (docs: DocumentSnapshot[]) => {
   let numbered = 0
   return ordered.map(doc => {
     if ((doc.get('kind') ?? 'season') === 'spinoff') {
-      return serializeOne(doc, doc.get('label') ?? '')
+      return serializeOne(doc, doc.get('label') ?? '', null)
     }
     numbered += 1
-    return serializeOne(doc, `第${numbered}期`)
+    return serializeOne(doc, `第${numbered}期`, numbered)
   })
 }
 

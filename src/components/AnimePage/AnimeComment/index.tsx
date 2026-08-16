@@ -3,6 +3,7 @@ import CommentList from "@/components/AnimePage/AnimeComment/CommentList";
 import {Skeleton, Stack, Typography} from "@mui/material";
 import useAnimeComments from "@/hooks/useAnimeComments";
 import { Season } from "@/hooks/useSeasons";
+import { useTranslations } from 'next-intl'
 
 interface AnimeCommentProps {
   id: string;
@@ -10,6 +11,7 @@ interface AnimeCommentProps {
 }
 
 const AnimeComment: React.FC<AnimeCommentProps> = (props) => {
+  const t = useTranslations('comments')
   const {animeComments, loading} = useAnimeComments({ id: props.id });
   const seasons = props.seasons ?? [];
 
@@ -22,7 +24,7 @@ const AnimeComment: React.FC<AnimeCommentProps> = (props) => {
   return (
     <Stack width={'100%'} maxWidth={600}>
       <Typography variant='caption' sx={{ marginX: 2 }}>
-        コメント
+        {t('heading')}
       </Typography>
       {/* Two comments' worth of skeleton: enough to hold the space, not so much
           that a work with none jumps upward when the answer arrives. */}

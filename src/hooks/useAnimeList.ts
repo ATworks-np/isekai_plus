@@ -4,18 +4,14 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Season } from '@/hooks/useSeasons'
 import { IRatings } from '@/models/interfaces/ratings'
 
-export const SORT_OPTIONS = [
-  { key: 'recent', label: '放送が新しい順' },
-  { key: 'likes', label: 'いいね順' },
-  { key: 'comments', label: 'コメントが多い順' },
-  { key: 'rating', label: '評価順' },
-] as const
+/** The messages live in messages/*.json; the component looks each one up. */
+export const SORT_OPTIONS = ['recent', 'likes', 'comments', 'rating'] as const
 
-export type SortKey = (typeof SORT_OPTIONS)[number]['key']
+export type SortKey = (typeof SORT_OPTIONS)[number]
 
 export type AnimeListEntry = {
   id: string
-  name: { ja: string; en: string }
+  name: { ja: string; en?: string }
   cours: string[]
   tags: string[]
   commentCount: number

@@ -11,7 +11,7 @@ import Link from 'next/link'
 
 type AnimeItem = {
   id: string
-  name: { ja: string; en: string }
+  name: { ja: string; en?: string }
   thumbnail: string
   cours: string[]
   rating?: number

@@ -8,8 +8,11 @@ import {useAtom} from "jotai/index";
 import {customSnackbarAtom} from "@/stores/customSnackbarState";
 import useAnimeComments from "@/hooks/useAnimeComments";
 import {userAtom} from "@/stores/userStore";
+import { useLocale, useTranslations } from 'next-intl'
 
 const CommentInput: React.FC<{ id: string; seasonId?: string }> = (props) => {
+  const t = useTranslations('comments')
+  const locale = useLocale()
   const [comment, setComment] = useState("");
   const [user, setUser] = useAtom(userAtom);
   const [message, setMessage] = useAtom<string>(customSnackbarAtom);
@@ -28,17 +31,17 @@ const CommentInput: React.FC<{ id: string; seasonId?: string }> = (props) => {
         userDisplayName: user.props.displayName,
         userPhotoURL: user.props.photoURL,
         // What the reader wrote in. A comment is never translated — it is
-        // someone's own words — so this is here to label it, and to let an
-        // English page decide whether to show it or offer a translation.
-        lang: 'ja',
+        // someone's own words — so this is here to label it, and to let a page
+        // in another language decide whether to show it.
+        lang: locale,
         createdAt: new Date(),
       });
       refreshAnimeComments();
       setComment("");
-      setMessage(`コメントが追加されました`);
+      setMessage(t('added'));
     } catch (error) {
       console.error('Firestore への保存に失敗しました', error);
-      setMessage('コメント送信に失敗しました');
+      setMessage(t('failed'));
     }
   };
 
@@ -64,7 +67,7 @@ const CommentInput: React.FC<{ id: string; seasonId?: string }> = (props) => {
           fullWidth
           multiline
           variant="outlined"
-          placeholder={!user.isAuthenticated() ? "コメントを投稿するにはログインしてください" : "コメントを入力してください..."}
+          placeholder={!user.isAuthenticated() ? t('signedOut') : t('placeholder')}
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           autoComplete="off"
@@ -92,7 +95,7 @@ const CommentInput: React.FC<{ id: string; seasonId?: string }> = (props) => {
           onClick={ handleSend}
           disabled={!user.isAuthenticated() || !comment.trim()} // 空欄時はボタンを無効化
         >
-          送信
+          {t('send')}
         </Button>
       </Stack>
     </Box>

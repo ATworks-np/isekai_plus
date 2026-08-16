@@ -11,8 +11,10 @@ import { courAtom } from '@/stores/coursState'
 import { seasonForDisplay } from '@/hooks/useAllSeasons'
 import useAnimeList, { SORT_OPTIONS, SortKey } from '@/hooks/useAnimeList'
 import useTags from '@/hooks/useTags'
+import { useTranslations } from 'next-intl'
 
 const AnimeList: React.FC = props => {
+  const t = useTranslations('list')
   const [tagsState] = useAtom<string[]>(searchSelectedTagAtom)
   const [coursState] = useAtom<string[]>(courAtom)
   const [sort, setSort] = useState<SortKey>('recent')
@@ -56,8 +58,8 @@ const AnimeList: React.FC = props => {
           sx={{ minWidth: 180, backgroundColor: '#FFF', borderRadius: 1 }}
         >
           {SORT_OPTIONS.map(option => (
-            <MenuItem key={option.key} value={option.key}>
-              {option.label}
+            <MenuItem key={option} value={option}>
+              {t(`sort${option[0].toUpperCase()}${option.slice(1)}`)}
             </MenuItem>
           ))}
         </TextField>
@@ -91,7 +93,7 @@ const AnimeList: React.FC = props => {
 
         {!loading && visible.length === 0 && (
           <Typography variant="body2" sx={{ px: 2, py: 4, textAlign: 'center' }}>
-            該当する作品がありません
+            {t('empty')}
           </Typography>
         )}
 

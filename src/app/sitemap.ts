@@ -2,7 +2,8 @@ export const dynamic = 'force-static'
 
 import { MetadataRoute } from 'next'
 import { api } from '@/Routes/routs'
-import { SITE_URL, animeUrl } from '@/lib/site'
+import { animeUrl, pageUrl } from '@/lib/site'
+import { routing } from '@/i18n/routing'
 
 /**
  * Every work page, not just the top page.
@@ -20,15 +21,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (!response.ok) throw new Error(`Failed to fetch animes for sitemap: ${response.status}`)
   const animes: { id: string }[] = await response.json()
 
-  return [
+  return routing.locales.flatMap(locale => [
     {
-      url: `${SITE_URL}/`,
+      url: `${pageUrl(locale)}/`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: locale === routing.defaultLocale ? 1 : 0.9,
     },
     {
-      url: `${SITE_URL}/animes/`,
+      url: pageUrl(locale, '/animes/'),
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.9,
     },
     ...animes.map(anime => ({
-      url: animeUrl(anime.id),
+      url: animeUrl(anime.id, locale),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
     })),
-  ]
+  ])
 }
