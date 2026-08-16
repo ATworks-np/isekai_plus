@@ -54,6 +54,25 @@ const EFFORT = 'high'
 /** Verdicts that mean a tag may be applied. */
 const ACCEPTED = /^検証済み|^画像\d+\/\d+一致/
 
+/**
+ * Drops the tags a more specific one has replaced.
+ *
+ * 「ここは俺に任せて先に行けと言ってから10年がたったら伝説になっていた」 came back
+ * with twenty three, including 巨乳 beside 巨乳剣士 and ファンタジー beside
+ * 異世界ファンタジー. The dictionary already records which tag supersedes which;
+ * this applies it.
+ */
+const prune = (names, dictionary) => {
+  const kept = new Set(names)
+  for (const name of names) {
+    const tag = dictionary.tags.find(entry => entry.name === name)
+    if (!tag) continue
+    if (tag.narrower?.some(narrower => kept.has(narrower))) kept.delete(name)
+    if (tag.excludedBy?.some(other => kept.has(other))) kept.delete(name)
+  }
+  return [...kept]
+}
+
 const SCHEMA = JSON.stringify({
   type: 'object',
   properties: {
@@ -649,6 +668,14 @@ const main = async () => {
           }
         }
 
+        // Decided here so the report and the writer agree.
+        const accepted = prune(
+          Object.entries(verification)
+            .filter(([tag, verdict]) => byName.has(tag.trim()) && ACCEPTED.test(verdict))
+            .map(([tag]) => tag.trim()),
+          dictionary
+        )
+
         writeFileSync(
           `${CACHE_DIR}/${work.id}.json`,
           JSON.stringify(
@@ -659,6 +686,7 @@ const main = async () => {
               evidence,
               image,
               verification,
+              accepted,
               costUsd,
             },
             null,
@@ -666,9 +694,6 @@ const main = async () => {
           )
         )
 
-        const accepted = Object.entries(verification).filter(
-          ([tag, verdict]) => byName.has(tag.trim()) && ACCEPTED.test(verdict)
-        )
         console.log(
           `[${position}/${selected.length}] ${work.title.slice(0, 24)}  採用${accepted.length}  画像${image?.paths.length ?? 0}枚→${image?.tags.length ?? 0}件  ($${spent.toFixed(2)})`
         )

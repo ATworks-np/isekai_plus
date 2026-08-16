@@ -1,4 +1,4 @@
-version: 1
+version: 2
 groups:
   - key: isekai
     label: 異世界
@@ -167,9 +167,6 @@ tags:
     id: ArXmF8m4kuFkFKwN3HYF
     group: skill
     criteria: 魔法が使われる。ファンタジー全般ではなく描写があること
-    narrower:
-      - 補助魔法
-      - 魔法工学
     used: 21
     examples:
       - 捨てられ聖女の異世界ごはん旅 隠れスキルでキャンピングカーを召喚しました
@@ -245,7 +242,7 @@ tags:
   - name: 喋る武器
     id: Xilefo6Fdb8F55w1hpMN
     group: skill
-    criteria: 意思を持つ武器が出る
+    criteria: 意思を持つ武器が主要人物あるいは主人公の相棒
     used: 2
     examples:
       - 暴食のベルセルク
@@ -330,7 +327,7 @@ tags:
   - name: ケモ耳
     id: wKaIsUPE32dNjSspJoeq
     group: body
-    criteria: 獣の耳や尻尾を持つキャラがいる
+    criteria: 獣の耳や尻尾を持つキャラが主要人物
     used: 9
     examples:
       - アラフォー男の異世界通販
@@ -396,14 +393,14 @@ tags:
   - name: 双子
     id: sxy1ZcYCNOSYTrayqKIJ
     group: body
-    criteria: 双子のキャラがいる
+    criteria: 双子が主要人物
     used: 1
     examples:
       - 異世界黙示録マイノグーラ～破滅の文明で始める世界征服～
   - name: 神
     id: TpqCFFANOeMFxWpPPX6J
     group: race
-    criteria: 神が登場人物として出る
+    criteria: 神が物語に関与する。転生の授け手など
     used: 6
     examples:
       - いずれ最強の錬金術師？
@@ -413,7 +410,7 @@ tags:
   - name: ダークエルフ
     id: 01zOF0lycQouZbUSH7Xw
     group: race
-    criteria: ダークエルフが出る
+    criteria: ダークエルフが主要人物
     used: 3
     examples:
       - ちょっとだけ愛が重いダークエルフが異世界から追いかけてきた
@@ -422,7 +419,7 @@ tags:
   - name: 獣人
     id: kKk1Ylnjn2ah7pPKTLAz
     group: race
-    criteria: 獣人という種族が出る
+    criteria: 獣人が主要人物、または種族として物語に関わる。背景に一人いるだけでは付けない
     used: 2
     examples:
       - 捨てられ聖女の異世界ごはん旅 隠れスキルでキャンピングカーを召喚しました
@@ -430,42 +427,42 @@ tags:
   - name: 魔族
     id: 8nLMpz9QNhx73EGiYcMX
     group: race
-    criteria: 魔族が出る
+    criteria: 魔族が主要人物、または敵対勢力として物語の軸
     used: 1
     examples:
       - 勇者パーティーにかわいい子がいたので、告白してみた。
   - name: 精霊
     id: IY4jlovcY0OYlkVutwxn
     group: race
-    criteria: 精霊が出る
+    criteria: 精霊が主要人物、または力の源として中心にある
     used: 1
     examples:
       - 父は英雄、母は精霊、娘の私は転生者。
   - name: 女神
     id: aIRxQEztw3bQYObBn0Vw
     group: race
-    criteria: 女神が登場人物として出る
+    criteria: 女神が物語に関与する
     used: 1
     examples:
       - 勇者刑に処す 懲罰勇者9004隊刑務記録
   - name: エルフ
     id: r0m3xOENLJOTFW3aNdsk
     group: race
-    criteria: エルフが出る
+    criteria: エルフが主要人物。背景に一人いるだけでは付けない
     used: 1
     examples:
       - 捨てられ聖女の異世界ごはん旅 隠れスキルでキャンピングカーを召喚しました
   - name: 吸血鬼
     id: tYrqVn5qAQI73LdfCTAI
     group: race
-    criteria: 吸血鬼が出る
+    criteria: 吸血鬼が主要人物
     used: 1
     examples:
       - ひきこまり吸血姫の悶々
   - name: 貴族令嬢
     id: QzBYc42WBdwmAmYJB3Cm
     group: role
-    criteria: 貴族の令嬢が出る
+    criteria: 貴族の令嬢が主要人物
     used: 14
     examples:
       - ブチ切れ令嬢は報復を誓いました。 ～魔導書の力で祖国を叩き潰します～
@@ -485,7 +482,7 @@ tags:
   - name: 冒険者ギルド
     id: z79jH82Lg4Xxykucu3H3
     group: role
-    criteria: 冒険者ギルドが出る
+    criteria: 冒険者ギルドが物語の舞台として繰り返し出る
     used: 10
     examples:
       - Aランクパーティを離脱した俺は、元教え子たちと迷宮深部を目指す。
@@ -495,7 +492,7 @@ tags:
   - name: 勇者
     id: XTOERTv2Q6D6IT6ab4ig
     group: role
-    criteria: 勇者が出る
+    criteria: 勇者が主要人物。世界観の言葉として出るだけでは付けない
     used: 9
     examples:
       - 勇者のクズ
@@ -505,7 +502,7 @@ tags:
   - name: 王女
     id: ahDYkjkpvU7NeBkmt8kO
     group: role
-    criteria: 王女が出る
+    criteria: 王女が主要人物
     used: 6
     examples:
       - 悲劇の元凶となる最強外道ラスボス女王は民の為に尽くします。
@@ -515,7 +512,7 @@ tags:
   - name: 魔女
     id: 1CaRzfLxuIhYnAQ1LXYB
     group: role
-    criteria: 魔女が出る
+    criteria: 魔女が主要人物
     used: 5
     examples:
       - エリスの聖杯
@@ -535,7 +532,7 @@ tags:
   - name: 聖女
     id: WbDarZBHML4plFQ9IHeO
     group: role
-    criteria: 聖女が出る
+    criteria: 聖女が主要人物
     used: 4
     examples:
       - 完璧すぎて可愛げがないと婚約破棄された聖女は隣国に売られる
@@ -545,7 +542,7 @@ tags:
   - name: アルケミスト（薬師）
     id: Kr1hyRuPIDn42PofZ1OQ
     group: role
-    criteria: 錬金術師・薬師が出る
+    criteria: 錬金術師・薬師が主人公の職業
     aliasOf: アルケミスト
     used: 3
     examples:
@@ -555,7 +552,7 @@ tags:
   - name: 魔王
     id: rIPq5yBazJArUIZ1dm9e
     group: role
-    criteria: 魔王が出る
+    criteria: 魔王が主要人物、または倒すべき目標として物語の軸
     used: 3
     examples:
       - 「お前ごときが魔王に勝てると思うな」と勇者パーティを追放されたので、王都で気ままに暮らしたい
@@ -564,7 +561,7 @@ tags:
   - name: 王子
     id: zg7xr8pqVQVcrQqWGq0U
     group: role
-    criteria: 王子が出る
+    criteria: 王子が主要人物
     used: 3
     examples:
       - 悪役令嬢レベル99 ～私は裏ボスですが魔王ではありません～
@@ -581,7 +578,7 @@ tags:
   - name: 暗殺者
     id: 5imlPA1b9RLLgwO1r4rY
     group: role
-    criteria: 暗殺者が出る
+    criteria: 暗殺者が主要人物
     used: 2
     examples:
       - 暗殺者である俺のステータスが勇者よりも明らかに強いのだが
@@ -597,7 +594,7 @@ tags:
   - name: 魔王の娘
     id: Vwf6bIcwpT7Rxp9aS0D0
     group: role
-    criteria: 魔王の娘が出る
+    criteria: 魔王の娘が主要人物
     used: 2
     examples:
       - 気絶勇者と暗殺姫
@@ -605,7 +602,7 @@ tags:
   - name: 調教師
     id: 6aaV341IQG7QiQodjxTg
     group: role
-    criteria: テイマー・調教師が出る
+    criteria: テイマー・調教師が主人公の職業
     used: 1
     examples:
       - 気絶勇者と暗殺姫
@@ -619,14 +616,14 @@ tags:
   - name: 英雄
     id: 8YCFZWcbTyql2kidCxwe
     group: role
-    criteria: 英雄と呼ばれる存在が軸
+    criteria: 主人公が英雄と呼ばれる、または英雄譚として描かれる
     used: 1
     examples:
       - ヘルモード ～やり込み好きのゲーマーは廃設定の異世界で無双する～
   - name: 聖騎士
     id: 9F5XBleMtX6lwLLT0x2N
     group: role
-    criteria: 聖騎士が出る
+    criteria: 聖騎士が主要人物
     used: 1
     examples:
       - 勇者刑に処す 懲罰勇者9004隊刑務記録
@@ -654,14 +651,14 @@ tags:
   - name: 騎士団
     id: Y5SW7ywE2XPQHUn4fpJl
     group: role
-    criteria: 騎士団が組織として出る
+    criteria: 騎士団が物語の舞台や所属として中心にある
     used: 1
     examples:
       - ヘルモード ～やり込み好きのゲーマーは廃設定の異世界で無双する～
   - name: 王
     id: imryBqGjcjEalZsiwklT
     group: role
-    criteria: 王が出る
+    criteria: 王が主要人物、または主人公が王
     used: 1
     examples:
       - 贄姫と獣の王
@@ -675,7 +672,7 @@ tags:
   - name: 商人ギルド
     id: m8FRXFlxUSIWoYSaIehO
     group: role
-    criteria: 商人ギルドが出る
+    criteria: 商人ギルドが物語の舞台として出る
     used: 1
     examples:
       - アラフォー男の異世界通販
@@ -689,14 +686,14 @@ tags:
   - name: 賢者
     id: sATDEcrlx81t4LjCNSHC
     group: role
-    criteria: 賢者が出る
+    criteria: 賢者が主要人物、または主人公の肩書き
     used: 1
     examples:
       - 「お前ごときが魔王に勝てると思うな」と勇者パーティを追放されたので、王都で気ままに暮らしたい
   - name: 団長
     id: sERv3i5l9z3lqgCND7ol
     group: role
-    criteria: 団長が出る
+    criteria: 主人公または主要人物が団長
     used: 1
     examples:
       - 姫様“拷問”の時間です
@@ -710,14 +707,14 @@ tags:
   - name: 四天王
     id: xYw6Fu3ihdPdr0jljvpc
     group: role
-    criteria: 四天王が出る
+    criteria: 四天王が敵役として物語に関わる
     used: 1
     examples:
       - Helck
   - name: アルケミスト(薬師)
     id: gjspROkyojCNKNxd6JtC
     group: role
-    criteria: 錬金術師・薬師が出る
+    criteria: 錬金術師・薬師が主人公の職業
     aliasOf: アルケミスト
     used: 0
     examples: []
@@ -828,6 +825,8 @@ tags:
     id: 8ObFcCgXfDxqWZPP9oFL
     group: mood
     criteria: 異世界と言い切れないファンタジー。異世界ファンタジーと併用しない
+    excludedBy:
+      - 異世界ファンタジー
     used: 10
     examples:
       - ブチ切れ令嬢は報復を誓いました。 ～魔導書の力で祖国を叩き潰します～
