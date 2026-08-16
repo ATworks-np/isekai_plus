@@ -46,6 +46,8 @@ const getReducedMotionSnapshot = () =>
 
 const getServerReducedMotionSnapshot = () => false
 
+const HERO_HEIGHT = { xs: 320, sm: 340, md: 360 } as const
+
 const SeasonCarousel: React.FC<SeasonCarouselProps> = ({ skeleton = false }) => {
   const t = useTranslations('list')
   const locale = useLocale()
@@ -186,8 +188,8 @@ const SeasonCarousel: React.FC<SeasonCarouselProps> = ({ skeleton = false }) => 
         sx={{
           //padding: '100px',
           width: '100%',
-          height: { xs: 350, sm: 350, md: 400 },
-          maxHeight: 400,
+          height: HERO_HEIGHT,
+          maxHeight: 360,
           position: 'relative',
           borderRadius: 0,
           overflow: 'hidden',
@@ -243,8 +245,8 @@ const SeasonCarousel: React.FC<SeasonCarouselProps> = ({ skeleton = false }) => 
         padding: '100px',
         width: '100%',
         // 明示的な高さを指定し、絶対配置の子要素で高さ0にならないようにする
-        height: { xs: 350, sm: 350, md: 400 },
-        maxHeight: 400,
+        height: HERO_HEIGHT,
+        maxHeight: 360,
         position: 'relative',
         borderRadius: 0,
         overflow: 'hidden',

@@ -64,7 +64,15 @@ const ListPage: React.FC = () => {
           <SelectCoursSection sort={sort} onSortChange={setSort} />
         </Box>
       </Box>
-      <Stack spacing={2} sx={{ width: '100%', maxWidth: '800px', mx: 'auto' }}>
+      <Stack
+        spacing={2}
+        sx={{
+          width: '100%',
+          maxWidth: '800px',
+          mx: 'auto',
+          pt: { xs: 2, sm: 3 },
+        }}
+      >
         <AnimeList sort={sort} />
       </Stack>
     </Stack>

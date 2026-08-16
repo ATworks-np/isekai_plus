@@ -113,29 +113,6 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
           <Grid size={0.5} />
           <Grid size={11} >
             <AnimeTitle name={title}/>
-            {/* Which quarter the season on screen aired in. The tabs say which
-                season it is; without this the page never says when.
-
-                It has its own skeleton rather than sharing the tabs': it is a
-                17px inline line above them, and leaving it out while loading
-                lifted the whole strip by that much. */}
-            {props.loadingSeasons ? (
-              <Skeleton
-                variant="text"
-                width={110}
-                sx={{
-                  display: 'inline-block',
-                  fontSize: '0.75rem',
-                  backgroundColor: 'rgba(255,255,255,0.2)',
-                }}
-              />
-            ) : (
-              courLabel && (
-                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.75)' }}>
-                  {courLabel}
-                </Typography>
-              )
-            )}
           </Grid>
           <Grid size={0.5} />
         </Grid>
@@ -171,6 +148,24 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
             ))}
           </Tabs>
         )}
+        {/* The selected season's broadcast period belongs directly beneath
+            its tab. The fixed-height row also prevents a shift when season
+            data replaces the loading skeleton. */}
+        <Box sx={{ height: 20, display: 'flex', alignItems: 'center', px: 4 }}>
+          {props.loadingSeasons ? (
+            <Skeleton
+              variant="text"
+              width={110}
+              sx={{ fontSize: '0.75rem', backgroundColor: 'rgba(255,255,255,0.2)' }}
+            />
+          ) : (
+            courLabel && (
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.75)' }}>
+                {courLabel}
+              </Typography>
+            )
+          )}
+        </Box>
         <Box style={{height: '10px'}}/>
         <Grid container spacing={2}>
           <Grid size={0.5} />
