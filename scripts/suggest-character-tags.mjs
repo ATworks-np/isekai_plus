@@ -47,13 +47,59 @@ const MODEL = 'grok-4.6'
 const TIMEOUT_MS = 15 * 60 * 1000
 const PASSES = 3
 const AGREEMENT = 2
-const CONCURRENCY = 2
+const CONCURRENCY = 5
+
+/**
+ * A pass that claims this many of the vocabulary has stopped looking.
+ *
+ * One reading of ライザのアトリエ returned thirty-three tags — 神, 四天王, 王,
+ * 王女, 勇者, 聖騎士 — each justified as 「神的な存在」, 「四天王的な存在」: the tag
+ * name with a suffix, describing nobody. A key visual and six portraits do not
+ * legitimately carry thirty character attributes, and letting that pass vote
+ * means anything a real reading saw is already halfway to accepted.
+ */
+const RUNAWAY_PASS = 12
+
+/** A justification that only restates the tag name saw nothing. */
+const SAYS_NOTHING = (name, who) => {
+  const text = String(who ?? '').trim()
+  if (text.length < 5) return true
+  const stripped = text.replace(name, '').replace(/[的風な様のっぽい存在人物姿キャラクター\s]/g, '')
+  return stripped.length < 3
+}
 
 const BROWSER_UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36'
 
 /** Navigation furniture, not a character. */
-const NOT_A_PORTRAIT = /logo|icon|banner|btn|button|nav|header|footer|bg_|sns|twitter|\.svg($|\?)|youtube/i
+const NOT_A_PORTRAIT = /logo|banner|btn|button|nav|header|footer|bg_|sns|twitter|\.svg($|\?)|youtube/i
+
+/**
+ * A photograph of a voice actor, not a drawing of a character.
+ *
+ * Official sites put the cast comments in a hidden modal on the same page, and
+ * those images are headshots of real people. 悪役令嬢転生おじさん handed back five
+ * of them and one character, and the model duly described a blonde noble lady
+ * in a photograph of a man in a suit.
+ */
+const IS_CAST_PHOTO = /\/modal\/|cast[-_]|staff|voice|seiyu|interview|comment/i
+
+/**
+ * How much a URL looks like a character portrait.
+ *
+ * Size cannot decide this. The portraits on that page are 6–9KB icons and the
+ * voice actor photographs are 112KB, so a floor that called small files sprites
+ * discarded every character and kept every photograph — the exact inversion of
+ * what was wanted.
+ */
+const portraitScore = url => {
+  if (IS_CAST_PHOTO.test(url) || NOT_A_PORTRAIT.test(url)) return -1
+  let score = 0
+  if (/character|chara\/|chr\//i.test(url)) score += 10
+  if (/main|full|stand|body/i.test(url)) score += 5
+  if (/icon|thumb|small/i.test(url)) score += 1
+  return score
+}
 
 /**
  * Compound tags are kept, and the properties they name are added beside them,
@@ -151,6 +197,31 @@ const ask = async (work, paths, vocabulary) => {
 
 const thumbnailUrl = id => `${THUMB_PREFIX}/${id}.jpg`
 
+/**
+ * Whether the character page the model named is a page.
+ *
+ * 悪役令嬢転生おじさん was given two different official sites on two runs —
+ * tensei-ojisan.com once, akuyaku-ojisan.com the next — and only the first
+ * answers. The name of a site is exactly the kind of plausible-looking string
+ * that gets composed rather than recalled, and an unreachable one silently
+ * costs every portrait on it.
+ */
+const reachable = async url => {
+  if (!url || !/^https?:\/\//.test(url)) return false
+  try {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 15000)
+    const response = await fetch(url, {
+      headers: { 'User-Agent': BROWSER_UA, Accept: 'text/html' },
+      signal: controller.signal,
+    })
+    clearTimeout(timer)
+    return response.ok
+  } catch {
+    return false
+  }
+}
+
 const fetchThumbnail = async id => {
   mkdirSync(THUMB_DIR, { recursive: true })
   const path = `${THUMB_DIR}/${id}.jpg`
@@ -181,23 +252,29 @@ const characterImages = async (id, pageUrl) => {
     return []
   }
 
-  const urls = [...html.matchAll(/<img[^>]+(?:data-src|src)=["']([^"']+)/gi)]
-    .map(match => match[1])
-    .filter(url => !NOT_A_PORTRAIT.test(url))
-    .map(url => { try { return new URL(url, pageUrl).href } catch { return null } })
-    .filter(Boolean)
+  const urls = [...new Set(
+    [...html.matchAll(/<img[^>]+(?:data-src|src)=["']([^"']+)/gi)]
+      .map(match => match[1])
+      .map(url => { try { return new URL(url, pageUrl).href } catch { return null } })
+      .filter(Boolean)
+  )]
+    .map(url => ({ url, score: portraitScore(url) }))
+    .filter(entry => entry.score >= 0)
+    .sort((a, b) => b.score - a.score)
+    .map(entry => entry.url)
 
   const dir = `${THUMB_DIR}/${id}`
   mkdirSync(dir, { recursive: true })
   const saved = []
-  for (const url of [...new Set(urls)]) {
-    if (saved.length >= 6) break
+  for (const url of urls) {
+    if (saved.length >= 8) break
     try {
       const response = await fetch(url, { headers: { 'User-Agent': BROWSER_UA } })
       if (!response.ok) continue
       const bytes = Buffer.from(await response.arrayBuffer())
-      // Under 15KB is a sprite or a spacer, not a character standing there.
-      if (bytes.length < 15 * 1024) continue
+      // Only a spacer or a tracking pixel is this small. The floor used to be
+      // 15KB, which is larger than every character icon on some sites.
+      if (bytes.length < 3 * 1024) continue
       const path = `${dir}/${saved.length}.${url.split('.').pop()?.split('?')[0] ?? 'jpg'}`
       writeFileSync(path, bytes)
       saved.push({ path, url })
@@ -275,6 +352,7 @@ const main = async () => {
     for (const work of works) {
       const cached = cachedFor(work.id)
       if (!cached || cached.error || !cached.accepted.length) continue
+      if (work.reviewed) continue
       await db.doc(`${QUEUE_PATH}/${work.id}`).set(
         {
           animeId: work.id,
@@ -300,8 +378,13 @@ const main = async () => {
   }
 
   const pending = works
-    .filter(work => (only ? work.id === only : !existsSync(`${CACHE_DIR}/${work.id}.json`)))
+    .filter(work =>
+      only ? work.id === only : !work.reviewed && !existsSync(`${CACHE_DIR}/${work.id}.json`)
+    )
     .slice(0, limit)
+
+  const answered = works.filter(work => work.reviewed).length
+  if (answered) console.log(`承認済み ${answered}作品はとばす`)
 
   console.log(`語彙 ${vocabulary.length}件 / これから ${pending.length}作品\n`)
 
@@ -317,7 +400,18 @@ const main = async () => {
         // One cheap pass first, only to learn where the character page is.
         const scout = thumb ? await ask(work, [thumb], vocabulary) : { answer: {}, costUsd: 0 }
         spent += scout.costUsd
-        const portraits = await characterImages(work.id, scout.answer.characterPageUrl)
+        // One more ask when the page it named does not answer: the second
+        // guess is often the real site, and without it the work is judged from
+        // the key visual alone.
+        let pageUrl = scout.answer.characterPageUrl ?? ''
+        if (pageUrl && !(await reachable(pageUrl))) {
+          const retry = thumb ? await ask(work, [thumb], vocabulary) : { answer: {}, costUsd: 0 }
+          spent += retry.costUsd
+          const second = retry.answer.characterPageUrl ?? ''
+          pageUrl = second && second !== pageUrl && (await reachable(second)) ? second : ''
+        }
+
+        const portraits = await characterImages(work.id, pageUrl)
         const images = [thumb, ...portraits.map(p => p.path)].filter(Boolean)
         const imageUrls = [thumb ? thumbnailUrl(work.id) : null, ...portraits.map(p => p.url)].filter(Boolean)
 
@@ -328,18 +422,32 @@ const main = async () => {
         }
 
         const seen = {}
+        let discarded = 0
         for (let pass = 0; pass < PASSES; pass++) {
           const result = await ask(work, images, vocabulary)
           spent += result.costUsd
-          for (const tag of result.answer.tags ?? []) {
-            if (!idByName[tag.name]) continue
+          const proposed = (result.answer.tags ?? []).filter(tag => idByName[tag.name])
+          if (proposed.length > RUNAWAY_PASS) {
+            discarded += 1
+            continue
+          }
+          for (const tag of proposed) {
+            if (SAYS_NOTHING(tag.name, tag.who)) continue
             seen[tag.name] = seen[tag.name] ?? { name: tag.name, passes: 0, who: tag.who, where: tag.where }
             seen[tag.name].passes += 1
+            // Keep the description that says the most; it is what a person
+            // checks the proposal against.
+            if ((tag.who ?? '').length > (seen[tag.name].who ?? '').length) seen[tag.name].who = tag.who
           }
         }
 
-        const accepted = Object.values(seen).filter(tag => tag.passes >= AGREEMENT)
-        const rejected = Object.values(seen).filter(tag => tag.passes < AGREEMENT)
+        // With a runaway pass thrown out there may be too few left to agree, so
+        // the bar is two readings or every reading that counted, whichever is
+        // lower — one surviving pass still has to have described someone.
+        const counted = PASSES - discarded
+        const bar = Math.min(AGREEMENT, Math.max(counted, 1))
+        const accepted = Object.values(seen).filter(tag => tag.passes >= bar)
+        const rejected = Object.values(seen).filter(tag => tag.passes < bar)
 
         // A compound implies the properties it names, so they come along.
         for (const tag of [...accepted]) {
@@ -352,7 +460,7 @@ const main = async () => {
         writeFileSync(
           `${CACHE_DIR}/${work.id}.json`,
           JSON.stringify(
-            { ja: work.ja, images, imageUrls, imageCount: images.length, characterPageUrl: scout.answer.characterPageUrl ?? '', accepted, rejected },
+            { ja: work.ja, images, imageUrls, imageCount: images.length, discardedPasses: discarded, characterPageUrl: pageUrl, accepted, rejected },
             null,
             2
           )
