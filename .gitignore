@@ -40,3 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .cache/
+
+# Backups written before a destructive migration
+.backup/
