@@ -20,6 +20,7 @@ import Link from "next/link";
 import User from "@/models/entities/user";
 import { useRouter } from 'next/navigation'
 import LocaleSwitch from '@/components/LocaleSwitch'
+import { useTranslations } from 'next-intl'
 
 const StyledMenu = styled((props: MenuProps) => (
   <Menu
@@ -65,6 +66,7 @@ const StyledMenu = styled((props: MenuProps) => (
 }));
 
 const UpperAppBar: React.FC = props => {
+  const site = useTranslations('site')
   const [openSerchModal, setOpenSerchModal] = useAtom<boolean>(searchModalAtom)
   const [loginOpen, setLoginOpen] = useAtom<boolean>(loginModalAtom)
   const { user, setUser } = useUser()
@@ -84,7 +86,7 @@ const UpperAppBar: React.FC = props => {
     <ElevationScroll>
       <AppBar elevation={0}>
         <Toolbar>
-          <Link href="/" style={{ textDecoration: 'none' }}>
+          <Link href="/" aria-label={site('searchName')} style={{ textDecoration: 'none' }}>
             <Box
               sx={{
                 display: 'inline-flex',
@@ -100,7 +102,7 @@ const UpperAppBar: React.FC = props => {
               <Box
                 component="img"
                 src="/logo.png"
-                alt="いせかいぷらす"
+                alt={site('searchName')}
                 sx={{
                   height: 36,
                   width: 'auto',

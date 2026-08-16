@@ -1,3 +1,5 @@
+import type { IRatings } from '@/models/interfaces/ratings'
+
 export interface IAnimeStatic {
   id: string,
   name: {
@@ -7,5 +9,6 @@ export interface IAnimeStatic {
   cours: string[],
   ratingCount?: number,
   rating?: number,
+  ratings?: IRatings,
   tags: string[],
 }

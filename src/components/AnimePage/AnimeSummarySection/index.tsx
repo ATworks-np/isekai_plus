@@ -1,12 +1,11 @@
 import React from 'react'
 import Grid from "@mui/material/Grid";
-import useAnime from "@/hooks/useAnime";
 import {Box, Container, Skeleton, Stack, Tab, Tabs, Typography} from "@mui/material";
 import { Season } from "@/hooks/useSeasons";
 import StarRating from "@/components/StarRating";
 import HelpIcon from '@mui/icons-material/Help';
 import RatingModal from "@/components/AnimePage/AnimeSummarySection/RatingModal";
-import {IRatings, RATING_AXES} from "@/models/interfaces/ratings";
+import {baseRatings, IRatings, RATING_AXES} from "@/models/interfaces/ratings";
 import AnimeTitle from "@/components/AnimePage/AnimeSummarySection/AnimeTitle";
 import useUser from "@/hooks/useUser";
 import Image from "next/image";
@@ -45,7 +44,6 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
   // A spinoff has no number and keeps the title it was stored with.
   const nameOf = (entry: Season) =>
     entry.seasonNumber ? season('numbered', { n: entry.seasonNumber }) : entry.label
-  const [anime] = useAnime({id: props.id});
   const [user, setUser] = useAtom(userAtom);
   const thumbnailPrefix = 'https://storage.googleapis.com/jp-contents-matome.appspot.com/thumbnail/'
   const [openRatingModal, setOpenRatingModal] = React.useState(false);
@@ -53,7 +51,7 @@ const AnimeSummarySection: React.FC<AnimeSummarySectionProps> = props => {
   // A season carries its own key visual once one has been stored; the series
   // image stays the fallback so nothing goes blank mid-migration.
   const thumbnail = activeSeason?.thumbnailUrl ?? thumbnailPrefix + props.id + '.jpg';
-  const ratings = activeSeason?.ratings ?? anime.props.ratings;
+  const ratings = activeSeason?.ratings ?? props.ratings ?? baseRatings;
   // The season's own cours, not the work's: with the tabs open the reader is
   // looking at one season, and the work's span covers all of them.
   const courLabel = courRangeLabel(activeSeason?.cours ?? [], locale);

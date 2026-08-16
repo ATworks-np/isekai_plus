@@ -20,9 +20,17 @@ export type Season = {
  * Seasons come from the app's own route handler rather than Firestore, so the
  * client never sees the aggregate documents it is not allowed to write.
  */
-const useSeasons = (animeId: string | undefined) => {
-  const [seasons, setSeasons] = useState<Season[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
+const normalizeSeasons = (seasons: Season[]) =>
+  seasons.map(season => ({
+    ...season,
+    ratings: { ...baseRatings, ...season.ratings },
+  }))
+
+const useSeasons = (animeId: string | undefined, initialSeasons?: Season[]) => {
+  const [seasons, setSeasons] = useState<Season[]>(() =>
+    normalizeSeasons(initialSeasons ?? [])
+  )
+  const [loading, setLoading] = useState<boolean>(initialSeasons === undefined)
   const [reloadToken, setReloadToken] = useState<number>(0)
 
   // Bumping a token rather than exposing the fetch itself keeps every state
@@ -31,20 +39,19 @@ const useSeasons = (animeId: string | undefined) => {
 
   useEffect(() => {
     if (!animeId) return
+    // The public data already arrived with the server-rendered page. A fetch is
+    // only needed after the reader saves a rating and asks for fresh totals.
+    if (initialSeasons !== undefined && reloadToken === 0) return
     let cancelled = false
 
     const load = async () => {
+      setLoading(true)
       try {
         const response = await fetch(`/api/v1/animes/${animeId}/seasons/`)
         if (!response.ok) throw new Error(`HTTP ${response.status}`)
         const data = await response.json()
         if (cancelled) return
-        setSeasons(
-          (data.seasons ?? []).map((season: Season) => ({
-            ...season,
-            ratings: { ...baseRatings, ...season.ratings },
-          }))
-        )
+        setSeasons(normalizeSeasons(data.seasons ?? []))
       } catch (error) {
         if (!cancelled) console.error('シーズンの取得に失敗しました', error)
       } finally {
@@ -56,7 +63,7 @@ const useSeasons = (animeId: string | undefined) => {
     return () => {
       cancelled = true
     }
-  }, [animeId, reloadToken])
+  }, [animeId, initialSeasons, reloadToken])
 
   return { seasons, loading, reloadSeasons }
 }

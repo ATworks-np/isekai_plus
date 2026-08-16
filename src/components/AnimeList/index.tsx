@@ -10,15 +10,16 @@ import { searchSelectedTagAtom } from '@/stores/searchSelectedTagAtom'
 import { courAtom } from '@/stores/coursState'
 import { seasonForDisplay } from '@/hooks/useAllSeasons'
 import useAnimeList from '@/hooks/useAnimeList'
-import type { SortKey } from '@/hooks/useAnimeList'
+import type { AnimeListPage, SortKey } from '@/models/animeList'
 import useTags from '@/hooks/useTags'
 import { useTranslations } from 'next-intl'
 
 type AnimeListProps = {
   sort: SortKey
+  initialPage?: AnimeListPage
 }
 
-const AnimeList: React.FC<AnimeListProps> = ({ sort }) => {
+const AnimeList: React.FC<AnimeListProps> = ({ sort, initialPage }) => {
   const t = useTranslations('list')
   const [tagsState] = useAtom<string[]>(searchSelectedTagAtom)
   const [coursState] = useAtom<string[]>(courAtom)
@@ -27,7 +28,11 @@ const AnimeList: React.FC<AnimeListProps> = ({ sort }) => {
   // The picker selects one cour, which is what the server filters by, so
   // nothing is left to narrow here.
   const [selectedCour] = coursState
-  const { items, loading, done, loadMore } = useAnimeList(sort, selectedCour ?? null)
+  const { items, loading, done, loadMore } = useAnimeList(
+    sort,
+    selectedCour ?? null,
+    initialPage
+  )
 
   const visible = useMemo(
     () => items.filter(anime => !tagsState.length || tagsState.every(key => anime.tags.includes(key))),

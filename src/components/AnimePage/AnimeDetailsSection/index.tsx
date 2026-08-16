@@ -1,17 +1,14 @@
-'use client'
-
 import React from 'react'
 import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
   Box,
-  Skeleton,
   Stack,
   Typography,
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import useCredits from '@/hooks/useCredits'
+import type { Credits } from '@/lib/credits'
 import { useTranslations } from 'next-intl'
 
 /** A label and its value, the shape every row here is made of. */
@@ -50,24 +47,10 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
  * about the reader's rating and the comments, and three separate headings for
  * lists nobody has asked to see yet compete with both.
  */
-const AnimeDetailsSection: React.FC<{ id: string }> = ({ id }) => {
+const AnimeDetailsSection: React.FC<{ credits: Credits }> = ({ credits }) => {
   const t = useTranslations('details')
-  const { credits, loading } = useCredits(id)
 
   const hasStaff = credits.studios.length > 0 || credits.staff.length > 0
-
-  // Closed, the panel is 35.9px tall — a caption line under the summary's 8px
-  // margins. The skeleton is given that height outright rather than inheriting
-  // whatever a text skeleton works out to, so the comments below do not move.
-  if (loading) {
-    return (
-      <Box sx={{ width: '100%', maxWidth: '800px', px: 2 }}>
-        <Box sx={{ height: '35.92px', display: 'flex', alignItems: 'center' }}>
-          <Skeleton variant="text" width={96} sx={{ fontSize: '0.75rem' }} />
-        </Box>
-      </Box>
-    )
-  }
 
   if (!hasStaff && !credits.cast.length && !credits.themeSongs.length) return null
 

@@ -96,7 +96,10 @@ export default async function RootLayout({
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: t('name'),
-    alternateName: '異世界ぷらす',
+    alternateName:
+      locale === 'ja'
+        ? ['異世界ぷらす', 'Isekai Plus']
+        : ['いせかいぷらす', '異世界ぷらす'],
     url: SITE_URL,
     description: t('description'),
     inLanguage: locale,

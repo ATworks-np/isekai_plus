@@ -4,8 +4,8 @@ import { courAtom } from '@/stores/coursState'
 import { useAtom } from 'jotai'
 import { useLocale, useTranslations } from 'next-intl'
 import { courLabel } from '@/utils/cour'
-import { SORT_OPTIONS } from '@/hooks/useAnimeList'
-import type { SortKey } from '@/hooks/useAnimeList'
+import { SORT_OPTIONS } from '@/models/animeList'
+import type { SortKey } from '@/models/animeList'
 
 const MyChip = styled(Chip)(({ theme }) => ({
   borderRadius: '10px',

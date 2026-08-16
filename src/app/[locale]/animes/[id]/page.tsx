@@ -7,12 +7,15 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { SITE_URL, alternatesFor, animeUrl, pageUrl, thumbnailUrl } from '@/lib/site'
 import { routing } from '@/i18n/routing'
 import { courRangeLabel } from '@/utils/cour'
+import { loadAnimeDetailPage } from '@/lib/animeDetailPage'
+import { isLocale } from '@/lib/credits'
 
 type Props = {
   params: Promise<{ locale: string; id: string }>
 }
 
 export const dynamicParams = false
+export const revalidate = 300
 
 export async function generateStaticParams() {
   const res = await fetchRead('/ids')
@@ -91,7 +94,10 @@ export default async function Page({ params }: Props) {
   const { locale, id } = await params
   setRequestLocale(locale)
 
-  const data = await fetchAnime(id)
+  const [data, detail] = await Promise.all([
+    fetchAnime(id),
+    loadAnimeDetailPage(id, isLocale(locale) ? locale : 'ja'),
+  ])
   const site = await getTranslations({ locale, namespace: 'site' })
   const nav = await getTranslations({ locale, namespace: 'nav' })
 
@@ -146,7 +152,7 @@ export default async function Page({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumb) }}
       />
-      <AnimePage {...data} />
+      <AnimePage key={id} {...data} initialSeasons={detail.seasons} credits={detail.credits} />
     </>
   )
 }

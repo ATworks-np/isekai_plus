@@ -12,6 +12,7 @@ import { animeCatalogue, invalidateAnimeCatalogue } from '@/lib/animeCatalogue'
 import { seasonsCollection } from '@/lib/season'
 import { invalidateSeasonIndex, seasonIndex, workSeasons } from '@/lib/seasonIndex'
 import { serializeAnime } from '@/app/api/v1/animes/serialize'
+import { RATING_KEYS } from '@/lib/season'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -39,6 +40,7 @@ export async function GET(request: Request, context: Context) {
       {
         ...serializeAnime(doc, entry.cours),
         rating: doc.get('ratingAverage') ?? 0,
+        ratings: Object.fromEntries(RATING_KEYS.map(key => [key, doc.get(`${key}Rating`) ?? 0])),
         // Summed over the seasons: the work itself does not count votes.
         ratingCount: entry.seasons.reduce((sum, season) => sum + (season.get('ratingCount') ?? 0), 0),
         commentCount: doc.get('commentCount') ?? 0,

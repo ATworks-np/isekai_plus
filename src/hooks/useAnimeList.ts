@@ -1,27 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Season } from '@/hooks/useSeasons'
-import { IRatings } from '@/models/interfaces/ratings'
-
-/** The messages live in messages/*.json; the component looks each one up. */
-export const SORT_OPTIONS = ['recent', 'likes', 'comments', 'rating'] as const
-
-export type SortKey = (typeof SORT_OPTIONS)[number]
-
-export type AnimeListEntry = {
-  id: string
-  name: { ja: string; en?: string }
-  cours: string[]
-  tags: string[]
-  commentCount: number
-  likeCount: number
-  latestCour: string | null
-  rating: number
-  ratings: IRatings
-  seasons: Season[]
-  thumbnailUrl: string
-}
+import type { AnimeListEntry, AnimeListPage, SortKey } from '@/models/animeList'
 
 /**
  * One page of the list at a time.
@@ -30,14 +10,28 @@ export type AnimeListEntry = {
  * works and sort them in the browser, which cannot be done at all for "newest
  * broadcast" without reading every work's cours.
  */
-const useAnimeList = (sort: SortKey, cour: string | null) => {
-  const [items, setItems] = useState<AnimeListEntry[]>([])
-  const [cursor, setCursor] = useState<string | null>(null)
-  const [loading, setLoading] = useState<boolean>(true)
-  const [done, setDone] = useState<boolean>(false)
+const useAnimeList = (
+  sort: SortKey,
+  cour: string | null,
+  initialPage?: AnimeListPage
+) => {
+  const listKey = `${sort}|${cour ?? ''}`
+  const initialKey = 'rating|'
+  const startsWithInitialPage = Boolean(initialPage) && listKey === initialKey
+  const [items, setItems] = useState<AnimeListEntry[]>(
+    startsWithInitialPage ? initialPage!.items : []
+  )
+  const [cursor, setCursor] = useState<string | null>(
+    startsWithInitialPage ? initialPage!.nextCursor : null
+  )
+  const [loading, setLoading] = useState<boolean>(!startsWithInitialPage)
+  const [done, setDone] = useState<boolean>(
+    startsWithInitialPage ? !initialPage!.nextCursor : false
+  )
 
   // A page that arrives after the sort changed belongs to the previous list.
   const requestRef = useRef(0)
+  const initialPageHandledRef = useRef(false)
 
   // Returns the page rather than storing it, so both the first load and
   // loadMore share one request path and neither sets state before an await.
@@ -49,15 +43,15 @@ const useAnimeList = (sort: SortKey, cour: string | null) => {
 
       const response = await fetch(`/api/v1/animes/?${params}`)
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      return (await response.json()) as { items?: AnimeListEntry[]; nextCursor?: string | null }
+      return (await response.json()) as AnimeListPage
     },
     [sort, cour]
   )
 
   const apply = useCallback(
-    (data: { items?: AnimeListEntry[]; nextCursor?: string | null }, append: boolean) => {
-      setItems(prev => (append ? [...prev, ...(data.items ?? [])] : (data.items ?? [])))
-      setCursor(data.nextCursor ?? null)
+    (data: AnimeListPage, append: boolean) => {
+      setItems(prev => (append ? [...prev, ...data.items] : data.items))
+      setCursor(data.nextCursor)
       setDone(!data.nextCursor)
       setLoading(false)
     },
@@ -67,7 +61,6 @@ const useAnimeList = (sort: SortKey, cour: string | null) => {
   // Adjusted while rendering rather than in an effect: changing the sort throws
   // the current list away, and doing that afterwards paints one frame of the
   // old list under the new heading.
-  const listKey = `${sort}|${cour ?? ''}`
   const [renderedKey, setRenderedKey] = useState(listKey)
   if (listKey !== renderedKey) {
     setRenderedKey(listKey)
@@ -78,6 +71,13 @@ const useAnimeList = (sort: SortKey, cour: string | null) => {
   }
 
   useEffect(() => {
+    // The server already produced this exact first page. Fetching it again
+    // would replace the hydrated rows and waste the crawl-friendly response.
+    if (!initialPageHandledRef.current) {
+      initialPageHandledRef.current = true
+      if (startsWithInitialPage) return
+    }
+
     const requestId = ++requestRef.current
     const load = async () => {
       try {
@@ -91,7 +91,7 @@ const useAnimeList = (sort: SortKey, cour: string | null) => {
       }
     }
     load()
-  }, [fetchPage, apply])
+  }, [fetchPage, apply, startsWithInitialPage])
 
   const loadMore = useCallback(async () => {
     if (loading || done || !cursor) return

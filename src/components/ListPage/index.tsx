@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState } from 'react'
 import { Box, Stack, Typography } from '@mui/material'
 import AnimeList from '../AnimeList'
@@ -6,9 +8,13 @@ import SelectCoursSection from '@/components/SelectCoursSection'
 import NewsSection from '@/components/NewsSection'
 import SeasonCarousel from '@/components/SeasonCarousel'
 import { useTranslations } from 'next-intl'
-import type { SortKey } from '@/hooks/useAnimeList'
+import type { AnimeListPage, SortKey } from '@/models/animeList'
 
-const ListPage: React.FC = () => {
+type ListPageProps = {
+  initialAnimePage?: AnimeListPage
+}
+
+const ListPage: React.FC<ListPageProps> = ({ initialAnimePage }) => {
   const t = useTranslations('list')
   const [sort, setSort] = useState<SortKey>('rating')
   return (
@@ -73,7 +79,7 @@ const ListPage: React.FC = () => {
           pt: { xs: 2, sm: 3 },
         }}
       >
-        <AnimeList sort={sort} />
+        <AnimeList sort={sort} initialPage={initialAnimePage} />
       </Stack>
     </Stack>
   )

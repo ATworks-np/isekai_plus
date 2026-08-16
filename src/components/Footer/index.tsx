@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 
 const Fotter: React.FC = () => {
   const t = useTranslations('footer')
+  const site = useTranslations('site')
   return (
     <Box
       sx={{
@@ -22,7 +23,7 @@ const Fotter: React.FC = () => {
           </Typography>
         </Link>
         <Typography variant="caption" color="secondary">
-          Isekai Plus
+          {site('searchName')}
         </Typography>
         <Typography variant="caption" color="secondary">
           Presented by ATworks
