@@ -9,6 +9,7 @@ versions/1/animes/{id}
 
   details/{locale}             長い・作品ページしか読まない → 言語別ドキュメント
     studios / staff / cast / themeSongs
+    summary                    2〜3文の紹介。公式あらすじの転載ではない
 
   seasons/{seasonId}
     label                      スピンオフのみ。通常の期は order から生成する

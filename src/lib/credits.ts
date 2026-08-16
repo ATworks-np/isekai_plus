@@ -27,6 +27,8 @@ export type Credits = {
   themeSongs: ThemeSong[]
   source: string | null
   sourceWorkTagId: number | null
+  /** Two or three sentences for the work page. Absent when not yet written. */
+  summary: string | null
 }
 
 /** The languages the site stores long text in. */
@@ -99,6 +101,7 @@ export const buildCreditsWrite = (input: Record<string, unknown>): Credits => ({
     input.sourceWorkTagId === undefined || input.sourceWorkTagId === null
       ? null
       : Number(input.sourceWorkTagId),
+  summary: input.summary === undefined ? null : asOptional(input.summary, 'summary') || null,
 })
 
 export const serializeCredits = (doc: DocumentSnapshot): Credits => {
@@ -110,6 +113,7 @@ export const serializeCredits = (doc: DocumentSnapshot): Credits => {
     themeSongs: data.themeSongs ?? [],
     source: data.source ?? null,
     sourceWorkTagId: data.sourceWorkTagId ?? null,
+    summary: typeof data.summary === 'string' && data.summary.trim() ? data.summary.trim() : null,
   }
 }
 
@@ -120,4 +124,5 @@ export const EMPTY_CREDITS: Credits = {
   themeSongs: [],
   source: null,
   sourceWorkTagId: null,
+  summary: null,
 }

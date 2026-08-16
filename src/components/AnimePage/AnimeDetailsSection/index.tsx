@@ -51,11 +51,22 @@ const AnimeDetailsSection: React.FC<{ credits: Credits }> = ({ credits }) => {
   const t = useTranslations('details')
 
   const hasStaff = credits.studios.length > 0 || credits.staff.length > 0
+  const hasFold = hasStaff || credits.cast.length > 0 || credits.themeSongs.length > 0
 
-  if (!hasStaff && !credits.cast.length && !credits.themeSongs.length) return null
+  if (!credits.summary && !hasFold) return null
 
   return (
     <Box sx={{ width: '100%', maxWidth: '800px', px: 2 }}>
+      {credits.summary && (
+        <Typography
+          component="p"
+          variant="caption"
+          sx={{ display: 'block', py: 1.5, lineHeight: 1.8, color: 'text.secondary' }}
+        >
+          {credits.summary}
+        </Typography>
+      )}
+      {hasFold && (
       <Accordion
         disableGutters
         elevation={0}
@@ -107,6 +118,7 @@ const AnimeDetailsSection: React.FC<{ credits: Credits }> = ({ credits }) => {
           )}
         </AccordionDetails>
       </Accordion>
+      )}
     </Box>
   )
 }

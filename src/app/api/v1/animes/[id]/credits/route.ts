@@ -61,7 +61,16 @@ export async function PUT(request: Request, context: Context) {
       return NextResponse.json({ error: `No anime with id ${id}.` }, { status: 404 })
     }
 
-    const write = buildCreditsWrite((body ?? {}) as Record<string, unknown>)
+    const input = (body ?? {}) as Record<string, unknown>
+    const write = buildCreditsWrite(input)
+    // Staff arrive as a complete set; the summary is written separately and
+    // must survive a credits import that does not know about it.
+    if (input.summary === undefined) {
+      const existing = await creditsDoc(id, locale).get()
+      const previous = existing.get('summary')
+      write.summary =
+        typeof previous === 'string' && previous.trim() ? previous.trim() : null
+    }
     await creditsDoc(id, locale).set(write)
 
     return NextResponse.json(write)

@@ -116,6 +116,7 @@ export default async function Page({ params }: Props) {
     image: thumbnailUrl(id),
     inLanguage: locale,
     genre: ['異世界', 'アニメ'],
+    ...(detail.credits.summary ? { description: detail.credits.summary } : {}),
   }
 
   // Only when someone has actually rated it: an aggregate over no ratings is

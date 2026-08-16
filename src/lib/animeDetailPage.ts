@@ -12,13 +12,17 @@ const hasCredits = (credits: Credits) =>
 
 const loadCredits = async (animeId: string, locale: Locale): Promise<Credits> => {
   const localized = await creditsDoc(animeId, locale).get()
-  const credits = localized.exists ? serializeCredits(localized) : EMPTY_CREDITS
+  let credits = localized.exists ? serializeCredits(localized) : EMPTY_CREDITS
 
   // English credits are still being filled in. Names remain useful in
   // Japanese, so keep the same fallback the old browser-side request used.
   if (locale === 'en' && !hasCredits(credits)) {
     const japanese = await creditsDoc(animeId, 'ja').get()
-    return japanese.exists ? serializeCredits(japanese) : EMPTY_CREDITS
+    credits = japanese.exists ? serializeCredits(japanese) : EMPTY_CREDITS
+  } else if (locale === 'en' && !credits.summary) {
+    const japanese = await creditsDoc(animeId, 'ja').get()
+    const summary = japanese.exists ? serializeCredits(japanese).summary : null
+    credits = { ...credits, summary }
   }
 
   return credits
