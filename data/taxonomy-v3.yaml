@@ -1,0 +1,852 @@
+version: 3
+
+# 作品がこのサイトのどこに属するか。タグではなくフィールド。
+# 異世界ファンタジーというタグが43作品に付いていた状態を置き換える。
+scope:
+  - key: isekai
+    label: 異世界もの
+    note: 転生・転移・召喚のいずれかで異世界に来る
+  - key: native-fantasy
+    label: 現地ファンタジー
+    note: 異世界だが、誰も転生していない。葬送のフリーレンなど
+  - key: game-fantasy
+    label: ゲーム世界
+    note: 舞台がゲームの中。VRMMO、乙女ゲーム
+  - key: modern-fantasy
+    label: 現代ファンタジー
+    note: 現代が舞台で、異世界要素が入り込む
+
+axes:
+  - key: arrival
+    label: 世界への来方
+    required: true
+    note: "どうやってその世界に来たか。全作品が判定対象"
+  - key: power
+    label: 力・世界のルール
+    required: false
+    note: "強さがどう決まるか。数値・技能・魔法の扱い"
+  - key: profession
+    label: 主要人物の生業
+    required: false
+    note: "何をして生きているか。身分ではなく生業"
+  - key: circumstance
+    label: 境遇・物語の駆動
+    required: true
+    note: "何が主人公を動かすか。題材もここ"
+  - key: world
+    label: 世界の部品
+    required: false
+    note: "舞台に繰り返し出てくる仕組み・組織・場所"
+  - key: character
+    label: キャラクター
+    required: false
+    note: "外見・種族・肩書き・関係。キービジュアルとキャラ紹介で判定"
+  - key: mood
+    label: 手触り
+    required: true
+    note: "どう感じるか。構成要素ではないので類似度では軽く扱う"
+
+# 必須の軸は「タグを必ず1つ付ける」ではなく「必ず判定する」。
+# 該当なしと未確認を区別できないと、埋め忘れが永久に見えない。
+tags:
+
+  # ── 世界への来方 (11) ──
+  - name: 異世界転生
+    slug: isekai-reincarnation
+    id: Xx3XabMZwfQIRaYMxrJy
+    axis: arrival
+    kind: atomic
+    used: 26
+    criteria: "異世界転生が物語の始まり方である"
+    en: Isekai Reborn
+  - name: 前世の記憶
+    slug: past-life-memory
+    id: LlPBttKDwvjJRwgnorQB
+    axis: arrival
+    kind: atomic
+    used: 24
+    criteria: "前世の記憶が物語の始まり方である"
+    en: memory of previous life
+  - name: 異世界転移
+    slug: isekai-transport
+    id: 4pmXcDmmBkYIKsqKDR2K
+    axis: arrival
+    kind: atomic
+    used: 14
+    criteria: "異世界転移が物語の始まり方である"
+    en: Transported
+  - name: 生まれて転生
+    slug: reborn-as-infant
+    id: JM9mc0BZJn7sogxoMkQU
+    axis: arrival
+    kind: atomic
+    used: 11
+    criteria: "生まれて転生が物語の始まり方である"
+    en: Reborn
+  - name: 異世界召喚
+    slug: isekai-summoned
+    id: aupfbVu0V2gtT8aXDeXo
+    axis: arrival
+    kind: atomic
+    used: 11
+    criteria: "異世界召喚が物語の始まり方である"
+    en: Isekai Summon
+  - name: 人以外に転生
+    slug: reborn-nonhuman
+    id: orO3yFk94tD2gTM6zivw
+    axis: arrival
+    kind: atomic
+    used: 3
+    criteria: "人以外に転生が物語の始まり方である"
+  - name: 勇者召喚
+    slug: summoned-as-hero
+    id: UNv7VlqGP3XMYQCvrV8C
+    axis: arrival
+    kind: atomic
+    used: 2
+    criteria: "勇者召喚が物語の始まり方である"
+  - name: 事故死
+    slug: death-by-accident
+    id: jwCYorNz6hHjP7Sj43Kf
+    axis: arrival
+    kind: descriptor
+    used: 2
+    criteria: "事故死が物語の始まり方である"
+    en: accidental death
+  - name: パラレルワールド
+    slug: parallel-world
+    id: 78wVupA9uc4PhyCHIOZJ
+    axis: arrival
+    kind: atomic
+    used: 1
+    criteria: "パラレルワールドが物語の始まり方である"
+    en: parallel universe
+  - name: タイムリープ
+    slug: time-loop
+    id: c3D2G2FCkSf48GHvtbpc
+    axis: arrival
+    kind: atomic
+    used: 1
+    criteria: "タイムリープが物語の始まり方である"
+  - name: 不死ループ
+    slug: death-loop
+    id: 1dYZNS7VYocYSLxZW09F
+    axis: arrival
+    kind: atomic
+    used: 0
+    criteria: "不死ループが物語の始まり方である"
+
+  # ── 力・世界のルール (11) ──
+  - name: 魔法
+    slug: magic
+    id: ArXmF8m4kuFkFKwN3HYF
+    axis: power
+    kind: atomic
+    used: 21
+    criteria: "魔法が作中の力の仕組みとして繰り返し描かれる。一度出るだけでは付けない"
+    en: Magic
+  - name: スキル
+    slug: skills
+    id: lUOjFereI0hrralwj6JO
+    axis: power
+    kind: atomic
+    used: 19
+    criteria: "スキルが作中の力の仕組みとして繰り返し描かれる。一度出るだけでは付けない"
+    en: Skill
+  - name: ステータス画面
+    slug: status-screen
+    id: 8ezBQq9FvXjBqKvesNMi
+    axis: power
+    kind: atomic
+    used: 18
+    criteria: "ステータス画面が作中の力の仕組みとして繰り返し描かれる。一度出るだけでは付けない"
+    en: Status Screen
+  - name: 固有職
+    slug: unique-class
+    id: bQKPeD2RbOTIhOCxWMBf
+    axis: power
+    kind: atomic
+    used: 3
+    criteria: "固有職が作中の力の仕組みとして繰り返し描かれる。一度出るだけでは付けない"
+    en: Fixed Job
+  - name: マナ
+    slug: mana
+    id: yKxTJpbB0d081M2HQeqO
+    axis: power
+    kind: atomic
+    used: 3
+    criteria: "マナが作中の力の仕組みとして繰り返し描かれる。一度出るだけでは付けない"
+    en: Mana
+    absorbs: [エーテル]
+  - name: 補助魔法
+    slug: support-magic
+    id: tunIaKvgB0FUp9AqpyxY
+    axis: power
+    kind: atomic
+    used: 2
+    criteria: "補助魔法が作中の力の仕組みとして繰り返し描かれる。一度出るだけでは付けない"
+    en: Support Magic
+  - name: 不死身
+    slug: immortal
+    id: 1lBevTTb5Qxpob1mn30X
+    axis: power
+    kind: atomic
+    used: 1
+    criteria: "不死身が作中の力の仕組みとして繰り返し描かれる。一度出るだけでは付けない"
+    en: Immortal
+  - name: レベル
+    slug: levels
+    id: 6QXx1X6Fuks6koT1EBH9
+    axis: power
+    kind: atomic
+    used: 1
+    criteria: "レベルが作中の力の仕組みとして繰り返し描かれる。一度出るだけでは付けない"
+    en: Level
+  - name: 職業鑑定
+    slug: appraisal-rite
+    id: 875jkFcaWqkvzyyYjubR
+    axis: power
+    kind: atomic
+    used: 1
+    criteria: "職業鑑定が作中の力の仕組みとして繰り返し描かれる。一度出るだけでは付けない"
+    en:  Occupational Appraisal
+    absorbs: [魔法適性鑑定]
+  - name: 隠れスキル
+    slug: hidden-skill
+    id: pYHk15TDUeOUE05TkRRY
+    axis: power
+    kind: atomic
+    used: 1
+    criteria: "隠れスキルが作中の力の仕組みとして繰り返し描かれる。一度出るだけでは付けない"
+    en: Hidden Skill
+  - name: 加護
+    slug: divine-blessing
+    id: whIR6Y43YqcPOhRu82qn
+    axis: power
+    kind: atomic
+    used: 1
+    criteria: "加護が作中の力の仕組みとして繰り返し描かれる。一度出るだけでは付けない"
+
+  # ── 主要人物の生業 (10) ──
+  - name: 学生
+    slug: student
+    id: rXZeQe0Zkcrdb1Pivf91
+    axis: profession
+    kind: atomic
+    used: 12
+    criteria: "キービジュアルまたは公式のキャラクター紹介に出る人物が、学生を生業にしている"
+    en: student
+  - name: 魔女
+    slug: witch
+    id: 1CaRzfLxuIhYnAQ1LXYB
+    axis: profession
+    kind: atomic
+    used: 5
+    criteria: "キービジュアルまたは公式のキャラクター紹介に出る人物が、魔女を生業にしている"
+    en: witch
+  - name: 聖女
+    slug: saint
+    id: WbDarZBHML4plFQ9IHeO
+    axis: profession
+    kind: atomic
+    used: 4
+    criteria: "キービジュアルまたは公式のキャラクター紹介に出る人物が、聖女を生業にしている"
+    en: Saint
+  - name: アルケミスト（薬師）
+    slug: alchemist
+    id: Kr1hyRuPIDn42PofZ1OQ
+    axis: profession
+    kind: atomic
+    used: 3
+    criteria: "キービジュアルまたは公式のキャラクター紹介に出る人物が、アルケミスト（薬師）を生業にしている"
+  - name: 暗殺者
+    slug: assassin
+    id: 5imlPA1b9RLLgwO1r4rY
+    axis: profession
+    kind: atomic
+    used: 2
+    criteria: "キービジュアルまたは公式のキャラクター紹介に出る人物が、暗殺者を生業にしている"
+    en: Assassin
+  - name: 領主
+    slug: lord
+    id: VE6PbpUGphZU4aLiLE04
+    axis: profession
+    kind: atomic
+    used: 2
+    criteria: "キービジュアルまたは公式のキャラクター紹介に出る人物が、領主を生業にしている"
+    en: Load
+  - name: 調教師
+    slug: tamer
+    id: 6aaV341IQG7QiQodjxTg
+    axis: profession
+    kind: atomic
+    used: 1
+    criteria: "キービジュアルまたは公式のキャラクター紹介に出る人物が、調教師を生業にしている"
+  - name: 農家
+    slug: farmer
+    id: qGn59KfzLUvk13DVvEO2
+    axis: profession
+    kind: atomic
+    used: 1
+    criteria: "キービジュアルまたは公式のキャラクター紹介に出る人物が、農家を生業にしている"
+  - name: 賢者
+    slug: sage
+    id: sATDEcrlx81t4LjCNSHC
+    axis: profession
+    kind: atomic
+    used: 1
+    criteria: "キービジュアルまたは公式のキャラクター紹介に出る人物が、賢者を生業にしている"
+    en: Wise Man
+  - name: 先生
+    slug: teacher
+    id: t4n7cRTqeKhoVjTOkb6G
+    axis: profession
+    kind: atomic
+    used: 1
+    criteria: "キービジュアルまたは公式のキャラクター紹介に出る人物が、先生を生業にしている"
+    en: Sensei
+
+  # ── 境遇・物語の駆動 (13) ──
+  - name: 俺TSUEEE
+    slug: overpowered
+    id: JSB1pxyoFBkbN8JwwFus
+    axis: circumstance
+    kind: atomic
+    used: 23
+    criteria: "俺TSUEEEが主人公を動かしている、または話の題材そのもの"
+    en: Overpowered
+  - name: パーティ追放
+    slug: party-exile
+    id: 0AWcpEtJuhzNyHLwswMl
+    axis: circumstance
+    kind: atomic
+    used: 11
+    criteria: "パーティ追放が主人公を動かしている、または話の題材そのもの"
+    en: Party Expulsion
+  - name: 勘違い最強
+    slug: misunderstood-strength
+    id: mFJri6iSfOQQYPsbNQGg
+    axis: circumstance
+    kind: atomic
+    used: 7
+    criteria: "勘違い最強が主人公を動かしている、または話の題材そのもの"
+    en: The best in misunderstanding
+  - name: 料理
+    slug: cooking
+    id: XR5lAxVq3HvP7z5sm43E
+    axis: circumstance
+    kind: atomic
+    used: 5
+    criteria: "料理が主人公を動かしている、または話の題材そのもの"
+    en: Cooking
+  - name: 復讐
+    slug: revenge
+    id: OComd04Ypym0Tb35vcPl
+    axis: circumstance
+    kind: atomic
+    used: 4
+    criteria: "復讐が主人公を動かしている、または話の題材そのもの"
+    en: Revenge
+  - name: 悪役令嬢
+    slug: villainess
+    id: ufAqRmAo29fXqQQsChw8
+    axis: circumstance
+    kind: atomic
+    used: 4
+    criteria: "悪役令嬢が主人公を動かしている、または話の題材そのもの"
+    en: Villainess
+  - name: スローライフ
+    slug: slow-life
+    id: bYQZ4Exbi26AHMVmtLgi
+    axis: circumstance
+    kind: atomic
+    used: 3
+    criteria: "スローライフが主人公を動かしている、または話の題材そのもの"
+  - name: 能力無し
+    slug: powerless-start
+    id: 2BgU1XHxogrIDm1r2YQE
+    axis: circumstance
+    kind: atomic
+    used: 2
+    criteria: "能力無しが主人公を動かしている、または話の題材そのもの"
+    en: Non Ability
+  - name: 犯罪者主人公
+    slug: criminal-lead
+    id: 7x0lO3iTT4Qcl8neRNBJ
+    axis: circumstance
+    kind: atomic
+    used: 1
+    criteria: "犯罪者主人公が主人公を動かしている、または話の題材そのもの"
+  - name: 恋愛
+    slug: romance
+    id: 9hzmUO77d6GEruwsPy4Z
+    axis: circumstance
+    kind: atomic
+    used: 1
+    criteria: "恋愛が主人公を動かしている、または話の題材そのもの"
+  - name: グルメ
+    slug: gourmet
+    id: MZBNizY57UBxcxGgWGNv
+    axis: circumstance
+    kind: atomic
+    used: 1
+    criteria: "グルメが主人公を動かしている、または話の題材そのもの"
+    en: Gourmet
+  - name: キャンプ
+    slug: camping
+    id: QOKUEk2QlLs1GpxUPYQF
+    axis: circumstance
+    kind: atomic
+    used: 1
+    criteria: "キャンプが主人公を動かしている、または話の題材そのもの"
+    en: Camping
+  - name: 国づくり
+    slug: nation-building
+    id: kPXAlBL3Qh8E6PLcRXPn
+    axis: circumstance
+    kind: atomic
+    used: 1
+    criteria: "国づくりが主人公を動かしている、または話の題材そのもの"
+
+  # ── 世界の部品 (11) ──
+  - name: ダンジョン
+    slug: dungeon
+    id: 3fadJNs2luQUTCopK8sk
+    axis: world
+    kind: atomic
+    used: 18
+    criteria: "ダンジョンが舞台の一部として繰り返し出る。名前が一度出るだけでは付けない"
+    en:  Dungeon
+  - name: ゲーム内
+    slug: game-world
+    id: jywNnfFUfhVnxMk0G9RP
+    axis: world
+    kind: atomic
+    used: 10
+    criteria: "ゲーム内が舞台の一部として繰り返し出る。名前が一度出るだけでは付けない"
+    en: In Game
+  - name: 冒険者ギルド
+    slug: adventurers-guild
+    id: z79jH82Lg4Xxykucu3H3
+    axis: world
+    kind: atomic
+    used: 10
+    criteria: "冒険者ギルドが舞台の一部として繰り返し出る。名前が一度出るだけでは付けない"
+    en: Adventurers' Guild
+  - name: 学園
+    slug: academy
+    id: BRQ03DUdaEML4ar0BVVt
+    axis: world
+    kind: atomic
+    used: 5
+    criteria: "学園が舞台の一部として繰り返し出る。名前が一度出るだけでは付けない"
+    en: School
+  - name: 魔法工学
+    slug: magitech
+    id: VXVG2XiaYtlLEn3t7at3
+    axis: world
+    kind: atomic
+    used: 4
+    criteria: "魔法工学が舞台の一部として繰り返し出る。名前が一度出るだけでは付けない"
+    en: Magic Eng.
+  - name: 現代
+    slug: modern-world
+    id: ppfgt79cwjTSmcJONgZJ
+    axis: world
+    kind: atomic
+    used: 4
+    criteria: "現代が舞台の一部として繰り返し出る。名前が一度出るだけでは付けない"
+    en: Modern Age
+  - name: 中世風
+    slug: medieval
+    id: 2hA4DmR7Be4TpJXjYBWA
+    axis: world
+    kind: atomic
+    used: 3
+    criteria: "中世風が舞台の一部として繰り返し出る。名前が一度出るだけでは付けない"
+  - name: 勇者パーティー
+    slug: hero-party
+    id: 1i0ke4sMOM5zAqJUZ5Pz
+    axis: world
+    kind: atomic
+    used: 2
+    criteria: "勇者パーティーが舞台の一部として繰り返し出る。名前が一度出るだけでは付けない"
+  - name: 貴族社会
+    slug: noble-society
+    id: 8PWDXFsJB5oLhi8SSZqI
+    axis: world
+    kind: atomic
+    used: 2
+    criteria: "貴族社会が舞台の一部として繰り返し出る。名前が一度出るだけでは付けない"
+  - name: 騎士団
+    slug: knight-order
+    id: Y5SW7ywE2XPQHUn4fpJl
+    axis: world
+    kind: atomic
+    used: 1
+    criteria: "騎士団が舞台の一部として繰り返し出る。名前が一度出るだけでは付けない"
+    en: Knight
+  - name: 商人ギルド
+    slug: merchant-guild
+    id: m8FRXFlxUSIWoYSaIehO
+    axis: world
+    kind: atomic
+    used: 1
+    criteria: "商人ギルドが舞台の一部として繰り返し出る。名前が一度出るだけでは付けない"
+    en: Merchant Guild
+
+  # ── キャラクター (30) ──
+  - name: 巨乳剣士
+    slug: busty-swordswoman
+    id: HoKsHT1bHn7GZE7VHKAB
+    axis: character
+    kind: compound
+    used: 19
+    criteria: "巨乳剣士が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+    en: Big Boobs Swordsman
+  - name: ハーレム
+    slug: harem
+    id: 0n6ZgJGexEmVkUPI6hJ2
+    axis: character
+    kind: atomic
+    used: 15
+    criteria: "ハーレムが、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+    en: Harem
+  - name: 貴族令嬢
+    slug: noble-lady
+    id: QzBYc42WBdwmAmYJB3Cm
+    axis: character
+    kind: atomic
+    used: 14
+    criteria: "貴族令嬢が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+    en: well-born girl
+    absorbs: [令嬢主人公]
+  - name: 巨乳メイド
+    slug: busty-maid
+    id: UeeNIxvIOQxEOg2SlU0u
+    axis: character
+    kind: compound
+    used: 10
+    criteria: "巨乳メイドが、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+    en: Big Boobs Maid
+  - name: 勇者
+    slug: hero
+    id: XTOERTv2Q6D6IT6ab4ig
+    axis: character
+    kind: atomic
+    used: 9
+    criteria: "勇者が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+  - name: ケモ耳
+    slug: animal-ears
+    id: wKaIsUPE32dNjSspJoeq
+    axis: character
+    kind: atomic
+    used: 9
+    criteria: "ケモ耳が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+  - name: 巨乳エルフ
+    slug: busty-elf
+    id: EfpJVawy2gs5pMfTNWM7
+    axis: character
+    kind: compound
+    used: 7
+    criteria: "巨乳エルフが、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+    en: Big Boobs Elf
+  - name: 神
+    slug: deity
+    id: TpqCFFANOeMFxWpPPX6J
+    axis: character
+    kind: atomic
+    used: 6
+    criteria: "神が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+    en: God
+    absorbs: [女神]
+  - name: 王女
+    slug: princess
+    id: ahDYkjkpvU7NeBkmt8kO
+    axis: character
+    kind: atomic
+    used: 6
+    criteria: "王女が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+    en: Princess
+  - name: 巨乳神官
+    slug: busty-cleric
+    id: h5GHuCx3D9eWFUoeCQqb
+    axis: character
+    kind: compound
+    used: 4
+    criteria: "巨乳神官が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+    en: Big Boobs Priest
+  - name: ダークエルフ
+    slug: dark-elf
+    id: 01zOF0lycQouZbUSH7Xw
+    axis: character
+    kind: atomic
+    used: 3
+    criteria: "ダークエルフが、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+    en: Dark Elf
+  - name: 巨乳
+    slug: busty
+    id: WGCmasJuyGqiTAiMOFea
+    axis: character
+    kind: atomic
+    used: 3
+    criteria: "巨乳が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+  - name: 魔王
+    slug: demon-lord
+    id: rIPq5yBazJArUIZ1dm9e
+    axis: character
+    kind: atomic
+    used: 3
+    criteria: "魔王が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+    en: Demon King
+  - name: 王子
+    slug: prince
+    id: zg7xr8pqVQVcrQqWGq0U
+    axis: character
+    kind: atomic
+    used: 3
+    criteria: "王子が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+    en: Prince
+  - name: 魔王の娘
+    slug: demon-lord-daughter
+    id: Vwf6bIcwpT7Rxp9aS0D0
+    axis: character
+    kind: compound
+    used: 2
+    criteria: "魔王の娘が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+  - name: 喋る武器
+    slug: talking-weapon
+    id: Xilefo6Fdb8F55w1hpMN
+    axis: character
+    kind: atomic
+    used: 2
+    criteria: "喋る武器が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+  - name: 獣人
+    slug: beastfolk
+    id: kKk1Ylnjn2ah7pPKTLAz
+    axis: character
+    kind: atomic
+    used: 2
+    criteria: "獣人が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+  - name: 見た目幼女
+    slug: child-appearance
+    id: rmw02pe4zbEBmIcj0DWP
+    axis: character
+    kind: atomic
+    used: 2
+    criteria: "見た目幼女が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+  - name: 貧乳エルフ
+    slug: flat-elf
+    id: 4fEIjp2mgAjfWnifmGGH
+    axis: character
+    kind: compound
+    used: 1
+    criteria: "貧乳エルフが、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+  - name: 英雄
+    slug: acclaimed-hero
+    id: 8YCFZWcbTyql2kidCxwe
+    axis: character
+    kind: descriptor
+    used: 1
+    criteria: "英雄が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+    en: Here
+  - name: 魔族
+    slug: demonfolk
+    id: 8nLMpz9QNhx73EGiYcMX
+    axis: character
+    kind: atomic
+    used: 1
+    criteria: "魔族が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+    en: Demon
+  - name: 聖騎士
+    slug: paladin
+    id: 9F5XBleMtX6lwLLT0x2N
+    axis: character
+    kind: descriptor
+    used: 1
+    criteria: "聖騎士が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+    en: Holy Knight
+  - name: 精霊
+    slug: spirit
+    id: IY4jlovcY0OYlkVutwxn
+    axis: character
+    kind: atomic
+    used: 1
+    criteria: "精霊が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+  - name: むちむち太もも
+    slug: thick-thighs
+    id: QCk1TkpGWs0X1yyHPVxR
+    axis: character
+    kind: atomic
+    used: 1
+    criteria: "むちむち太ももが、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+  - name: 王
+    slug: king
+    id: imryBqGjcjEalZsiwklT
+    axis: character
+    kind: atomic
+    used: 1
+    criteria: "王が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+  - name: エルフ
+    slug: elf
+    id: r0m3xOENLJOTFW3aNdsk
+    axis: character
+    kind: atomic
+    used: 1
+    criteria: "エルフが、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+    en: Elf
+  - name: 団長
+    slug: commander
+    id: sERv3i5l9z3lqgCND7ol
+    axis: character
+    kind: descriptor
+    used: 1
+    criteria: "団長が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+  - name: 双子
+    slug: twins
+    id: sxy1ZcYCNOSYTrayqKIJ
+    axis: character
+    kind: atomic
+    used: 1
+    criteria: "双子が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+    en: Twins
+  - name: 吸血鬼
+    slug: vampire
+    id: tYrqVn5qAQI73LdfCTAI
+    axis: character
+    kind: atomic
+    used: 1
+    criteria: "吸血鬼が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+    en: Vampire
+  - name: 四天王
+    slug: four-generals
+    id: xYw6Fu3ihdPdr0jljvpc
+    axis: character
+    kind: descriptor
+    used: 1
+    criteria: "四天王が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+
+  # ── 手触り (6) ──
+  - name: エロ
+    slug: ecchi
+    id: CN4Dx7QkQZkveGQCrIYz
+    axis: mood
+    kind: descriptor
+    used: 4
+    criteria: "作品全体がエロとして読める"
+  - name: ゆるふわ
+    slug: gentle
+    id: EHvfc5vkXZu7EmVGfAm1
+    axis: mood
+    kind: descriptor
+    used: 3
+    criteria: "作品全体がゆるふわとして読める"
+  - name: ダークファンタジー
+    slug: dark
+    id: FYzraRkE1jwUpsakKc4E
+    axis: mood
+    kind: descriptor
+    used: 1
+    criteria: "作品全体がダークファンタジーとして読める"
+    en: Dark Fantasy
+  - name: 日常
+    slug: slice-of-life
+    id: GQad2QMq14F5y4vO8R1h
+    axis: mood
+    kind: descriptor
+    used: 0
+    criteria: "作品全体が日常として読める"
+    absorbs: [日常系]
+  - name: コメディ
+    slug: comedy
+    id: TRGPvfVvX3eEsrMX6KQr
+    axis: mood
+    kind: descriptor
+    used: 0
+    criteria: "作品全体がコメディとして読める"
+  - name: 青春
+    slug: coming-of-age
+    id: bSOybh6UtvFslUdJTmP9
+    axis: mood
+    kind: descriptor
+    used: 0
+    criteria: "作品全体が青春として読める"
+
+# タグをやめるもの。作品側の scope が引き継ぐ。
+retired:
+  - name: 異世界ファンタジー
+    used: 43
+    reason: "scope フィールドへ。43作品に付いており、このサイトに載っている、以上のことを言っていない"
+  - name: ファンタジー
+    used: 10
+    reason: "scope フィールドへ。異世界ファンタジーとの使い分けが曖昧なまま10作品に付いている"
+
+# 別のタグに畳むもの。付いている作品は畳んだ先へ移す。
+merged:
+  - from: エーテル
+    into: マナ
+    used: 1
+  - from: 魔法適性鑑定
+    into: 職業鑑定
+    used: 1
+  - from: 令嬢主人公
+    into: 貴族令嬢
+    used: 1
+  - from: 女神
+    into: 神
+    used: 1
+  - from: 日常系
+    into: 日常
+    used: 0
+
+# 複合タグは分解せず、原子タグも併せて付ける。
+# 巨乳剣士 の19作品には 巨乳 と 剣士 も付けて、
+# 「巨乳 かつ 剣士」の検索から漏れないようにする。
+compound_expansion:
+  - compound: 巨乳剣士
+    atoms: [巨乳, 剣士]
+  - compound: 巨乳メイド
+    atoms: [巨乳, メイド]
+  - compound: 巨乳エルフ
+    atoms: [巨乳, エルフ]
+  - compound: 巨乳神官
+    atoms: [巨乳, 神官]
+  - compound: 貧乳エルフ
+    atoms: [エルフ]
+  - compound: 魔王の娘
+    atoms: [魔王]
+
+# 分解のために新しく要るタグ。いまの語彙に無い。
+new_tags:
+  - name: 剣士
+    slug: swordsman
+    axis: profession
+    criteria: "キービジュアルまたは公式のキャラクター紹介に出る人物が、剣士を生業にしている"
+  - name: メイド
+    slug: maid
+    axis: profession
+    criteria: "キービジュアルまたは公式のキャラクター紹介に出る人物が、メイドを生業にしている"
+  - name: 神官
+    slug: cleric
+    axis: profession
+    criteria: "キービジュアルまたは公式のキャラクター紹介に出る人物が、神官を生業にしている"
+  - name: 冒険者
+    slug: adventurer
+    axis: profession
+    criteria: "キービジュアルまたは公式のキャラクター紹介に出る人物が、冒険者を生業にしている"
+  - name: 商人
+    slug: merchant
+    axis: profession
+    criteria: "キービジュアルまたは公式のキャラクター紹介に出る人物が、商人を生業にしている"
+  - name: 鍛冶師
+    slug: blacksmith
+    axis: profession
+    criteria: "キービジュアルまたは公式のキャラクター紹介に出る人物が、鍛冶師を生業にしている"
+  - name: 騎士
+    slug: knight
+    axis: profession
+    criteria: "キービジュアルまたは公式のキャラクター紹介に出る人物が、騎士を生業にしている"
+  - name: 魔法使い
+    slug: mage
+    axis: profession
+    criteria: "キービジュアルまたは公式のキャラクター紹介に出る人物が、魔法使いを生業にしている"
