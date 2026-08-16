@@ -1,8 +1,7 @@
-'use client'
-
 import React from 'react';
-import { Box, Typography, Skeleton } from '@mui/material';
-import useNews from '@/hooks/useNews';
+import { Box, Typography } from '@mui/material';
+import { getTranslations } from 'next-intl/server';
+import type { LatestNews } from '@/lib/news';
 
 const shellSx = {
   my: 1,
@@ -17,25 +16,13 @@ const shellSx = {
   textAlign: 'center',
 } as const;
 
-const NewsSection: React.FC = () => {
-  const { latestNews, loading, error } = useNews();
-
-  if (loading) {
-    return (
-      <Box sx={shellSx} aria-busy>
-        <Skeleton variant="text" width={64} height={20} sx={{ flexShrink: 0 }} />
-        <Skeleton variant="text" width="60%" height={20} sx={{ ml: 1 }} />
-      </Box>
-    );
-  }
-
-  // Keep the section in place when Firestore has no item or cannot be reached.
-  // Returning null on an error made the page jump after the loading skeleton.
-  if (error || !latestNews) {
+const NewsSection = async ({ latestNews }: { latestNews: LatestNews | null }) => {
+  const t = await getTranslations('news')
+  if (!latestNews) {
     return (
       <Box sx={shellSx}>
         <Typography variant="body2" noWrap>
-          最新のお知らせはありません
+          {t('empty')}
         </Typography>
       </Box>
     );
@@ -45,10 +32,10 @@ const NewsSection: React.FC = () => {
     <Box sx={shellSx}>
       <Typography
         variant="body2"
-        color="primary"
+        color="primary.dark"
         sx={{ fontWeight: 'bold', flexShrink: 0 }}
       >
-        お知らせ:
+        {t('label')}
       </Typography>
       <Typography
         variant="body2"

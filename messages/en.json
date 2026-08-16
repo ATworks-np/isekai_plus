@@ -31,7 +31,18 @@
     "currentCour": "This season",
     "thisSeason": "{cour} · rating #{rank}",
     "carousel": "This season's top 10 by rating",
+    "carouselPrevious": "Previous work",
+    "carouselNext": "Next work",
+    "carouselSlide": "Show work {n}",
+    "likeCount": "{count} likes",
+    "commentCount": "{count} comments",
+    "likeSignIn": "Sign in to like this work",
+    "likeFailed": "Could not update the like",
     "heading": "Isekai anime, listed and rated"
+  },
+  "news": {
+    "label": "News:",
+    "empty": "There are no announcements"
   },
   "tags": {
     "search": "Search tags…",

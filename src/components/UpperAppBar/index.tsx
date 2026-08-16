@@ -1,6 +1,7 @@
 'use client'
 
-import {AppBar, Avatar, Box, Divider, Toolbar, Typography, useScrollTrigger} from '@mui/material'
+import Image from 'next/image'
+import {AppBar, Avatar, Box, Toolbar, Typography} from '@mui/material'
 import React, {useEffect, useState} from 'react'
 import SearchIcon from '@mui/icons-material/Search'
 import IconButton from '@mui/material/IconButton'
@@ -8,7 +9,6 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import { useAtom } from 'jotai'
 import { searchModalAtom } from '@/stores/serchModalState'
 import { loginModalAtom } from '@/stores/loginModalState'
-import { userAtom } from '@/stores/userStore'
 import Stack from '@mui/material/Stack'
 import useUser from '@/hooks/useUser'
 import {alpha, styled} from "@mui/material/styles";
@@ -17,7 +17,6 @@ import MenuItem from '@mui/material/MenuItem';
 import EditIcon from '@mui/icons-material/Edit';
 import {api} from "@/Routes/routs";
 import Link from "next/link";
-import User from "@/models/entities/user";
 import { useRouter } from 'next/navigation'
 import LocaleSwitch from '@/components/LocaleSwitch'
 import { useTranslations } from 'next-intl'
@@ -69,14 +68,20 @@ const UpperAppBar: React.FC = props => {
   const site = useTranslations('site')
   const [openSerchModal, setOpenSerchModal] = useAtom<boolean>(searchModalAtom)
   const [loginOpen, setLoginOpen] = useAtom<boolean>(loginModalAtom)
-  const { user, setUser } = useUser()
+  const { user, initialize } = useUser({ defer: true })
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const router = useRouter()
 
 
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
+  const handleClick = async (event: React.MouseEvent<HTMLElement>) => {
+    const anchor = event.currentTarget
+    const resolved = await initialize()
+    if (!resolved.isAuthenticated()) {
+      router.push('/login')
+      return
+    }
+    setAnchorEl(anchor)
   };
   const handleClose = () => {
     setAnchorEl(null);
@@ -99,19 +104,17 @@ const UpperAppBar: React.FC = props => {
                 overflow: 'visible',
               }}
            >
-              <Box
-                component="img"
-                src="/logo.png"
+              <Image
+                src="/logo-header.webp"
                 alt={site('searchName')}
-                sx={{
+                width={252}
+                height={72}
+                sizes="126px"
+                style={{
+                  width: 126,
                   height: 36,
-                  width: 'auto',
-                  display: 'block',
-                  // 画像文字の縁を白くぼかす（白グロー）
-                  filter:
-                    'drop-shadow(0 0 2px rgba(255,255,255,1)) drop-shadow(0 0 1px rgba(255,255,255,1))',
-                  position: 'relative',
-                  zIndex: 1,
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 0 2px rgba(255,255,255,1)) drop-shadow(0 0 1px rgba(255,255,255,1))',
                 }}
               />
             </Box>
@@ -125,18 +128,14 @@ const UpperAppBar: React.FC = props => {
             </IconButton>
           </Box>
 
-          {user.props?.token !=='' && <Stack direction="row" alignItems="center">
-            <Typography>{user.props?.displayName}</Typography>
+          <Stack direction="row" alignItems="center">
+            {user.props?.isAuthenticated && <Typography>{user.props?.displayName}</Typography>}
             <IconButton aria-label="account" onClick={(event) => {
-              if (!user.props?.isAuthenticated) {
-                router.push('/login')
-              } else {
-                handleClick(event)
-              }
+              void handleClick(event)
             }}>
               {user.props?.isAuthenticated ? <Avatar alt={user.props?.displayName ?? ''} src={user.props.photoURL??''} sx={{ width: 28, height: 28 }} /> : <AccountCircleIcon />}
             </IconButton>
-          </Stack>}
+          </Stack>
         </Toolbar>
         <StyledMenu
           id="demo-customized-menu"

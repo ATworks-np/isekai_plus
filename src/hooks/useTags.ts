@@ -1,11 +1,7 @@
 'use client'
 
 import { useCallback, useEffect } from 'react'
-import { getAuth } from 'firebase/auth'
 import { useAtom } from 'jotai'
-import User from '@/models/entities/user'
-import {collection, doc, getDoc, getDocs} from 'firebase/firestore'
-import { db } from '@/firebase'
 import {tagsAtom} from "@/stores/tagStore";
 
 /**

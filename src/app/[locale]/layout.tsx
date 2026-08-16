@@ -50,8 +50,8 @@ export async function generateMetadata({
       ),
     },
     icons: {
-      icon: { url: '/logo_tate_512.png', type: 'image/png', sizes: '512x512' },
-      apple: { url: '/logo_tate_512.png', type: 'image/png', sizes: '512x512' },
+      icon: { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+      apple: { url: '/apple-touch-icon.png', type: 'image/png', sizes: '180x180' },
     },
     openGraph: {
       type: 'website',
@@ -107,6 +107,9 @@ export default async function RootLayout({
 
   return (
     <html lang={locale}>
+    <head>
+      <link rel="preconnect" href="https://storage.googleapis.com" crossOrigin="anonymous" />
+    </head>
     <body>
     <script
       type="application/ld+json"
@@ -120,7 +123,7 @@ export default async function RootLayout({
           <CssBaseline/>
           <UpperAppBar/>
           <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-            <Box sx={{ flex: 1 }}>
+            <Box component="main" sx={{ flex: 1 }}>
           {children}
             </Box>
           </Box>

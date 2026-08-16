@@ -3,6 +3,10 @@ const QUARTER_LABELS = {
   en: ['Winter', 'Spring', 'Summer', 'Fall'],
 } as const
 
+/** The cour containing the supplied date, in the key used by Firestore. */
+export const currentCourKey = (date = new Date()) =>
+  `${date.getFullYear()}-Q${Math.floor(date.getMonth() / 3) + 1}`
+
 /** 2023-Q4 -> 2023年秋 / Fall 2023. Returns null for anything that is not a cour. */
 export const courLabel = (cour: string, locale = 'ja'): string | null => {
   const match = /^(\d{4})-Q([1-4])$/.exec(cour)

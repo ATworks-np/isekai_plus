@@ -31,7 +31,18 @@
     "currentCour": "今期",
     "thisSeason": "{cour} 評価 TOP {rank}",
     "carousel": "今季評価トップ10",
+    "carouselPrevious": "前の作品",
+    "carouselNext": "次の作品",
+    "carouselSlide": "{n}番目の作品を表示",
+    "likeCount": "いいね {count}",
+    "commentCount": "コメント {count}",
+    "likeSignIn": "いいねするにはログインしてください",
+    "likeFailed": "いいねの更新に失敗しました",
     "heading": "いせかいぷらす（異世界ぷらす） - 異世界アニメ作品一覧と評価"
+  },
+  "news": {
+    "label": "お知らせ:",
+    "empty": "最新のお知らせはありません"
   },
   "tags": {
     "search": "タグを検索...",

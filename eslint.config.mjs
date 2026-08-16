@@ -6,7 +6,7 @@ const config = [
     // next lint scoped itself to the app source. The bare eslint CLI does not,
     // so keep build output and the Cloud Functions codebase (CommonJS, with its
     // own eslint.config.mjs) out of this config's reach.
-    ignores: ["functions/**", ".next/**", "out/**", ".firebase/**"],
+    ignores: ["functions/**", ".next/**", "out/**", ".firebase/**", ".cache/**"],
   },
   ...coreWebVitals,
   ...typescript,

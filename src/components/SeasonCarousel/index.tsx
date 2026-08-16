@@ -1,394 +1,231 @@
 'use client'
 
-import React, { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { Box, Stack, Typography, useTheme, IconButton, Skeleton } from '@mui/material'
+import React, { useEffect, useState } from 'react'
+import Image from 'next/image'
+import { Box, ButtonBase, IconButton, Stack, Typography, useTheme } from '@mui/material'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import { getThumbnailURL, getAnimeURL } from '@/utils/url'
-import StarRating from '@/components/StarRating'
 import { Link } from '@/i18n/navigation'
-import { useLocale, useTranslations } from 'next-intl'
+import StarRating from '@/components/StarRating'
+import type { AnimeListEntry } from '@/models/animeList'
 import { courLabel } from '@/utils/cour'
-
-type AnimeItem = {
-  id: string
-  name: { ja: string; en?: string }
-  thumbnail: string
-  cours: string[]
-  rating?: number
-}
-
-const getCurrentCoursKey = () => {
-  const currentYear = new Date().getFullYear()
-  const currentMonth = new Date().getMonth() + 1
-  const currentQuarterIndex = Math.floor((currentMonth - 1) / 3) // 0..3
-  return `${currentYear}-Q${currentQuarterIndex + 1}`
-}
-
-type SeasonCarouselProps = {
-  // 外部から明示的にスケルトン表示を強制したい場合に使用
-  // true のときはデータ状態に関わらずスケルトンUIを描画します
-  skeleton?: boolean
-}
-
-const subscribeToReducedMotion = (onStoreChange: () => void) => {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return () => {}
-  const query = window.matchMedia('(prefers-reduced-motion: reduce)')
-  query.addEventListener('change', onStoreChange)
-  return () => query.removeEventListener('change', onStoreChange)
-}
-
-const getReducedMotionSnapshot = () =>
-  typeof window !== 'undefined' &&
-  typeof window.matchMedia === 'function' &&
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-const getServerReducedMotionSnapshot = () => false
+import { useLocale, useTranslations } from 'next-intl'
 
 const HERO_HEIGHT = { xs: 320, sm: 340, md: 360 } as const
 
-const SeasonCarousel: React.FC<SeasonCarouselProps> = ({ skeleton = false }) => {
+type SeasonCarouselProps = {
+  initialItems: AnimeListEntry[]
+  currentCour: string
+}
+
+const thumbnailFor = (anime: AnimeListEntry, currentCour: string) =>
+  anime.seasons.find(season => season.cours.includes(currentCour))?.thumbnailUrl ??
+  anime.thumbnailUrl
+
+/**
+ * Interactive shell around server-provided carousel data.
+ *
+ * The first image is an actual high-priority image in the initial HTML. Only
+ * the active slide is rendered, so ten invisible CSS backgrounds no longer
+ * compete with the LCP request.
+ */
+const SeasonCarousel: React.FC<SeasonCarouselProps> = ({ initialItems, currentCour }) => {
   const t = useTranslations('list')
   const locale = useLocale()
   const theme = useTheme()
-  const [animes, setAnimes] = useState<AnimeItem[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
-  const [rawIndex, setIndex] = useState<number>(0)
-  const [isHovering, setIsHovering] = useState<boolean>(false)
-  const [isPointerDown, setIsPointerDown] = useState<boolean>(false)
+  const [index, setIndex] = useState(0)
+  const [paused, setPaused] = useState(false)
   const [dragStartX, setDragStartX] = useState<number | null>(null)
-  const intervalRef = useRef<number | null>(null)
-  // The server snapshot is stable for hydration; React then reads and
-  // subscribes to the reader's actual browser preference.
-  const prefersReducedMotion = useSyncExternalStore(
-    subscribeToReducedMotion,
-    getReducedMotionSnapshot,
-    getServerReducedMotionSnapshot
-  )
+  const [preloadNext, setPreloadNext] = useState(false)
 
-  const currentCours = useMemo(() => getCurrentCoursKey(), [])
+  const count = initialItems.length
+  const activeIndex = count ? index % count : 0
+  const active = initialItems[activeIndex]
+  const next = count > 1 ? initialItems[(activeIndex + 1) % count] : undefined
 
   useEffect(() => {
-    const params = new URLSearchParams({ sort: 'rating', cour: currentCours, limit: '10' })
-    fetch(`/api/v1/animes/?${params}`)
-      .then((response) => {
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
-        return response.json()
-      })
-      .then((data: { items?: AnimeItem[] }) => {
-        setAnimes(data.items ?? [])
-      })
-      .catch((e) => console.error(e))
-      .finally(() => setLoading(false))
-  }, [currentCours])
+    if (count <= 1 || paused) return
+    const timer = window.setInterval(() => setIndex(value => (value + 1) % count), 5000)
+    return () => window.clearInterval(timer)
+  }, [count, paused])
 
-  // Already this season's top ten from the list API.
-  const currentSeasonAnimes = animes
-
-  // Clamped while rendering rather than corrected afterwards: an effect would
-  // paint one frame with an index past the end of a shortened list.
-  const index = currentSeasonAnimes.length > 0 && rawIndex >= currentSeasonAnimes.length ? 0 : rawIndex
-
-  // Auto-play every 5s, pause on hover (mouse only), while dragging, or when tab hidden
+  // The next small poster starts only after the initial page and LCP resource
+  // have loaded. It keeps navigation responsive without joining the critical
+  // request queue.
   useEffect(() => {
-    // Cleanup existing timer before possibly creating a new one
-    if (intervalRef.current) {
-      window.clearInterval(intervalRef.current)
-      intervalRef.current = null
+    const start = () => window.setTimeout(() => setPreloadNext(true), 500)
+    if (document.readyState === 'complete') {
+      const timer = start()
+      return () => window.clearTimeout(timer)
     }
-
-    if (loading || currentSeasonAnimes.length <= 1) return
-    if (isHovering || isPointerDown) return
-    if (prefersReducedMotion) return
-    if (typeof document !== 'undefined' && document.hidden) return
-
-    intervalRef.current = window.setInterval(() => {
-      setIndex((prev) => (prev + 1) % currentSeasonAnimes.length)
-    }, 5000)
-
-    return () => {
-      if (intervalRef.current) {
-        window.clearInterval(intervalRef.current)
-        intervalRef.current = null
-      }
-    }
-  }, [loading, currentSeasonAnimes.length, isHovering, isPointerDown, prefersReducedMotion])
-
-  // Pause/resume on tab visibility change
-  useEffect(() => {
-    const onVisibility = () => {
-      // trigger the autoplay effect to reevaluate
-      setIsHovering((h) => h)
-    }
-    if (typeof document !== 'undefined') {
-      document.addEventListener('visibilitychange', onVisibility)
-    }
-    return () => {
-      if (typeof document !== 'undefined') {
-        document.removeEventListener('visibilitychange', onVisibility)
-      }
-    }
+    window.addEventListener('load', start, { once: true })
+    return () => window.removeEventListener('load', start)
   }, [])
 
-  const goNext = () => {
-    if (currentSeasonAnimes.length === 0) return
-    setIndex((prev) => (prev + 1) % currentSeasonAnimes.length)
-  }
-  const goPrev = () => {
-    if (currentSeasonAnimes.length === 0) return
-    setIndex((prev) => (prev - 1 + currentSeasonAnimes.length) % currentSeasonAnimes.length)
+  if (!active) {
+    return <Box sx={{ width: '100%', height: HERO_HEIGHT, bgcolor: 'background.default' }} />
   }
 
-  // Basic swipe handling (mouse/touch)
-  const onPointerDown = (clientX: number) => {
-    setIsPointerDown(true)
-    setDragStartX(clientX)
+  const imageUrl = thumbnailFor(active, currentCour)
+  const title = (locale === 'ja' ? active.name.ja : active.name.en?.trim() || active.name.ja) ?? ''
+
+  const go = (direction: 1 | -1) => {
+    if (count <= 1) return
+    setIndex(value => (value + direction + count) % count)
   }
-  const onPointerUp = (clientX: number | null) => {
-    if (!isPointerDown) return
-    setIsPointerDown(false)
-    if (dragStartX == null || clientX == null) return
-    const dx = clientX - dragStartX
-    const threshold = 40 // px
-    if (dx > threshold) {
-      goPrev()
-    } else if (dx < -threshold) {
-      goNext()
-    }
+
+  const endDrag = (clientX: number) => {
+    if (dragStartX === null) return
+    const delta = clientX - dragStartX
+    if (delta > 40) go(-1)
+    if (delta < -40) go(1)
     setDragStartX(null)
   }
-  const onPointerMove = (clientX: number) => {
-    // We don't do drag translate visuals to keep it simple; only evaluate on release
-  }
-
-  // skeleton の有効判定
-  const skeletonActive = skeleton || loading
-
-  // スケルトン表示
-  if (skeletonActive) {
-    return (
-      <Box
-        role="region"
-        aria-roledescription="carousel"
-        aria-label={t('carousel')}
-        aria-busy={true}
-        sx={{
-          //padding: '100px',
-          width: '100%',
-          height: HERO_HEIGHT,
-          maxHeight: 360,
-          position: 'relative',
-          borderRadius: 0,
-          overflow: 'hidden',
-          bgcolor: 'background.default',
-        }}
-      >
-        {/* 背景の代替（薄いぼかし風の面） */}
-
-        <Stack
-          direction="row"
-          spacing={2}
-          sx={{
-            width: '100px',
-            margin: '16px 0px',
-            position: 'relative',
-            zIndex: 1,
-            height: '100%',
-            alignItems: 'center',
-            px: 2,
-          }}
-        >
-          {/* 左サムネ サイズ合わせ */}
-          <Skeleton
-            variant="rounded"
-            sx={{ width: 160, height: 220, borderRadius: '12px', flex: '0 0 auto' }}
-          />
-
-          {/* 右テキスト領域 */}
-          <Box sx={{ flex: '1 1 auto' }}>
-            <Skeleton variant="text" width="80%" height={28} />
-            <Skeleton variant="text" width="70%" height={28} />
-            <Box sx={{ mt: 0.5 }}>
-              <Skeleton variant="rounded" width={120} height={18} />
-            </Box>
-            <Box sx={{ mt: 0.5 }}>
-              <Skeleton variant="text" width={100} height={18} />
-            </Box>
-          </Box>
-        </Stack>
-      </Box>
-    )
-  }
-
-  // データは読み込み済みだが今季対象が0件の場合は非表示
-  if (currentSeasonAnimes.length === 0) return null
 
   return (
     <Box
       role="region"
       aria-roledescription="carousel"
       aria-label={t('carousel')}
+      onPointerEnter={event => event.pointerType === 'mouse' && setPaused(true)}
+      onPointerLeave={event => {
+        if (event.pointerType === 'mouse') setPaused(false)
+        setDragStartX(null)
+      }}
+      onPointerDown={event => setDragStartX(event.clientX)}
+      onPointerUp={event => endDrag(event.clientX)}
       sx={{
-        padding: '100px',
         width: '100%',
-        // 明示的な高さを指定し、絶対配置の子要素で高さ0にならないようにする
         height: HERO_HEIGHT,
         maxHeight: 360,
         position: 'relative',
-        borderRadius: 0,
         overflow: 'hidden',
+        touchAction: 'pan-y',
       }}
-      // Hover pause: only for mouse pointers
-      onPointerEnter={(e) => {
-        if ((e as React.PointerEvent).pointerType === 'mouse') setIsHovering(true)
-      }}
-      onPointerLeave={(e) => {
-        if ((e as React.PointerEvent).pointerType === 'mouse') setIsHovering(false)
-      }}
-      onTouchStart={(e) => onPointerDown(e.touches[0].clientX)}
-      onTouchEnd={(e) => onPointerUp(e.changedTouches[0]?.clientX ?? null)}
-      onMouseDown={(e) => onPointerDown(e.clientX)}
-      onMouseUp={(e) => onPointerUp(e.clientX)}
     >
-      {/* Slides (cross-fade) */}
-      {currentSeasonAnimes.map((anime, i) => {
-        const active = i === index
-        const bgUrl = getThumbnailURL(anime.id)
-        return (
+      <Box sx={{ position: 'absolute', inset: -24 }}>
+        <Image
+          key={`background-${active.id}`}
+          src={imageUrl}
+          alt=""
+          fill
+          priority={activeIndex === 0}
+          fetchPriority={activeIndex === 0 ? 'high' : 'auto'}
+          sizes="100vw"
+          quality={40}
+          style={{ objectFit: 'cover', filter: 'blur(28px)', transform: 'scale(1.08)' }}
+        />
+        <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(16,28,32,0.28)' }} />
+      </Box>
+
+      <Link href={`/animes/${active.id}`} style={{ textDecoration: 'none' }}>
+        <Stack
+          direction="row"
+          spacing={{ xs: 1.5, sm: 2 }}
+          sx={{
+            position: 'relative',
+            zIndex: 1,
+            height: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+            px: { xs: 4.25, sm: 7 },
+            cursor: 'pointer',
+          }}
+        >
           <Box
-            key={anime.id}
-            aria-hidden={!active}
             sx={{
-              position: 'absolute',
-              inset: 0,
-              height: '100%',
-              transition: 'opacity 600ms ease',
-              opacity: active ? 1 : 0,
-              // 非アクティブスライドがクリックをブロックしないようにする
-              pointerEvents: active ? 'auto' : 'none',
+              position: 'relative',
+              width: { xs: 132, sm: 160 },
+              height: { xs: 198, sm: 220 },
+              borderRadius: '12px',
+              overflow: 'hidden',
+              boxShadow: 3,
+              flex: '0 0 auto',
             }}
           >
-            {/* Blurred background */}
-            <Box
-              sx={{
-                position: 'absolute',
-                inset: 0,
-                backgroundImage: `url(${bgUrl})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                filter: 'blur(50px)',
-                transform: 'scale(1.1)',
-                margin: '50px',
-              }}
+            <Image
+              key={`poster-${active.id}`}
+              src={imageUrl}
+              alt={title}
+              fill
+              sizes="(max-width: 600px) 132px, 160px"
+              quality={78}
+              style={{ objectFit: 'cover' }}
             />
-
-            {/* Foreground content (clickable to detail page) */}
-            <Link
-              href={getAnimeURL(anime.id)}
-              style={{ textDecoration: 'none' }}
-              aria-label={`${anime.name?.ja || anime.name?.en} の詳細ページへ`}
-            >
-              <Stack
-                direction="row"
-                spacing={2}
-                sx={{
-                  margin: '16px 0px',
-                  position: 'relative',
-                  zIndex: 1,
-                  height: '100%',
-                  alignItems: 'center',
-                  px: 2,
-                  cursor: 'pointer',
-                }}
-              >
-                {/* Left thumbnail */}
-                <Box
-                  sx={{
-                    width: 160,
-                    height: 220,
-                    borderRadius: '12px',
-                    backgroundImage: `url(${bgUrl})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    boxShadow: 3,
-                    flex: '0 0 auto',
-                  }}
-                  aria-label={`thumbnail ${anime.name.ja}`}
-                />
-
-                {/* Right title */}
-                <Box sx={{ color: theme.palette.common.white, overflow: 'hidden', flex: '1 1 auto' }}>
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: 700,
-                      overflow: 'hidden',
-                      display: '-webkit-box',
-                      WebkitBoxOrient: 'vertical',
-                      WebkitLineClamp: 2,
-                      textOverflow: 'ellipsis',
-                      wordBreak: 'break-word',
-                    }}
-                  >
-                    {anime.name?.ja || anime.name?.en}
-                  </Typography>
-                  {/* Rating stars under the title */}
-                  <Box sx={{ mt: 0.5 }}>
-                    <StarRating rating={anime.rating ?? 0} sx={{ fontSize: 18}} />
-                  </Box>
-                  <Typography variant="caption" sx={{ opacity: 0.8 }}>
-                    {t('thisSeason', {
-                      cour: courLabel(currentCours, locale) ?? currentCours,
-                      rank: i + 1,
-                    })}
-                  </Typography>
-                </Box>
-              </Stack>
-            </Link>
           </Box>
-        )
-      })}
 
-      {/* Nav buttons */}
-      {currentSeasonAnimes.length > 1 && (
+          <Box sx={{ color: theme.palette.common.white, overflow: 'hidden', maxWidth: 420 }}>
+            <Typography
+              component="h2"
+              variant="h6"
+              sx={{
+                fontWeight: 700,
+                overflow: 'hidden',
+                display: '-webkit-box',
+                WebkitBoxOrient: 'vertical',
+                WebkitLineClamp: 2,
+                textOverflow: 'ellipsis',
+                wordBreak: 'break-word',
+                textShadow: '0 1px 4px rgba(0,0,0,0.55)',
+              }}
+            >
+              {title}
+            </Typography>
+            <Box sx={{ mt: 0.5 }}>
+              <StarRating rating={active.rating ?? 0} sx={{ fontSize: 18 }} />
+            </Box>
+            <Typography variant="caption" sx={{ opacity: 0.9 }}>
+              {t('thisSeason', {
+                cour: courLabel(currentCour, locale) ?? currentCour,
+                rank: activeIndex + 1,
+              })}
+            </Typography>
+          </Box>
+        </Stack>
+      </Link>
+
+      {count > 1 && (
         <>
           <IconButton
-            aria-label="前へ"
-            onClick={goPrev}
-            sx={{ position: 'absolute', top: '50%', left: 8, transform: 'translateY(-50%)', color: 'white', bgcolor: 'rgba(0,0,0,0.3)', '&:hover': { bgcolor: 'rgba(0,0,0,0.5)' }, zIndex: 2 }}
+            aria-label={t('carouselPrevious')}
+            onClick={() => go(-1)}
+            sx={{ position: 'absolute', top: '50%', left: 4, transform: 'translateY(-50%)', color: 'white', bgcolor: 'rgba(0,0,0,0.35)', zIndex: 2 }}
           >
             <ChevronLeftIcon />
           </IconButton>
           <IconButton
-            aria-label="次へ"
-            onClick={goNext}
-            sx={{ position: 'absolute', top: '50%', right: 8, transform: 'translateY(-50%)', color: 'white', bgcolor: 'rgba(0,0,0,0.3)', '&:hover': { bgcolor: 'rgba(0,0,0,0.5)' }, zIndex: 2 }}
+            aria-label={t('carouselNext')}
+            onClick={() => go(1)}
+            sx={{ position: 'absolute', top: '50%', right: 4, transform: 'translateY(-50%)', color: 'white', bgcolor: 'rgba(0,0,0,0.35)', zIndex: 2 }}
           >
             <ChevronRightIcon />
           </IconButton>
+          <Stack direction="row" spacing={0.25} sx={{ position: 'absolute', bottom: 4, left: 0, right: 0, justifyContent: 'center', zIndex: 2 }}>
+            {initialItems.map((anime, slideIndex) => (
+              <ButtonBase
+                key={anime.id}
+                aria-label={t('carouselSlide', { n: slideIndex + 1 })}
+                aria-current={slideIndex === activeIndex ? 'true' : undefined}
+                onClick={() => setIndex(slideIndex)}
+                sx={{ width: 28, height: 28, borderRadius: '50%' }}
+              >
+                <Box sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: slideIndex === activeIndex ? 'primary.main' : 'rgba(255,255,255,0.7)', boxShadow: 1 }} />
+              </ButtonBase>
+            ))}
+          </Stack>
         </>
       )}
 
-      {/* Indicators */}
-      {currentSeasonAnimes.length > 1 && (
-        <Stack direction="row" spacing={1} sx={{ position: 'absolute', bottom: 8, left: 0, right: 0, justifyContent: 'center', zIndex: 2, pointerEvents: 'auto' }}>
-          {currentSeasonAnimes.map((_, i) => (
-            <Box
-              key={i}
-              onClick={() => setIndex(i)}
-              role="button"
-              aria-label={`スライド ${i + 1}`}
-              sx={{
-                width: 10,
-                height: 10,
-                borderRadius: '50%',
-                bgcolor: i === index ? 'primary.main' : 'rgba(255,255,255,0.6)',
-                cursor: 'pointer',
-                boxShadow: 1,
-              }}
-            />
-          ))}
-        </Stack>
+      {preloadNext && next && (
+        <Image
+          src={thumbnailFor(next, currentCour)}
+          alt=""
+          width={160}
+          height={220}
+          sizes="160px"
+          quality={70}
+          style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
+        />
       )}
     </Box>
   )
