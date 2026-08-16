@@ -136,7 +136,7 @@ tags:
     used: 0
     criteria: "不死ループが物語の始まり方である"
 
-  # ── 力・世界のルール (11) ──
+  # ── 力・世界のルール (13) ──
   - name: 魔法
     slug: magic
     id: ArXmF8m4kuFkFKwN3HYF
@@ -177,7 +177,6 @@ tags:
     used: 3
     criteria: "マナが作中の力の仕組みとして繰り返し描かれる。一度出るだけでは付けない"
     en: Mana
-    absorbs: [エーテル]
   - name: 補助魔法
     slug: support-magic
     id: tunIaKvgB0FUp9AqpyxY
@@ -203,14 +202,21 @@ tags:
     criteria: "レベルが作中の力の仕組みとして繰り返し描かれる。一度出るだけでは付けない"
     en: Level
   - name: 職業鑑定
-    slug: appraisal-rite
+    slug: class-appraisal
     id: 875jkFcaWqkvzyyYjubR
     axis: power
     kind: atomic
     used: 1
     criteria: "職業鑑定が作中の力の仕組みとして繰り返し描かれる。一度出るだけでは付けない"
     en:  Occupational Appraisal
-    absorbs: [魔法適性鑑定]
+  - name: エーテル
+    slug: aether
+    id: FrrCXcXDlfnhaL0ezEwd
+    axis: power
+    kind: atomic
+    used: 1
+    criteria: "エーテルが作中の力の仕組みとして繰り返し描かれる。一度出るだけでは付けない"
+    en: Ether
   - name: 隠れスキル
     slug: hidden-skill
     id: pYHk15TDUeOUE05TkRRY
@@ -219,6 +225,13 @@ tags:
     used: 1
     criteria: "隠れスキルが作中の力の仕組みとして繰り返し描かれる。一度出るだけでは付けない"
     en: Hidden Skill
+  - name: 魔法適性鑑定
+    slug: magic-aptitude-appraisal
+    id: uHEefx5BcdR6HAzvqPDa
+    axis: power
+    kind: atomic
+    used: 1
+    criteria: "魔法適性鑑定が作中の力の仕組みとして繰り返し描かれる。一度出るだけでは付けない"
   - name: 加護
     slug: divine-blessing
     id: whIR6Y43YqcPOhRu82qn
@@ -495,7 +508,7 @@ tags:
     criteria: "商人ギルドが舞台の一部として繰り返し出る。名前が一度出るだけでは付けない"
     en: Merchant Guild
 
-  # ── キャラクター (30) ──
+  # ── キャラクター (31) ──
   - name: 巨乳剣士
     slug: busty-swordswoman
     id: HoKsHT1bHn7GZE7VHKAB
@@ -559,7 +572,6 @@ tags:
     used: 6
     criteria: "神が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
     en: God
-    absorbs: [女神]
   - name: 王女
     slug: princess
     id: ahDYkjkpvU7NeBkmt8kO
@@ -680,6 +692,14 @@ tags:
     kind: atomic
     used: 1
     criteria: "むちむち太ももが、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+  - name: 女神
+    slug: goddess
+    id: aIRxQEztw3bQYObBn0Vw
+    axis: character
+    kind: atomic
+    used: 1
+    criteria: "女神が、キービジュアルまたは公式サイトのキャラクター紹介に出てくる人物にいる"
+    en: Goddess
   - name: 王
     slug: king
     id: imryBqGjcjEalZsiwklT
@@ -783,17 +803,8 @@ retired:
 
 # 別のタグに畳むもの。付いている作品は畳んだ先へ移す。
 merged:
-  - from: エーテル
-    into: マナ
-    used: 1
-  - from: 魔法適性鑑定
-    into: 職業鑑定
-    used: 1
   - from: 令嬢主人公
     into: 貴族令嬢
-    used: 1
-  - from: 女神
-    into: 神
     used: 1
   - from: 日常系
     into: 日常

@@ -79,7 +79,9 @@ const MAP = {
   補助魔法: ['power', 'support-magic', 'atomic'],
   不死身: ['power', 'immortal', 'atomic'],
   レベル: ['power', 'levels', 'atomic'],
-  職業鑑定: ['power', 'appraisal-rite', 'atomic'],
+  職業鑑定: ['power', 'class-appraisal', 'atomic'],
+  魔法適性鑑定: ['power', 'magic-aptitude-appraisal', 'atomic'],
+  エーテル: ['power', 'aether', 'atomic'],
   隠れスキル: ['power', 'hidden-skill', 'atomic'],
   加護: ['power', 'divine-blessing', 'atomic'],
 
@@ -136,6 +138,7 @@ const MAP = {
   双子: ['character', 'twins', 'atomic'],
   ハーレム: ['character', 'harem', 'atomic'],
   神: ['character', 'deity', 'atomic'],
+  女神: ['character', 'goddess', 'atomic'],
   エルフ: ['character', 'elf', 'atomic'],
   ダークエルフ: ['character', 'dark-elf', 'atomic'],
   獣人: ['character', 'beastfolk', 'atomic'],
@@ -170,12 +173,16 @@ const RETIRED = {
   ファンタジー: 'scope フィールドへ。異世界ファンタジーとの使い分けが曖昧なまま10作品に付いている',
 }
 
-/** Names folded into another tag, which keeps the works. */
+/**
+ * Names folded into another tag, which keeps the works.
+ *
+ * Only the two that are the same thing said twice. エーテル and マナ, 女神 and 神,
+ * 魔法適性鑑定 and 職業鑑定 read like duplicates from the criteria alone, but each
+ * pair names two things a reader would not swap — a rite that measures aptitude
+ * for magic is not one that assigns a class — so they stay apart.
+ */
 const MERGED = {
-  エーテル: 'マナ',
-  魔法適性鑑定: '職業鑑定',
   令嬢主人公: '貴族令嬢',
-  女神: '神',
   日常系: '日常',
 }
 
