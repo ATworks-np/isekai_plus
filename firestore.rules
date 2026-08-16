@@ -33,6 +33,14 @@ service cloud.firestore {
         allow write: if isAdmin();
       }
 
+      // Tags a script has proposed and nobody has approved yet. Admin-only in
+      // both directions: this is what a model said, not what the site says, and
+      // the read above does not reach here — a subcollection is unmatched, and
+      // therefore denied, until it is named.
+      match /tagProposals/{document=**} {
+        allow read, write: if isAdmin();
+      }
+
       // API key hashes. Unmatched paths are denied by default, but state it
       // explicitly: these must only ever be touched by the Admin SDK from the
       // route handlers, never by a client.

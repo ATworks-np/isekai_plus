@@ -61,6 +61,7 @@ const TagReview: React.FC = () => {
   const [saving, setSaving] = React.useState<boolean>(false)
   const [dropped, setDropped] = React.useState<Set<string>>(new Set())
   const [done, setDone] = React.useState<number>(0)
+  const [failure, setFailure] = React.useState<string>('')
 
   // Read once on mount. The queue shrinks from here as each work is answered,
   // so there is nothing to re-read until the page is opened again.
@@ -68,7 +69,18 @@ const TagReview: React.FC = () => {
     let cancelled = false
 
     const load = async () => {
-      const snapshot = await getDocs(collection(db, QUEUE_PATH))
+      let snapshot
+      try {
+        snapshot = await getDocs(collection(db, QUEUE_PATH))
+      } catch (error) {
+        // Saying so beats a skeleton that never resolves, which is what a
+        // denied read looked like before this collection had a rule.
+        if (!cancelled) {
+          setFailure(error instanceof Error ? error.message : String(error))
+          setLoading(false)
+        }
+        return
+      }
       if (cancelled) return
       setQueue(
         snapshot.docs
@@ -153,6 +165,15 @@ const TagReview: React.FC = () => {
           ))}
         </Stack>
         <Skeleton variant="rectangular" height={40} />
+      </Stack>
+    )
+  }
+
+  if (failure) {
+    return (
+      <Stack spacing={1} sx={{ py: 4 }} alignItems="center">
+        <Typography variant="h6">レビュー待ちを読めませんでした</Typography>
+        <Typography variant="body2" color="text.secondary">{failure}</Typography>
       </Stack>
     )
   }
